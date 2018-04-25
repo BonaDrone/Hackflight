@@ -75,11 +75,6 @@ namespace hf {
             // Used to read all 14 bytes at once from the MPU9250 accel/gyro
             int16_t imuData[7] = {0,0,0,0,0,0,0};
 
-            // XXX maybe we can declare these in getGyrometer()
-            float ax=0, ay=0, az=0;
-            float gx=0, gy=0, gz=0;
-            float mx=0, my=0, mz=0;
-
             // Global constants for 9 DoF fusion and AHRS (Attitude and Heading Reference System)
             const float GyroMeasError = M_PI * (40.0f / 180.0f); // gyroscope measurement error in rads/s (start at 40 deg/s)
             const float GyroMeasDrift = M_PI * (0.0f  / 180.0f); // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
@@ -99,6 +94,14 @@ namespace hf {
             float magBias[3]         = {0,0,0};
             float magScale[3]        = {1,1,1};      
             float magCalibration[3]  = {1,1,1};      
+
+            // Helpers -----------------------------------------------------------------------------------
+
+            // Raw analog-to-digital values converted to radians per second
+            float adc2rad(int16_t adc) 
+            {
+                return adc * gRes * M_PI / 180;
+            }
 
         protected:
 
@@ -139,16 +142,19 @@ namespace hf {
                     imu.readMPU9250Data(imuData); 
 
                     // Convert the accleration value into g's
-                    ax = (float)imuData[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
-                    ay = (float)imuData[1]*aRes - accelBias[1];   
-                    az = (float)imuData[2]*aRes - accelBias[2];  
+                    float ax = imuData[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
+                    float ay = imuData[1]*aRes - accelBias[1];   
+                    float az = imuData[2]*aRes - accelBias[2];  
 
                     // Convert the gyro value into degrees per second
-                    gx = (float)imuData[4]*gRes;  // get actual gyro value, this depends on scale being set
-                    gy = (float)imuData[5]*gRes;  
-                    gz = (float)imuData[6]*gRes; 
+                    float gx = adc2rad(imuData[4]);
+                    float gy = adc2rad(imuData[5]);
+                    float gz = adc2rad(imuData[6]);
 
-                    if(imu.checkNewMagData()) { // Wait for magnetometer data ready bit to be set
+                    // Magnetometer values are updated at their own rate
+                    static float mx, my, mz;
+
+                    if (imu.checkNewMagData()) { // Wait for magnetometer data ready bit to be set
 
                         int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
 
@@ -157,9 +163,9 @@ namespace hf {
                         // Calculate the magnetometer values in milliGauss
                         // Include factory calibration per data sheet and user environmental corrections
                         // Get actual magnetometer value, this depends on scale being set
-                        mx = (float)magCount[0]*mRes*magCalibration[0] - magBias[0];  
-                        my = (float)magCount[1]*mRes*magCalibration[1] - magBias[1];  
-                        mz = (float)magCount[2]*mRes*magCalibration[2] - magBias[2];  
+                        mx = magCount[0]*mRes*magCalibration[0] - magBias[0];  
+                        my = magCount[1]*mRes*magCalibration[1] - magBias[1];  
+                        mz = magCount[2]*mRes*magCalibration[2] - magBias[2];  
                         mx *= magScale[0];
                         my *= magScale[1];
                         mz *= magScale[2]; 
@@ -177,7 +183,7 @@ namespace hf {
                         sum += deltat; 
                         sumCount++;
 
-                        quaternionCalculator.update(-ax, ay, az, gx*M_PI/180.0f, -gy*M_PI/180.0f, -gz*M_PI/180.0f, my, -mx, mz, deltat, q);
+                        quaternionCalculator.update(-ax, ay, az, gx, -gy, -gz, my, -mx, mz, deltat, q);
                     }
 
                     // Copy gyro values back out
