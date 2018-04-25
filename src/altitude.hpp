@@ -22,16 +22,36 @@
 
 # pragma once
 
+#include "datatypes.hpp"
+
 namespace hf {
 
   class AltitudeEstimator {
 
     private:
 
+      // estimated altitude
+      float estimatedAltitude;
+
+      // State variables
+      bool holding;
+      float referenceAltitude;
+
     public:
       AltitudeEstimator()
       {
 
+      }
+
+      void handleAuxSwitch(demands_t & demands)
+      {
+        if (demands.aux > 0) {
+          holding = true;
+          referenceAltitude = estimatedAltitude;
+        }
+        else {
+          holding = false;
+        }
       }
   }; // class AltitudeEstimator
 } // namespace hf

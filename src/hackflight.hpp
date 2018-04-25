@@ -24,6 +24,7 @@
 #include "mixer.hpp"
 #include "receiver.hpp"
 #include "stabilizer.hpp"
+#include "altitude.hpp"
 #include "debug.hpp"
 #include "datatypes.hpp"
 
@@ -31,13 +32,16 @@ namespace hf {
 
     class Hackflight {
 
-        private: 
+        private:
 
             // Passed to Hackflight::init() for a particular board and receiver
             Board      * board;
             Receiver   * receiver;
             Stabilizer * stabilizer;
             Mixer      * mixer;
+
+            // Altitude estimation task
+            AltitudeEstimator altitudeEstimator = AltitudeEstimator();
 
             // Vehicle state
             float eulerAngles[3];
@@ -67,7 +71,7 @@ namespace hf {
 
                     eulerAngles[0] = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
                     eulerAngles[1] = asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-                    eulerAngles[2] = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]); 
+                    eulerAngles[2] = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
 
                     qcount++;
 
@@ -133,7 +137,7 @@ namespace hf {
                     failsafe = true;
                     board->showArmedStatus(false);
                 }
-            } 
+            }
 
             void checkReceiver(void)
             {
@@ -153,7 +157,7 @@ namespace hf {
                 // Disarm
                 if (armed && receiver->disarming()) {
                     armed = false;
-                } 
+                }
 
                 // Arm (after lots of safety checks!)
                 if (!armed && receiver->arming() && !auxState && !failsafe && safeAngle(AXIS_ROLL) && safeAngle(AXIS_PITCH)) {
@@ -164,6 +168,7 @@ namespace hf {
                 // Detect aux switch changes for altitude-hold, loiter, etc.
                 if (receiver->demands.aux != auxState) {
                     auxState = receiver->demands.aux;
+                    altitudeEstimator.handleAuxSwitch(receiver->demands);
                 }
 
                 // Cut motors on throttle-down
@@ -179,7 +184,7 @@ namespace hf {
         public:
 
             void init(Board * _board, Receiver * _receiver, Stabilizer * _stabilizer, Mixer * _mixer)
-            {  
+            {
                 // Store the essentials
                 board = _board;
                 receiver = _receiver;
@@ -190,7 +195,7 @@ namespace hf {
                 receiver->init();
 
                 // Tell the mixer which board to use
-                mixer->board = board; 
+                mixer->board = board;
 
                 // Start unarmed
                 armed = false;
@@ -205,7 +210,7 @@ namespace hf {
                 checkReceiver();
                 checkAccelerometer();
                 checkBarometer();
-            } 
+            }
 
     }; // class Hackflight
 
