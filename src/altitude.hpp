@@ -36,6 +36,8 @@ namespace hf {
       // State variables
       bool holding;
       float referenceAltitude;
+      float initialThrottle; // [0, 1]
+      float pid;
 
     public:
       AltitudeEstimator()
@@ -48,10 +50,18 @@ namespace hf {
         if (demands.aux > 0) {
           holding = true;
           referenceAltitude = estimatedAltitude;
+          initialThrottle = demands.throttle;
         }
         else {
           holding = false;
         }
+      }
+
+      void modifyDemands(demands_t & demands)
+      {
+         if (holding) {
+           demands.throttle = initialThrottle + pid;
+         }
       }
   }; // class AltitudeEstimator
 } // namespace hf

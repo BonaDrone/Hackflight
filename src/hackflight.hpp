@@ -103,6 +103,11 @@ namespace hf {
                     // Run stabilization to get updated demands
                     stabilizer->modifyDemands(gyroRates, demands);
 
+                    // if altitude hold is on demands have to be updated
+                    // so that the applied throttle results in the drone
+                    // hovering at the reference altitude
+                    altitudeEstimator.modifyDemands(demands);
+
                     // Sync failsafe to gyro loop
                     checkFailsafe();
 
