@@ -2,7 +2,7 @@
    butterfly.hpp : Implementation of Hackflight Board routines for Butterfly
                    dev board + MPU9250 IMU + brushless motors
 
-   Additional library required: https://github.com/simondlevy/MPU9250
+   Additional library required: https://github.com/simondlevy/KrisWinerMPU9250
 
    This file is part of Hackflight.
 
@@ -25,9 +25,9 @@
 #include <Servo.h>
 
 #include <MPU9250.h> 
-#include <QuaternionFilters.h>
 #include <ArduinoTransfer.h>
 
+#include "QuaternionFilters.h"
 #include "hackflight.hpp"
 #include "realboard.hpp"
 
