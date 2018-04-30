@@ -50,6 +50,8 @@ namespace hf {
         if (demands.aux > 0) {
           holding = true;
           referenceAltitude = estimatedAltitude;
+          // This is the reference throttle to hover
+          // at the current altitude
           initialThrottle = demands.throttle;
         }
         else {
