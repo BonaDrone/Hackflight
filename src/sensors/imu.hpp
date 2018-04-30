@@ -73,7 +73,6 @@ namespace hf {
               reset();
               ready = true;
               return velocityFromAcc;
-
           }
 
     } // class IMU
