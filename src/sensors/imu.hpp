@@ -53,9 +53,9 @@ namespace hf {
 
             void reset(void)
             {
-              accelSumZ = 0;
-              accelSumCount = 0;
-              accelTimeSum = 0;
+                accelSumZ = 0;
+                accelSumCount = 0;
+                accelTimeSum = 0;
             }
 
         public:
@@ -89,15 +89,15 @@ namespace hf {
           // Update last known acceleration values
           void updateAcceleration(float _accel[3], uint32_t currentTime)
           {
-            memcpy(accel, _accel, 3*sizeof(float));
-            update(currentTime);
+              memcpy(accel, _accel, 3*sizeof(float));
+              update(currentTime);
           }
 
           // Update last known gyro values
           void updateGyro(float _gyro[3], uint32_t currentTime)
           {
-            memcpy(gyro, _gyro, 3*sizeof(float));
-            update(currentTime);
+              memcpy(gyro, _gyro, 3*sizeof(float));
+              update(currentTime);
           }
 
     } // class IMU
