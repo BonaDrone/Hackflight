@@ -34,6 +34,12 @@ namespace hf {
 
             const ACCEL_LPF_CUTOFF = 5.0f;
 
+            // This variables will store the latest available readings
+            // from the gyro and the IMU. Since this class is Hardware
+            // independent this values will have to be supplied
+            float accel[3];
+            float gyro[3];
+
             float fc_accel;
 
             bool ready;
@@ -78,6 +84,20 @@ namespace hf {
           float getVerticalAcceleration(void)
           {
               return accelZ_tmp;
+          }
+
+          // Update last known acceleration values
+          void updateAcceleration(float _accel[3], uint32_t currentTime)
+          {
+            memcpy(accel, _accel, 3*sizeof(float));
+            update(currentTime);
+          }
+
+          // Update last known gyro values
+          void updateGyro(float _gyro[3], uint32_t currentTime)
+          {
+            memcpy(gyro, _gyro, 3*sizeof(float));
+            update(currentTime);
           }
 
     } // class IMU
