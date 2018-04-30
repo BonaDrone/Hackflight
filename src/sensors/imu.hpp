@@ -41,6 +41,7 @@ namespace hf {
             uint32_t accelTimeSum;
             int accelSumCount;
 
+            float accelZ_tmp;
             float accelSumZ;
             float accelZoffset;
 
@@ -60,6 +61,19 @@ namespace hf {
               fc_accel = 0.5f / (M_PI * ACCEL_LPF_CUTOFF);
               reset();
               ready = false;
+          }
+
+          // Estimate vertical velocity as:
+          // average acceleration since last query * g * time since last query
+          float getVerticalVelocity(void)
+          {
+              accelZ_tmp = accelSumZ / accelSumCount;
+              // Skip startup transient
+              float velocityFromAcc = ready ? accelZ_tmp * 9.80665e-4 * accelTimeSum : 0;
+              reset();
+              ready = true;
+              return velocityFromAcc;
+
           }
 
     } // class IMU
