@@ -75,6 +75,11 @@ namespace hf {
               return velocityFromAcc;
           }
 
+          float getVerticalAcceleration(void)
+          {
+              return accelZ_tmp;
+          }
+
     } // class IMU
 
 } // namespace hf
