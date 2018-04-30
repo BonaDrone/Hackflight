@@ -85,8 +85,7 @@ namespace hf {
               history[historyIdx] = pressure;
               uint8_t nextIndex = (historyIdx + 1) % HISTORY_SIZE;
               pressuseSum += pressure;
-              // Remove next reading from sum so that pressureSum is kept
-              // in sync
+              // Remove next reading from sum so that pressureSum is kept in sync
               pressuseSum -= history[nextIndex];
               historyIdx = nextIndex;
           }
