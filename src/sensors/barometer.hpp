@@ -47,6 +47,7 @@ namespace hf {
           // millibars are the units of the pressure readings from the sensor
           float millibarsToCentimeters(float pa)
           {
+              // see: https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
               return (1.0f - powf(pa / 1013.25f, 0.190295f)) * 4433000.0f;
           }
 
