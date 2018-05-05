@@ -279,7 +279,7 @@ namespace hf {
                 // Get magnetometer calibration from AK8963 ROM
                 imu.initAK8963(Mscale, Mmode, magCalibration);
 
-                //
+                // Initialise the altitude sensor
                 barometer.begin();
 
                 // Do general real-board initialization
