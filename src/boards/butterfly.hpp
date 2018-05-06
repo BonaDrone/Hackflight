@@ -234,9 +234,7 @@ namespace hf {
 
             bool getBarometer(float & pressure)
             {
-                // TODO -> handle NaN values
-                if (barometer.isOK()) {
-                  pressure = barometer.getPressure();
+                if (barometer.getPressure(& pressure)) {
                   return true;
                 }
                 // Try to reinitialise the sensor
