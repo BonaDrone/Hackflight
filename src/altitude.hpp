@@ -23,12 +23,15 @@
 # pragma once
 
 #include "datatypes.hpp"
+#include "sensors/barometer.hpp"
 
 namespace hf {
 
   class AltitudeEstimator {
 
     private:
+      // sensor abstractions
+      Barometer baro = Barometer();
 
       // estimated altitude
       float estimatedAltitude;
@@ -40,6 +43,7 @@ namespace hf {
       float pid;
 
     public:
+
       AltitudeEstimator()
       {
 
@@ -65,5 +69,11 @@ namespace hf {
            demands.throttle = initialThrottle + pid;
          }
       }
+
+      void updateBaro(float pressure)
+      {
+          baro.update(pressure);
+      }
+
   }; // class AltitudeEstimator
 } // namespace hf
