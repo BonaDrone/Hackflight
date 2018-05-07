@@ -70,7 +70,7 @@ namespace hf {
 
                     state.eulerAngles[0] = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
                     state.eulerAngles[1] = asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-                    state.eulerAngles[2] = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]); 
+                    state.eulerAngles[2] = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
 
                     qcount++;
 
@@ -121,6 +121,7 @@ namespace hf {
             {
                 float pressure;
                 if (board->getBarometer(pressure)) {
+                    altitudeEstimator.updateBaro(pressure);
                     bcount++;
                 }
             }
