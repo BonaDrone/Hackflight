@@ -32,7 +32,7 @@ namespace hf {
 
         private:
 
-            const ACCEL_LPF_CUTOFF = 5.0f;
+            const float ACCEL_LPF_CUTOFF = 5.0f;
 
             // This variables will store the latest available readings
             // from the gyro and the IMU. Since this class is Hardware
@@ -100,6 +100,6 @@ namespace hf {
               update(currentTime);
           }
 
-    } // class IMU
+    }; // class IMU
 
 } // namespace hf
