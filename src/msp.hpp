@@ -26,7 +26,7 @@ namespace hf {
 
     class MSP {
 
-        friend class RealBoard;
+        friend class Hackflight;
 
         private:
 
@@ -198,7 +198,14 @@ namespace hf {
                             break;
 
                         case MSP_SET_ARMED:
-                            state->armed = (bool)read8();
+                            if (read8()) {  // got arming command: arm only if throttle is down
+                                if (receiver->throttleIsDown()) {
+                                    state->armed = true;
+                                }
+                            }
+                            else {          // got disarming command: always disarm
+                                state->armed = false;
+                            }
                             headSerialReply(0);
                             break;
 
@@ -216,7 +223,7 @@ namespace hf {
                             }
                             break;
 
-                        // don't know how to handle the (valid) message, indicate error
+                            // don't know how to handle the (valid) message, indicate error
                         default:                   
                             headSerialError(0);
                             break;

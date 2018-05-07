@@ -39,7 +39,7 @@ namespace hf {
 
         private:
 
-            // Create a byte-transfer object for Arduino I^2C
+            // Create byte-transfer objects for Arduino I^2C 
             ArduinoI2C mpu = ArduinoI2C(MPU9250::MPU9250_ADDRESS);
             ArduinoI2C mag = ArduinoI2C(MPU9250::AK8963_ADDRESS);
 
