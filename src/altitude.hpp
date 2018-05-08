@@ -49,35 +49,40 @@ namespace hf {
 
       }
 
+      void init(void)
+      {
+          baro.init()
+      }
+
       void handleAuxSwitch(demands_t & demands)
       {
-        if (demands.aux > 0) {
-          holding = true;
-          referenceAltitude = estimatedAltitude;
-          // This is the reference throttle to hover
-          // at the current altitude
-          initialThrottle = demands.throttle;
+          if (demands.aux > 0) {
+            holding = true;
+            referenceAltitude = estimatedAltitude;
+            // This is the reference throttle to hover
+            // at the current altitude
+            initialThrottle = demands.throttle;
         }
         else {
-          holding = false;
+            holding = false;
         }
       }
 
       void modifyDemands(demands_t & demands)
       {
-         if (holding) {
-           demands.throttle = initialThrottle + pid;
-         }
+          if (holding) {
+            demands.throttle = initialThrottle + pid;
+          }
       }
 
       void updateBaro(bool armed, float pressure)
       {
           baro.update(pressure);
-          if (!armed){
+          if (!armed && calibrate_counter < 150){
             baro.calibrate();
             return;
           }
-
+          return;
       }
 
   }; // class AltitudeEstimator
