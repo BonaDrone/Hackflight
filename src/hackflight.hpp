@@ -43,7 +43,7 @@ namespace hf {
 
             // Altitude estimation task
             AltitudeEstimator altitudeEstimator = AltitudeEstimator();
-            
+
             // MSP (serial comms)
             MSP msp;
 
@@ -125,7 +125,7 @@ namespace hf {
             {
                 float pressure;
                 if (board->getBarometer(pressure)) {
-                    altitudeEstimator.updateBaro(pressure);
+                    altitudeEstimator.updateBaro(state.armed, pressure);
                     bcount++;
                 }
             }
