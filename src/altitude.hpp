@@ -70,9 +70,14 @@ namespace hf {
          }
       }
 
-      void updateBaro(float pressure)
+      void updateBaro(bool armed, float pressure)
       {
           baro.update(pressure);
+          if (!armed){
+            baro.calibrate();
+            return;
+          }
+
       }
 
   }; // class AltitudeEstimator
