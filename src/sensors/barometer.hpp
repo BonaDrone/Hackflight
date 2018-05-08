@@ -95,6 +95,7 @@ namespace hf {
           {
               float alt_tmp = millibarsToCentimeters(pressuseSum/(HISTORY_SIZE-1)) - groundAltitude;
               alt = Filter::complementary(alt, alt_tmp, NOISE_LPF);
+              return alt;
           }
 
           // Get vertical velocity in centimeters / second
