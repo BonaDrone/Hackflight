@@ -68,6 +68,8 @@ namespace hf {
         }
       }
 
+      // If for some reason any of the demands received from
+      // the transmitter has to be modified we do it here 
       void modifyDemands(demands_t & demands)
       {
           if (holding) {
@@ -78,6 +80,7 @@ namespace hf {
       void updateBaro(bool armed, float pressure)
       {
           baro.update(pressure);
+          // Calibrate barometer when the drone is resting
           if (!armed){
             baro.calibrate();
             return;

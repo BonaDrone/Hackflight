@@ -39,7 +39,7 @@ namespace hf {
           float   alt;
           float   groundAltitude;
           float   previousAltitude;
-          float   pressuseSum;
+          float   pressureSum;
           float   history[HISTORY_SIZE];
           uint8_t historyIdx;
 
@@ -58,7 +58,7 @@ namespace hf {
               alt = 0;
               groundAltitude = 0;
               previousAltitude = 0;
-              pressuseSum = 0;
+              pressureSum = 0;
               historyIdx = 0;
 
               for (uint8_t k = 0; k < HISTORY_SIZE; ++k) {
@@ -71,29 +71,38 @@ namespace hf {
           // Furthermote, they are initialized to 0 and shared amongst
           // instances of the class.
 
+          // Calibrate the baro by setting the average measured pressure as the
+          // ground pressure and the corresponding altitude as the ground altitude.
           void calibrate(void)
           {
               static float groundPressure;
-              // TODO -> why divide by 8
+              // groundPressure will stabilize at 8 times the average measured
+              // pressure (when groundPressure/8 equals pressureSum/(HISTORY_SIZE-1))
+              // This acts as a low pass filter and helps to reduce noise
               groundPressure -= groundPressure / 8;
-              groundPressure += pressuseSum / (HISTORY_SIZE - 1);
+              groundPressure += pressureSum / (HISTORY_SIZE - 1);
               groundAltitude = millibarsToCentimeters(groundPressure/8);
           }
 
+          // update the barometer pressure reading
           void update(float pressure)
           {
-              // cycle the index throught the history array
               history[historyIdx] = pressure;
+              pressureSum += pressure;
+              // cycle the index throught the history array
               uint8_t nextIndex = (historyIdx + 1) % HISTORY_SIZE;
-              pressuseSum += pressure;
               // Remove next reading from sum so that pressureSum is kept in sync
-              pressuseSum -= history[nextIndex];
+              pressureSum -= history[nextIndex];
               historyIdx = nextIndex;
           }
 
+          // get aestimated altitude from barometer in centimeters with respect
+          // to the altitude estimated as ground altitude
           float getAltitude(void)
           {
-              float alt_tmp = millibarsToCentimeters(pressuseSum/(HISTORY_SIZE-1)) - groundAltitude;
+              float alt_tmp = millibarsToCentimeters(pressureSum/(HISTORY_SIZE-1)) - groundAltitude;
+              // The complementary filter weights the last estimated altitude and
+              // the altitude estimated from the barometer preassure readings
               alt = Filter::complementary(alt, alt_tmp, NOISE_LPF);
               return alt;
           }
