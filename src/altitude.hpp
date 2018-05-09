@@ -78,7 +78,7 @@ namespace hf {
       void updateBaro(bool armed, float pressure)
       {
           baro.update(pressure);
-          if (!armed && calibrate_counter < 150){
+          if (!armed){
             baro.calibrate();
             return;
           }
