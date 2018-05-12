@@ -1,7 +1,7 @@
 '''
-setup.py : script for building Hackflight GCS executable via py2exe
+resources.py : Resource access to support pytinstall
 
-Copyright (C) Simon D. Levy 2017
+Copyright (C) Simon D. Levy 2018
 
 This file is part of Hackflight.
 
@@ -16,20 +16,11 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License 
 along with this code.  If not, see <http:#www.gnu.org/licenses/>.
-from distutils.core import setup
 '''
 
-from distutils.core import setup
-from subprocess import call
-import py2exe
-from os import system
+import os
+import sys
 
-system('mkdir dist')
-system('mkdir dist\media')
-system('copy media\icon.xbm dist\media')
-system('copy media\hackflight.ico dist\media')
-system('copy media\*.gif dist\media')
+def resource_path(filename):
 
-setup(windows = ['hackflight.py'])
-
-#system('move dist hackflight-gcs')
+    return os.path.join('media', filename)

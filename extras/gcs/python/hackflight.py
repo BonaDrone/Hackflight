@@ -40,16 +40,14 @@ from serial import Serial
 from serial.tools.list_ports import comports
 from threading import Thread
 import os
+import tkcompat as tk
 
-from msppg import *
-
-from tkcompat import *
+import msppg
 
 from imu import IMU
 from motors import Motors
 from receiver import Receiver
-#from maps import Maps
-#from messages import Messages
+from resources import resource_path
 
 # GCS class runs the show =========================================================================================
 
@@ -63,20 +61,18 @@ class GCS:
         self.gotimu = False
 
         # Do basic Tk initialization
-        self.root = Tk()
+        self.root = tk.Tk()
         self.root.configure(bg=BACKGROUND_COLOR)
         self.root.resizable(False, False)
         self.root.title('Hackflight Ground Control Station')
         left = (self.root.winfo_screenwidth() - DISPLAY_WIDTH) / 2
         top = (self.root.winfo_screenheight() - DISPLAY_HEIGHT) / 2
         self.root.geometry('%dx%d+%d+%d' % (DISPLAY_WIDTH, DISPLAY_HEIGHT, left, top))
-        self.frame = Frame(self.root)
-
-        self.root.wm_iconbitmap(bitmap = "@media/icon.xbm")
+        self.frame = tk.Frame(self.root)
 
         # Too much hassle on Windows
         if 'nt' != os.name:
-            self.root.tk.call('wm', 'iconphoto', self.root._w, PhotoImage('icon.xbm'))
+            self.root.tk.call('wm', 'iconphoto', self.root._w, tk.PhotoImage('icon.xbm'))
 
         self.root.protocol('WM_DELETE_WINDOW', self.quit)
 
@@ -93,14 +89,14 @@ class GCS:
         #self.button_maps = self._add_button('Maps', self.pane2, self._maps_button_callback, disabled=False)
 
         # Prepare for adding ports as they are detected by our timer task
-        self.portsvar = StringVar(self.root)
+        self.portsvar = tk.StringVar(self.root)
         self.portsmenu = None
         self.connected = False
         self.ports = []
 
         # Finalize Tk stuff
         self.frame.pack()
-        self.canvas = Canvas(self.root, width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT, background='black')
+        self.canvas = tk.Canvas(self.root, width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT, background='black')
         self.canvas.pack()
 
 
@@ -110,7 +106,7 @@ class GCS:
                  '    * Firmware uses serial receiver\n' + \
                  '      (DSMX, SBUS), but receiver is\n' + \
                  '      not connected.'
-        self.error_label = Label(self.canvas, text=errmsg, bg='black', fg='red', font=(None,24), justify=LEFT)
+        self.error_label = tk.Label(self.canvas, text=errmsg, bg='black', fg='red', font=(None,24), justify=tk.LEFT)
         self.hide(self.error_label)
 
         # Add widgets for motor-testing dialog; hide them immediately
@@ -131,15 +127,15 @@ class GCS:
         #self.maps = Maps(self, yoffset=-30)
 
         # Create a splash image
-        self.splashimage = PhotoImage(file='media/splash.gif')
+        self.splashimage = tk.PhotoImage(file=resource_path('splash.gif'))
         self._show_splash()
 
         # Create a message parser 
-        self.parser = MSP_Parser()
+        self.parser = msppg.MSP_Parser()
 
         # Set up parser's request strings
-        self.attitude_request = serialize_ATTITUDE_RADIANS_Request()
-        self.rc_request = serialize_RC_NORMAL_Request()
+        self.attitude_request = msppg.serialize_ATTITUDE_RADIANS_Request()
+        self.rc_request = msppg.serialize_RC_NORMAL_Request()
 
         # No messages yet
         self.roll_pitch_yaw = 0,0,0
@@ -191,14 +187,14 @@ class GCS:
 
     def _add_pane(self):
 
-        pane = PanedWindow(self.frame, bg=BACKGROUND_COLOR)
-        pane.pack(fill=BOTH, expand=1)
+        pane = tk.PanedWindow(self.frame, bg=BACKGROUND_COLOR)
+        pane.pack(fill=tk.BOTH, expand=1)
         return pane
 
     def _add_button(self, label, parent, callback, disabled=True):
 
-        button = Button(parent, text=label, command=callback)
-        button.pack(side=LEFT)
+        button = tk.Button(parent, text=label, command=callback)
+        button.pack(side=tk.LEFT)
         button.config(state = 'disabled' if disabled else 'normal')
         return button
 
@@ -261,7 +257,7 @@ class GCS:
 
     def _clear(self):
 
-        self.canvas.delete(ALL)
+        self.canvas.delete(tk.ALL)
 
     # Callback for Receiver button
     def _receiver_button_callback(self):
@@ -359,7 +355,8 @@ class GCS:
             portname = port[0]
 
             if 'usbmodem' in portname or 'ttyACM' in portname or 'ttyUSB' in portname or 'COM' in portname:
-                ports.append(portname)
+                if not portname in ['COM1', 'COM2', 'COM3']:
+                    ports.append(portname)
 
         return ports
 
@@ -372,7 +369,7 @@ class GCS:
 
             if self.portsmenu is None:
 
-                self.portsmenu = OptionMenu(self.pane1, self.portsvar, *ports)
+                self.portsmenu = tk.OptionMenu(self.pane1, self.portsvar, *ports)
 
             else:
 
@@ -380,13 +377,17 @@ class GCS:
 
                     self.portsmenu['menu'].add_command(label=port)
 
-            self.portsmenu.pack(side=LEFT)
+            self.portsmenu.pack(side=tk.LEFT)
 
+            # Disconnected
             if ports == []:
 
+                self.portsmenu['menu'].delete(0, 'end')
+                self.portsvar.set('') 
                 self._disable_button(self.button_connect)
                 self._disable_buttons()
 
+            # Connected
             else:
                 self.portsvar.set(ports[0]) # default value
                 self._enable_button(self.button_connect)
@@ -426,7 +427,7 @@ class GCS:
 
         values = [0]*4
         values[index-1] = percent / 100.
-        self.comms.send_message(serialize_SET_MOTOR_NORMAL, values)
+        self.comms.send_message(msppg.serialize_SET_MOTOR_NORMAL, values)
 
     def _show_splash(self):
 
@@ -551,4 +552,4 @@ if __name__ == "__main__":
 
     gcs = GCS()
 
-    mainloop()
+    tk.mainloop()
