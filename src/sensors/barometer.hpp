@@ -103,6 +103,9 @@ namespace hf {
               float alt_tmp = millibarsToCentimeters(pressureSum/(HISTORY_SIZE-1)) - groundAltitude;
               // The complementary filter weights the last estimated altitude and
               // the altitude estimated from the barometer preassure readings
+              // It seems the objective here is to run some sort of EMA (exponential
+              // moving average) filter, which is a sort of simple low pass filter.
+              // see: https://www.norwegiancreations.com/2015/10/tutorial-potentiometers-with-arduino-and-filtering/
               alt = Filter::complementary(alt, alt_tmp, NOISE_LPF);
               return alt;
           }
