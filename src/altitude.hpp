@@ -51,7 +51,7 @@ namespace hf {
 
       void init(void)
       {
-          baro.init()
+          baro.init();
       }
 
       void handleAuxSwitch(demands_t & demands)
@@ -69,7 +69,7 @@ namespace hf {
       }
 
       // If for some reason any of the demands received from
-      // the transmitter has to be modified we do it here 
+      // the transmitter have to be modified we do it here
       void modifyDemands(demands_t & demands)
       {
           if (holding) {
