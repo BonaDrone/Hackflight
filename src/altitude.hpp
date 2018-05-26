@@ -27,6 +27,14 @@
 
 namespace hf {
 
+  class KalmanFilter {
+
+  }; // Class KalmanFilter
+
+  class ComplementaryFilter {
+
+  }; // Class ComplementaryFilter
+
   class AltitudeEstimator {
 
     private:
