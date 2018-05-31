@@ -72,7 +72,7 @@ namespace hf {
 
                     _state.eulerAngles[0] = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
                     _state.eulerAngles[1] = asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-                    _state.eulerAngles[2] = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]); 
+                    _state.eulerAngles[2] = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
 
                     // Convert heading from [-pi,+pi] to [0,2*pi]
                     if (_state.eulerAngles[AXIS_YAW] < 0) {
@@ -119,7 +119,7 @@ namespace hf {
             {
                 float pressure;
                 if (_board->getBarometer(pressure)) {
-                    altitudeEstimator.updateBaro(state.armed, pressure);
+                    altitudeEstimator.updateBaro(_state.armed, pressure);
                 }
             }
 
@@ -167,7 +167,7 @@ namespace hf {
                 // Detect aux switch changes for altitude-hold, loiter, etc.
                 if (_receiver->demands.aux != _auxState) {
                     _auxState = _receiver->demands.aux;
-                    altitudeEstimator.handleAuxSwitch(receiver->demands);
+                    altitudeEstimator.handleAuxSwitch(_receiver->demands);
                 }
 
                 // Cut motors on throttle-down
@@ -214,7 +214,7 @@ namespace hf {
                 _receiver->init();
 
                 // Tell the mixer which board to use
-                _mixer->board = board; 
+                _mixer->board = board;
 
                 // Start unarmed
                 _state.armed = false;
