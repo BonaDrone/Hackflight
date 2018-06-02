@@ -32,7 +32,6 @@ namespace hf {
 
         public:
 
-
             static float max(float a, float b)
             {
                 return a > b ? a : b;
@@ -77,7 +76,41 @@ namespace hf {
     class ComplementaryFilter {
       private:
 
+        float gain[2];
+        // Zero-velocity update
+        float accel_threshold;
+        static const uint8_t ZUPT_SIZE = 12;
+        uint8_t ZUPTIdx;
+        float   ZUPT[ZUPT_SIZE];
+
       public:
+
+        ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
+        {
+            gain[0] = sqrt(2 * sigma_accel / sigma_baro);
+            gain[1] = sigma_accel / sigma_baro;
+            accel_threshold = accel_threshold;
+            // initialize zero-velocity update
+            ZUPTIdx = 0;
+            for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
+                ZUPT[k] = 0;
+            }
+        }
+
+        float ApplyZUPT(float accel, float vel)
+        {
+            // first update ZUPT array with latest estimation
+            ZUPT[ZUPTIdx] = accel;
+            // and move index to next slot
+            uint8_t nextIndex = (ZUPTIdx + 1) % ZUPT_SIZE;
+            ZUPTIdx = nextIndex;
+            // Apply Zero-velocity update
+            for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
+                if (ZUPT[k] > accel_threshold) return 0.0;
+            }
+            return vel;
+        }
+
     }; // Class ComplementaryFilter
 
 } // namespace hf
