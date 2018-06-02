@@ -75,7 +75,7 @@ namespace hf {
 
     class ComplementaryFilter {
       private:
-
+        // filter gain
         float gain[2];
         // Zero-velocity update
         float accel_threshold;
@@ -109,6 +109,16 @@ namespace hf {
                 if (ZUPT[k] > accel_threshold) return 0.0;
             }
             return vel;
+        }
+
+        void estimate(float * velocity, float * altitude, float baro_altitude, float accel, float deltat)
+        {
+            // Apply complementary filter
+            *altitude = *altitude + deltat*((*velocity) + (gain[0] + gain[1]*deltat/2)*(baro_altitude-(*altitude)))+
+             accel*pow(deltat, 2)/2;
+            *velocity = *velocity + deltat*(gain[1]*(baro_altitude-(*altitude)) + accel);
+            // Compute zero-velocity update
+            *velocity = ApplyZUPT(accel, *velocity);
         }
 
     }; // Class ComplementaryFilter
