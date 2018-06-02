@@ -110,17 +110,6 @@ namespace hf {
               return alt;
           }
 
-          // Get vertical velocity in centimeters / second
-          float getVerticalVelocity(uint32_t currentTime)
-          {
-              static float previousAltitude;
-              static uint32_t previousTime;
-              float vel = (alt - previousAltitude) * 1000000.0f / (currentTime-previousTime);
-              previousAltitude = alt;
-              previousTime = currentTime;
-              vel = Filter::constrainAbs(vel, VELOCITY_BOUND);
-              return Filter::deadband(vel, VELOCITY_DEADBAND);
-          }
     }; // class Barometer
 
 } // namespace hp
