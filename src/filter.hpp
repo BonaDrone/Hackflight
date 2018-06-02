@@ -74,7 +74,9 @@ namespace hf {
     }; // Class KalmanFilter
 
     class ComplementaryFilter {
+
       private:
+        
         // filter gain
         float gain[2];
         // Zero-velocity update
@@ -82,19 +84,6 @@ namespace hf {
         static const uint8_t ZUPT_SIZE = 12;
         uint8_t ZUPTIdx;
         float   ZUPT[ZUPT_SIZE];
-
-      public:
-        ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
-        {
-            gain[0] = sqrt(2 * sigma_accel / sigma_baro);
-            gain[1] = sigma_accel / sigma_baro;
-            accel_threshold = accel_threshold;
-            // initialize zero-velocity update
-            ZUPTIdx = 0;
-            for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
-                ZUPT[k] = 0;
-            }
-        }
 
         float ApplyZUPT(float accel, float vel)
         {
@@ -108,6 +97,21 @@ namespace hf {
                 if (ZUPT[k] > accel_threshold) return 0.0;
             }
             return vel;
+        }
+
+
+      public:
+
+        ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
+        {
+            gain[0] = sqrt(2 * sigma_accel / sigma_baro);
+            gain[1] = sigma_accel / sigma_baro;
+            accel_threshold = accel_threshold;
+            // initialize zero-velocity update
+            ZUPTIdx = 0;
+            for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
+                ZUPT[k] = 0;
+            }
         }
 
         void estimate(float * velocity, float * altitude, float baro_altitude, float accel, float deltat)
