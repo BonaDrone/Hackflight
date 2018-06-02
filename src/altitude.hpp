@@ -34,14 +34,15 @@ namespace hf {
       // sensor abstractions
       Barometer baro = Barometer();
       IMU imu = IMU();
+      // required filters for altitude and vertical velocity estimation
       KalmanFilter kalman = KalmanFilter();
       ComplementaryFilter complementary = ComplementaryFilter();
+
+    public:
 
       // estimated altitude and vertical velocity
       float estimatedAltitude;
       float estimatedVelocity;
-
-    public:
 
       void init(void)
       {
@@ -88,7 +89,7 @@ namespace hf {
       {
           if (demands.aux > 0) {
             holding = true;
-            referenceAltitude = altitudeEstimator.estimateAltitude();
+            referenceAltitude = altitudeEstimator.estimate();
             // This is the reference throttle to hover
             // at the current altitude
             initialThrottle = demands.throttle;
