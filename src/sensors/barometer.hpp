@@ -30,15 +30,11 @@ namespace hf {
 
       private:
 
-          // TODO -> why these specific values?
-          const float NOISE_LPF             = 0.5f;
-          const float VELOCITY_BOUND        = 300.0f;
-          const float VELOCITY_DEADBAND     = 10.f;
           static const uint8_t HISTORY_SIZE = 48;
 
-          float   alt;
+          float   pressure;
+
           float   groundAltitude;
-          float   previousAltitude;
           float   pressureSum;
           float   history[HISTORY_SIZE];
           uint8_t historyIdx;
@@ -55,12 +51,9 @@ namespace hf {
 
           void init(void)
           {
-              alt = 0;
               groundAltitude = 0;
-              previousAltitude = 0;
               pressureSum = 0;
               historyIdx = 0;
-
               for (uint8_t k = 0; k < HISTORY_SIZE; ++k) {
                   history[k] = 0;
               }
@@ -73,9 +66,17 @@ namespace hf {
 
           // Calibrate the baro by setting the average measured pressure as the
           // ground pressure and the corresponding altitude as the ground altitude.
-          void calibrate(void)
+          void calibrate()
           {
               static float groundPressure;
+              // Update pressure history
+              history[historyIdx] = pressure;
+              pressureSum += pressure;
+              // cycle the index throught the history array
+              uint8_t nextIndex = (historyIdx + 1) % HISTORY_SIZE;
+              // Remove next reading from sum so that pressureSum is kept in sync
+              pressureSum -= history[nextIndex];
+              historyIdx = nextIndex;
               // groundPressure will stabilize at 8 times the average measured
               // pressure (when groundPressure/8 equals pressureSum/(HISTORY_SIZE-1))
               // This acts as a low pass filter and helps to reduce noise
@@ -87,27 +88,14 @@ namespace hf {
           // update the barometer pressure reading
           void update(float pressure)
           {
-              history[historyIdx] = pressure;
-              pressureSum += pressure;
-              // cycle the index throught the history array
-              uint8_t nextIndex = (historyIdx + 1) % HISTORY_SIZE;
-              // Remove next reading from sum so that pressureSum is kept in sync
-              pressureSum -= history[nextIndex];
-              historyIdx = nextIndex;
+              pressure = pressure;
           }
 
-          // get aestimated altitude from barometer in centimeters with respect
+          // get estimated altitude from barometer in meters with respect
           // to the altitude estimated as ground altitude
           float getAltitude(void)
           {
-              float alt_tmp = millibarsToCentimeters(pressureSum/(HISTORY_SIZE-1)) - groundAltitude;
-              // The complementary filter weights the last estimated altitude and
-              // the altitude estimated from the barometer preassure readings
-              // It seems the objective here is to run some sort of EMA (exponential
-              // moving average) filter, which is a sort of simple low pass filter.
-              // see: https://www.norwegiancreations.com/2015/10/tutorial-potentiometers-with-arduino-and-filtering/
-              alt = Filter::complementary(alt, alt_tmp, NOISE_LPF);
-              return alt;
+              return  millibarsToCentimeters(pressure)/100 - groundAltitude;
           }
 
     }; // class Barometer
