@@ -25,6 +25,7 @@
 #include "datatypes.hpp"
 #include "sensors/barometer.hpp"
 #include "sensors/imu.hpp"
+#include "filter.hpp"
 
 namespace hf {
 
@@ -33,6 +34,9 @@ namespace hf {
       // sensor abstractions
       Barometer baro = Barometer();
       IMU imu = IMU();
+      KalmanFilter kalman = KalmanFilter();
+      ComplementaryFilter complementary = ComplementaryFilter();
+
       // estimated altitude and vertical velocity
       float estimatedAltitude;
       float estimatedVelocity;
