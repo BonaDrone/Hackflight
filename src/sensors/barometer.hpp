@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include "filter.hpp"
-
 namespace hf {
 
     class Barometer {
