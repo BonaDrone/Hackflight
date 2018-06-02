@@ -34,9 +34,20 @@ namespace hf {
       // sensor abstractions
       Barometer baro = Barometer();
       IMU imu = IMU();
+      // required parameters for the filters used for the estimations
+      // sensor's standard deviations
+      float sigma_accel = 0.2;
+      float sigma_gyro = 0.2;
+      float sigma_baro = 5;
+      // gravity
+      float g = 9.81;
+      // Acceleration markov chain model state transition constant
+      float ca = 0.5;
+      // Zero-velocity update acceleration threshold
+      float accel_threshold = 0.3;
       // required filters for altitude and vertical velocity estimation
       KalmanFilter kalman = KalmanFilter();
-      ComplementaryFilter complementary = ComplementaryFilter();
+      ComplementaryFilter complementary = ComplementaryFilter(sigma_accel, sigma_baro, accel_threshold);
 
     public:
 
