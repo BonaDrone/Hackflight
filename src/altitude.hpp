@@ -48,7 +48,7 @@ namespace hf {
           baro.init();
       }
 
-      float estimateAltitude()
+      float estimate()
       {
 
       }
