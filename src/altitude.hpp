@@ -45,6 +45,10 @@ namespace hf {
       float ca = 0.5;
       // Zero-velocity update acceleration threshold
       float accel_threshold = 0.3;
+      // Estimated vertical acceleration
+      float accel = 0.0;
+      // Sampling period
+      float deltat = 0.0;
       // required filters for altitude and vertical velocity estimation
       KalmanFilter kalman = KalmanFilter();
       ComplementaryFilter complementary = ComplementaryFilter(sigma_accel, sigma_baro, accel_threshold);
@@ -60,11 +64,6 @@ namespace hf {
           baro.init();
       }
 
-      float estimate()
-      {
-
-      }
-
       void updateBaro(bool armed, float pressure)
       {
           baro.update(pressure);
@@ -75,6 +74,16 @@ namespace hf {
           }
           return;
       }
+
+      float estimate()
+      {
+          complementary.estimate(& estimatedVelocity,
+                                 & estimatedAltitude,
+                                 baro.getAltitude(),
+                                 accel,
+                                 deltat);
+      }
+
   }; // class AltitudeEstimator
 
   class AltitudeHold {

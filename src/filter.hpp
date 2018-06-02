@@ -84,7 +84,6 @@ namespace hf {
         float   ZUPT[ZUPT_SIZE];
 
       public:
-
         ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
         {
             gain[0] = sqrt(2 * sigma_accel / sigma_baro);
