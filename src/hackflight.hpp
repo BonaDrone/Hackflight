@@ -41,8 +41,8 @@ namespace hf {
             Stabilizer * _stabilizer;
             Mixer      * _mixer;
 
-            // Altitude estimation task
-            AltitudeEstimator altitudeEstimator = AltitudeEstimator();
+            // Altitude hold task
+            AltitudeHold altitudeHold = AltitudeHold();
 
             // MSP (serial comms)
             MSP _msp;
@@ -103,7 +103,7 @@ namespace hf {
                     // if altitude hold is on demands have to be updated
                     // so that the applied throttle results in the drone
                     // hovering at the reference altitude
-                    altitudeEstimator.modifyDemands(demands);
+                    altitudeHold.modifyDemands(demands);
 
                     // Sync failsafe to gyro loop
                     checkFailsafe();
@@ -119,7 +119,7 @@ namespace hf {
             {
                 float pressure;
                 if (_board->getBarometer(pressure)) {
-                    altitudeEstimator.updateBaro(_state.armed, pressure);
+                    altitudeHold.update(_state.armed, pressure);
                 }
             }
 
@@ -167,7 +167,7 @@ namespace hf {
                 // Detect aux switch changes for altitude-hold, loiter, etc.
                 if (_receiver->demands.aux != _auxState) {
                     _auxState = _receiver->demands.aux;
-                    altitudeEstimator.handleAuxSwitch(_receiver->demands);
+                    altitudeHold.handleAuxSwitch(_receiver->demands);
                 }
 
                 // Cut motors on throttle-down

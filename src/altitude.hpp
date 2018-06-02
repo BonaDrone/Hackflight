@@ -24,25 +24,61 @@
 
 #include "datatypes.hpp"
 #include "sensors/barometer.hpp"
+#include "sensors/imu.hpp"
 
 namespace hf {
 
   class KalmanFilter {
+    private:
+
+    public:
 
   }; // Class KalmanFilter
 
   class ComplementaryFilter {
+    private:
 
+    public:
   }; // Class ComplementaryFilter
 
   class AltitudeEstimator {
-
     private:
       // sensor abstractions
       Barometer baro = Barometer();
-
-      // estimated altitude
+      IMU imu = IMU();
+      // estimated altitude and vertical velocity
       float estimatedAltitude;
+      float estimatedVelocity;
+
+    public:
+
+      void init(void)
+      {
+          baro.init();
+      }
+
+      float estimateAltitude()
+      {
+
+      }
+
+      void updateBaro(bool armed, float pressure)
+      {
+          baro.update(pressure);
+          // Calibrate barometer when the drone is resting
+          if (!armed){
+            baro.calibrate();
+            return;
+          }
+          return;
+      }
+  }; // class AltitudeEstimator
+
+  class AltitudeHold {
+
+    private:
+      // Altitude estimation
+      AltitudeEstimator altitudeEstimator = AltitudeEstimator();
 
       // State variables
       bool holding;
@@ -52,21 +88,16 @@ namespace hf {
 
     public:
 
-      AltitudeEstimator()
+      AltitudeHold()
       {
 
-      }
-
-      void init(void)
-      {
-          baro.init();
       }
 
       void handleAuxSwitch(demands_t & demands)
       {
           if (demands.aux > 0) {
             holding = true;
-            referenceAltitude = estimatedAltitude;
+            referenceAltitude = altitudeEstimator.estimateAltitude();
             // This is the reference throttle to hover
             // at the current altitude
             initialThrottle = demands.throttle;
@@ -85,16 +116,10 @@ namespace hf {
           }
       }
 
-      void updateBaro(bool armed, float pressure)
+      void update(bool armed, float pressure)
       {
-          baro.update(pressure);
-          // Calibrate barometer when the drone is resting
-          if (!armed){
-            baro.calibrate();
-            return;
-          }
-          return;
+        altitudeEstimator.updateBaro(armed, pressure);
       }
 
-  }; // class AltitudeEstimator
+  }; // class AltitudeHold
 } // namespace hf
