@@ -28,19 +28,6 @@
 
 namespace hf {
 
-  class KalmanFilter {
-    private:
-
-    public:
-
-  }; // Class KalmanFilter
-
-  class ComplementaryFilter {
-    private:
-
-    public:
-  }; // Class ComplementaryFilter
-
   class AltitudeEstimator {
     private:
       // sensor abstractions

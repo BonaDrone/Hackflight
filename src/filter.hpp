@@ -1,4 +1,4 @@
-/* 
+/*
    filter.hpp: Static filtering methods
 
    Adapted from
@@ -66,5 +66,18 @@ namespace hf {
             }
 
     }; // class Filter
+
+    class KalmanFilter {
+      private:
+
+      public:
+
+    }; // Class KalmanFilter
+
+    class ComplementaryFilter {
+      private:
+
+      public:
+    }; // Class ComplementaryFilter
 
 } // namespace hf
