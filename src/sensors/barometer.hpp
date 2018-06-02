@@ -93,7 +93,7 @@ namespace hf {
           // to the altitude estimated as ground altitude
           float getAltitude(void)
           {
-              return  millibarsToCentimeters(pressure)/100 - groundAltitude;
+              return  (millibarsToCentimeters(pressure) - groundAltitude)/100.0;
           }
 
     }; // class Barometer
