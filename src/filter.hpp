@@ -69,14 +69,59 @@ namespace hf {
     class KalmanFilter {
       private:
 
+        void getPredictionCovariance()
+        {
+
+        }
+
+        void getMeasurementCovariance()
+        {
+
+        }
+
+        float predictState()
+        {
+
+        }
+
+        void predictErrorCovariance()
+        {
+
+        }
+
+        void updateGain()
+        {
+
+        }
+
+        float updateState()
+        {
+
+        }
+
+        void updateErrorCovariance()
+        {
+
+        }
+
       public:
+
+        KalmanFilter()
+        {
+
+        }
+
+        float estimate()
+        {
+
+        }
 
     }; // Class KalmanFilter
 
     class ComplementaryFilter {
 
       private:
-        
+
         // filter gain
         float gain[2];
         // Zero-velocity update
@@ -104,8 +149,11 @@ namespace hf {
 
         ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
         {
+            // Compute the filter gain
             gain[0] = sqrt(2 * sigma_accel / sigma_baro);
             gain[1] = sigma_accel / sigma_baro;
+            // If acceleration is below the threshold the ZUPT counter
+            // will be increased
             accel_threshold = accel_threshold;
             // initialize zero-velocity update
             ZUPTIdx = 0;
