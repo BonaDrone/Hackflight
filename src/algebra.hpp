@@ -266,4 +266,16 @@ namespace hf {
      tmp = 1.0 / (det);
      scale_adjoint_3X3(b, tmp, a);
   }
+
+  // skew matrix from vector
+  void skew(float a[3][3], float v[3])
+  {
+    a[0][1] = -v[2];
+    a[0][2] = v[1];
+    a[1][2] = -v[0];
+    a[1][0] = v[2];
+    a[2][0] = -v[1];
+    a[2][1] = v[0];
+  }
+
 } // namespace hf
