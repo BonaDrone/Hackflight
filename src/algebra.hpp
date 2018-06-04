@@ -173,7 +173,7 @@ namespace hf {
      b[2][2] = (s) * a[2][2];
   }
 
-  // multiply matrix by scalar
+  // multiply matrix by scalar and add result to another matrix
   void accum_scale_matrix_3x3(float b[3][3], float s, float a[3][3])
   {
      b[0][0] += (s) * a[0][0];
