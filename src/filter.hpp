@@ -25,6 +25,7 @@
 #include <cmath>
 
 #include "debug.hpp"
+#include "algebra.hpp"
 
 namespace hf {
 
@@ -103,45 +104,7 @@ namespace hf {
         {
 
         }
-        // helper methods
-        void multiply(float A[9])
-        {
 
-        }
-
-        void transpose(float A[9])
-        {
-            // diagonal terms remain the same so
-            // we only have to swap non diagonal terms
-            float temp = A[1];
-            A[1] = A[3];
-            A[3] = temp;
-            temp = A[2];
-            A[2] = A[6];
-            A[6] = temp;
-            temp = A[5];
-            A[5] = A[7];
-            A[7] = temp;
-        }
-
-        void inverse(float A[9])
-        {
-
-        }
-
-        void add(float A[9], float B[9])
-        {
-            for (int k=0; k < 9; k++){
-              A[k] = A[k] + B[k];
-            }
-        }
-
-        void subtract(float A[9], float B[9])
-        {
-            for (int k=0; k < 9; k++){
-              A[k] = A[k] - B[k];
-            }
-        }
       public:
 
         KalmanFilter()
