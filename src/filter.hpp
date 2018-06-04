@@ -87,7 +87,8 @@ namespace hf {
             scale_matrix_3x3(covariance, -pow(deltat, 2), covariance);
         }
 
-        void getMeasurementCovariance(float covariance[3][3], float ca, float a_sensor_prev[3])
+        void getMeasurementCovariance(float covariance[3][3], float ca,
+                                      float sigma_accel, float a_sensor_prev[3])
         {
           // required matrices for the operations
           float sigma[3][3];
