@@ -1,21 +1,32 @@
 /*
- * algebra.hpp
- *
- * This work is an adaptation from vvector.h, written by Linas Vepstras. The
- * original code can be found at:
- *
- * https://github.com/markkilgard/glut/blob/master/lib/gle/vvector.h
- *
- * FUNCTION:
- * This file contains a number of utilities useful for handling
- * 3D vectors
- *
- * HISTORY:
- * Adapted for hackflight's requirements by Juan Gallostra June 2018
- * Written by Linas Vepstas, August 1991
- * Added 2D code, March 1993
- * Added Outer products, C++ proofed, Linas Vepstas October 1993
- */
+  algebra.hpp: This file contains a number of utilities useful for handling
+  3D vectors
+
+  This work is an adaptation from vvector.h, written by Linas Vepstras. The
+  original code can be found at:
+
+  https://github.com/markkilgard/glut/blob/master/lib/gle/vvector.h
+
+  HISTORY:
+  Written by Linas Vepstas, August 1991
+  Added 2D code, March 1993
+  Added Outer products, C++ proofed, Linas Vepstas October 1993
+  Adapted for Hackflight's needs by Juan Gallostra June 2018
+
+  This file is part of Hackflight.
+
+  Hackflight is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Hackflight is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License
+  along with EM7180.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma once
 
