@@ -163,7 +163,16 @@ namespace hf {
         float updateState(float updatedState[3], float predictedState[3], float gain[3][3],
                           float measurement[3], float H[3][3])
         {
-
+            // required matrices
+            float tmp[3];
+            float tmp2[3];
+            // update state with measurement
+            // predicted_state + K.dot(measurement - H.dot(predicted_state))
+            mat_dot_vec_3x3(tmp, H, predictedState);
+            vec_diff(tmp, measurement, tmp);
+            mat_dot_vec_3x3(tmp2, gain, tmp);
+            vec_sum(updatedState, predictedState, tmp2);
+            vec_normalize(updatedState);
         }
 
         void updateErrorCovariance()
