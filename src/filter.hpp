@@ -115,6 +115,7 @@ namespace hf {
           // Predict state
           accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
           mat_dot_vec_3x3(predictedState, identity, state);
+          vec_normalize(predictedState);
         }
 
         void predictErrorCovariance()
