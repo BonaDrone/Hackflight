@@ -118,10 +118,26 @@ namespace hf {
             vec_normalize(predictedState);
         }
 
-        void predictErrorCovariance(float covariance[3][3], float state[3], float deltat,
-                                    float errorCovariance[3][3], float sygma_gyro )
+        void predictErrorCovariance(float covariance[3][3], float state[3], float gyro[3],
+                                    float deltat, float errorCovariance[3][3], float sigma_gyro )
         {
-
+            // required matrices
+            float Q[3][3];
+            float identity[3][3];
+            identify_matrix_3x3(identity);
+            float skew_from_gyro[3][3];
+            skew(skew_from_gyro, gyro);
+            float tmp[3][3];
+            float tmp_trans[3][3];
+            float tmp2[3][3];
+            // predict error covariance
+            getPredictionCovariance(Q, state, deltat, sigma_gyro);
+            accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
+            copy_matrix_3x3(tmp, identity);
+            transpose_matrix_3x3(tmp_trans, tmp);
+            matrix_product_3x3(tmp2, tmp, errorCovariance);
+            matrix_product_3x3(covariance, tmp2, tmp_trans);
+            accum_scale_matrix_3x3(covariance, 1.0, Q);
         }
 
         void updateGain()
