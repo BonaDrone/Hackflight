@@ -175,9 +175,19 @@ namespace hf {
             vec_normalize(updatedState);
         }
 
-        void updateErrorCovariance()
+        void updateErrorCovariance(float covariance[3][3], float errorCovariance[3][3],
+                                   float H[3][3], float gain[3][3])
         {
-
+            // required matrices
+            float identity[3][3];
+            identify_matrix_3x3(identity);
+            float tmp[3][3];
+            float tmp2[2][2];
+            // update error covariance with measurement
+            matrix_product_3x3(tmp, gain, H);
+            matrix_product_3x3(tmp2, tmp, errorCovariance);
+            accum_scale_matrix_3x3(identity, -1.0, tmp2);
+            copy_matrix_3x3(covariance, tmp2);
         }
 
       public:
