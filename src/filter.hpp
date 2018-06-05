@@ -202,6 +202,11 @@ namespace hf {
 
         }
 
+        float getVerticalAcceleration()
+        {
+          
+        }
+
     }; // Class KalmanFilter
 
     class ComplementaryFilter {
