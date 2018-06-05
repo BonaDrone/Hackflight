@@ -259,11 +259,11 @@ namespace hf {
   // inverse of matrix
   // Compute inverse of matrix a, returning determinant m and
   // inverse b
-  void invert_3X3(float b[3][3],float det,float a[3][3])
+  void invert_3X3(float b[3][3], float a[3][3])
   {
      double tmp;
-     determinant_3x3(det, a);
-     tmp = 1.0 / (det);
+     determinant_3x3(tmp, a);
+     tmp = 1.0 / (tmp);
      scale_adjoint_3X3(b, tmp, a);
   }
 
