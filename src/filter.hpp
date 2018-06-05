@@ -153,14 +153,15 @@ namespace hf {
             // update kalman gain
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
             getMeasurementCovariance(R, ca, sigma_accel, a_sensor_prev);
-            matrix_product_3x3(tmp, P, H_trans);
+            matrix_product_3x3(tmp, errorCovariance, H_trans);
             matrix_product_3x3(tmp2, H, tmp);
             accum_scale_matrix_3x3(tmp2, 1.0, R);
             invert_3X3(tmp2_inv, tmp2);
             matrix_product_3x3(gain, tmp, tmp2_inv);
         }
 
-        float updateState()
+        float updateState(float updatedState[3], float predictedState[3], float gain[3][3],
+                          float measurement[3], float H[3][3])
         {
 
         }
