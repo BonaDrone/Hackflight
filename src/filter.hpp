@@ -73,13 +73,13 @@ namespace hf {
         void getPredictionCovariance(float covariance[3][3], float state_prev[3],
                                      float deltat, float sigma_gyro)
         {
-            // define the required matrices for the operations
+            // required matrices for the operations
             float sigma[3][3];
             float identity[3][3];
-            float skew_matrix[3][3];
-            float tmp[3][3];
             identify_matrix_3x3(identity);
+            float skew_matrix[3][3];
             skew(skew_matrix, state_prev);
+            float tmp[3][3];
             // Compute the prediction covariance matrix
             scale_matrix_3x3(sigma, pow(sigma_gyro, 2), identity);
             matrix_product_3x3(tmp, skew_matrix, sigma);
@@ -93,9 +93,9 @@ namespace hf {
           // required matrices for the operations
           float sigma[3][3];
           float identity[3][3];
+          identify_matrix_3x3(identity);
           float tmp[3][3];
           float norm;
-          identify_matrix_3x3(identity);
           // Compute measurement covariance
           scale_matrix_3x3(sigma, pow(sigma_accel, 2), identity);
           vec_length(norm, a_sensor_prev);
@@ -103,9 +103,18 @@ namespace hf {
           copy_matrix_3x3(covariance, sigma);
         }
 
-        float predictState()
+        float predictState(float predictedState[3], float state[3],
+                           float gyro[3], float deltat)
         {
-
+          // helper matrices
+          float identity[3][3];
+          identify_matrix_3x3(identity);
+          float skew_from_gyro[3][3];
+          skew(skew_from_gyro, gyro);
+          float tmp[3][3];
+          // Predict state
+          accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
+          mat_dot_vec_3x3(predictedState, identity, state);
         }
 
         void predictErrorCovariance()
