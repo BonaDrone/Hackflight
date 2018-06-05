@@ -90,35 +90,36 @@ namespace hf {
         void getMeasurementCovariance(float covariance[3][3], float ca,
                                       float sigma_accel, float a_sensor_prev[3])
         {
-          // required matrices for the operations
-          float sigma[3][3];
-          float identity[3][3];
-          identify_matrix_3x3(identity);
-          float tmp[3][3];
-          float norm;
-          // Compute measurement covariance
-          scale_matrix_3x3(sigma, pow(sigma_accel, 2), identity);
-          vec_length(norm, a_sensor_prev);
-          accum_scale_matrix_3x3(sigma, (1.0/3.0)*pow(ca, 2)*norm, identity);
-          copy_matrix_3x3(covariance, sigma);
+            // required matrices for the operations
+            float sigma[3][3];
+            float identity[3][3];
+            identify_matrix_3x3(identity);
+            float tmp[3][3];
+            float norm;
+            // Compute measurement covariance
+            scale_matrix_3x3(sigma, pow(sigma_accel, 2), identity);
+            vec_length(norm, a_sensor_prev);
+            accum_scale_matrix_3x3(sigma, (1.0/3.0)*pow(ca, 2)*norm, identity);
+            copy_matrix_3x3(covariance, sigma);
         }
 
         float predictState(float predictedState[3], float state[3],
                            float gyro[3], float deltat)
         {
-          // helper matrices
-          float identity[3][3];
-          identify_matrix_3x3(identity);
-          float skew_from_gyro[3][3];
-          skew(skew_from_gyro, gyro);
-          float tmp[3][3];
-          // Predict state
-          accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
-          mat_dot_vec_3x3(predictedState, identity, state);
-          vec_normalize(predictedState);
+            // helper matrices
+            float identity[3][3];
+            identify_matrix_3x3(identity);
+            float skew_from_gyro[3][3];
+            skew(skew_from_gyro, gyro);
+            float tmp[3][3];
+            // Predict state
+            accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
+            mat_dot_vec_3x3(predictedState, identity, state);
+            vec_normalize(predictedState);
         }
 
-        void predictErrorCovariance()
+        void predictErrorCovariance(float covariance[3][3], float state[3], float deltat,
+                                    float errorCovariance[3][3], float sygma_gyro )
         {
 
         }
