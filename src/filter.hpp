@@ -140,9 +140,24 @@ namespace hf {
             accum_scale_matrix_3x3(covariance, 1.0, Q);
         }
 
-        void updateGain()
+        void updateGain(float gain[3][3],float errorCovariance[3][3], float H[3][3],
+                        float ca, float a_sensor_prev[3], float sigma_accel)
         {
-
+            // required matrices
+            float R[3][3];
+            float H_trans[3][3];
+            transpose_matrix_3x3(H_trans, H);
+            float tmp[3][3];
+            float tmp2[3][3];
+            float tmp2_inv[3][3];
+            // update kalman gain
+            // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
+            getMeasurementCovariance(R, ca, sigma_accel, a_sensor_prev);
+            matrix_product_3x3(tmp, P, H_trans);
+            matrix_product_3x3(tmp2, H, tmp);
+            accum_scale_matrix_3x3(tmp2, 1.0, R);
+            invert_3X3(tmp2_inv, tmp2);
+            matrix_product_3x3(gain, tmp, tmp2_inv);
         }
 
         float updateState()
