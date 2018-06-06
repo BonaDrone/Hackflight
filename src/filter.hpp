@@ -103,7 +103,7 @@ namespace hf {
             copy_matrix_3x3(covariance, sigma);
         }
 
-        float predictState(float predictedState[3], float state[3],
+        void predictState(float predictedState[3], float state[3],
                            float gyro[3], float deltat)
         {
             // helper matrices
@@ -119,7 +119,7 @@ namespace hf {
         }
 
         void predictErrorCovariance(float covariance[3][3], float state[3], float gyro[3],
-                                    float deltat, float errorCovariance[3][3], float sigma_gyro )
+                                    float deltat, float errorCovariance[3][3], float sigma_gyro)
         {
             // required matrices
             float Q[3][3];
@@ -160,7 +160,7 @@ namespace hf {
             matrix_product_3x3(gain, tmp, tmp2_inv);
         }
 
-        float updateState(float updatedState[3], float predictedState[3], float gain[3][3],
+        void updateState(float updatedState[3], float predictedState[3], float gain[3][3],
                           float measurement[3], float H[3][3])
         {
             // required matrices
@@ -204,7 +204,7 @@ namespace hf {
 
         float getVerticalAcceleration()
         {
-          
+
         }
 
     }; // Class KalmanFilter
