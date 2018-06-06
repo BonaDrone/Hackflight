@@ -69,6 +69,11 @@ namespace hf {
 
     class KalmanFilter {
       private:
+        float currentState[3] = {0, 0, 0};
+        float currErrorCovariance[3][3] = {{100, 0, 0},{0, 100, 0},{0, 0, 100}};
+        float ca = 0.5;
+        float H[3][3] = {{9.81, 0, 0}, {0, 9.81, 0}, {0, 0, 9.81}};
+        float a_sensor_prev[3] = {0, 0, 0};
 
         void getPredictionCovariance(float covariance[3][3], float state_prev[3],
                                      float deltat, float sigma_gyro)
@@ -182,7 +187,7 @@ namespace hf {
             float identity[3][3];
             identify_matrix_3x3(identity);
             float tmp[3][3];
-            float tmp2[2][2];
+            float tmp2[3][3];
             // update error covariance with measurement
             matrix_product_3x3(tmp, gain, H);
             matrix_product_3x3(tmp2, tmp, errorCovariance);
@@ -197,14 +202,31 @@ namespace hf {
 
         }
 
-        float estimate()
+        float estimate(float gyro[3], float accel[3], float measurement[3],
+                       float deltat, float sigma_gyro, float sigma_accel)
         {
-
-        }
-
-        float getVerticalAcceleration()
-        {
-
+          float predictedState[3];
+          float updatedState[3];
+          float errorCovariance[3][3];
+          float updatedErrorCovariance[3][3];
+          float gain[3][3];
+          float a_sensor[3];
+          float tmp[3];
+          float a_earth;
+          // perform estimation
+          predictState(predictedState, currentState, gyro, deltat);
+          predictErrorCovariance(errorCovariance, currentState, gyro, deltat, currErrorCovariance, sigma_gyro);
+          updateGain(gain, errorCovariance, H, ca, a_sensor_prev, sigma_accel);
+          updateState(updatedState, predictedState, gain, measurement, H);
+          updateErrorCovariance(updatedErrorCovariance, errorCovariance, H, gain);
+          // Store required values for next iteration
+          vec_copy(currentState, updatedState);
+          copy_matrix_3x3(currErrorCovariance, updatedErrorCovariance);
+          // return vertical acceleration estimate
+          vec_scale(tmp, 9.81, updatedState);
+          vec_diff(a_sensor, accel, tmp);
+          vec_dot_product(a_earth, a_sensor, updatedState);
+          return a_earth;
         }
 
     }; // Class KalmanFilter
