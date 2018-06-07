@@ -35,7 +35,7 @@
 
 namespace hf {
 
-    // Interrupt support 
+    // Interrupt support
     static bool gotNewData;
     static void interruptHandler()
     {
@@ -61,7 +61,7 @@ namespace hf {
             // MPU9250 add-on board has interrupt on Butterfly pin 8
             const uint8_t INTERRUPT_PIN = 8;
 
-            // Create byte-transfer objects for Arduino I^2C 
+            // Create byte-transfer objects for Arduino I^2C
             ArduinoI2C mpu = ArduinoI2C(MPU9250::MPU9250_ADDRESS);
             ArduinoI2C mag = ArduinoI2C(MPU9250::AK8963_ADDRESS);
 
@@ -79,9 +79,9 @@ namespace hf {
             const Mscale_t MSCALE = MFS_16BITS;
             const Mmode_t  MMODE  = M_100Hz;
 
-            // SAMPLE_RATE_DIVISOR: (1 + SAMPLE_RATE_DIVISOR) is a simple divisor of the fundamental 1000 kHz rate of the gyro and accel, so 
+            // SAMPLE_RATE_DIVISOR: (1 + SAMPLE_RATE_DIVISOR) is a simple divisor of the fundamental 1000 kHz rate of the gyro and accel, so
             // SAMPLE_RATE_DIVISOR = 0 means 1 kHz sample rate for both accel and gyro, 4 means 200 Hz, etc.
-            const uint8_t SAMPLE_RATE_DIVISOR = 0;         
+            const uint8_t SAMPLE_RATE_DIVISOR = 0;
 
             // Quaternion calculation
             const uint8_t  QUATERNION_UPDATES_PER_CYCLE = 10;  // update quaternion this many times per gyro aquisition
@@ -123,7 +123,7 @@ namespace hf {
             // Helpers -----------------------------------------------------------------------------------
 
             // Raw analog-to-digital values converted to radians per second
-            float adc2rad(int16_t adc, float bias) 
+            float adc2rad(int16_t adc, float bias)
             {
                 return (adc * _gRes - bias) * M_PI / 180;
             }
@@ -160,7 +160,8 @@ namespace hf {
                 _escs[index].writeMicroseconds((uint16_t)(PWM_MIN+value*(PWM_MAX-PWM_MIN)));
             }
 
-            bool getGyrometer(float gyro[3])
+            // As a quick patch, this method will also get accel data
+            bool getGyrometer(float gyro[3], float accel[3])
             {
                 if (gotNewData) {
 
@@ -168,12 +169,12 @@ namespace hf {
 
                     if (_imu.checkNewAccelGyroData()) {
 
-                        _imu.readMPU9250Data(_imuData); 
+                        _imu.readMPU9250Data(_imuData);
 
                         // Convert the accleration value into g's
                         float ax = _imuData[0]*_aRes - _accelBias[0];  // get actual g value, this depends on scale being set
-                        float ay = _imuData[1]*_aRes - _accelBias[1];   
-                        float az = _imuData[2]*_aRes - _accelBias[2];  
+                        float ay = _imuData[1]*_aRes - _accelBias[1];
+                        float az = _imuData[2]*_aRes - _accelBias[2];
 
                         // Convert the gyro value into degrees per second
                         float gx = adc2rad(_imuData[4], _gyroBias[0]);
@@ -192,18 +193,18 @@ namespace hf {
                             // Calculate the magnetometer values in milliGauss
                             // Include factory calibration per data sheet and user environmental corrections
                             // Get actual magnetometer value, this depends on scale being set
-                            mx = (magCount[0]*_mRes*_magCalibration[0] - MAG_BIAS[0]) * MAG_SCALE[0];  
-                            my = (magCount[1]*_mRes*_magCalibration[1] - MAG_BIAS[1]) * MAG_SCALE[1];  
-                            mz = (magCount[2]*_mRes*_magCalibration[2] - MAG_BIAS[2]) * MAG_SCALE[2];  
+                            mx = (magCount[0]*_mRes*_magCalibration[0] - MAG_BIAS[0]) * MAG_SCALE[0];
+                            my = (magCount[1]*_mRes*_magCalibration[1] - MAG_BIAS[1]) * MAG_SCALE[1];
+                            mz = (magCount[2]*_mRes*_magCalibration[2] - MAG_BIAS[2]) * MAG_SCALE[2];
                         }
 
                         // Iterate a fixed number of times per data read cycle, updating the quaternion
-                        for (uint8_t i=0; i<QUATERNION_UPDATES_PER_CYCLE; i++) { 
+                        for (uint8_t i=0; i<QUATERNION_UPDATES_PER_CYCLE; i++) {
 
                             uint32_t timeCurr = micros();
 
                             // Set integration time by time elapsed since last filter update
-                            float deltat = ((timeCurr - _timePrev)/1000000.0f); 
+                            float deltat = ((timeCurr - _timePrev)/1000000.0f);
                             _timePrev = timeCurr;
 
                             _sumCount++;
@@ -215,6 +216,10 @@ namespace hf {
                         gyro[0] = gx;
                         gyro[1] = gy;
                         gyro[2] = gz;
+                        // and acceleration values
+                        accel[0] = ax;
+                        accel[1] = ay;
+                        accel[2] = az;
 
                         return true;
 
@@ -271,7 +276,7 @@ namespace hf {
 
                 // Set up the interrupt pin, it's set as active high, push-pull
                 pinMode(INTERRUPT_PIN, INPUT);
-                attachInterrupt(INTERRUPT_PIN, interruptHandler, RISING);  
+                attachInterrupt(INTERRUPT_PIN, interruptHandler, RISING);
 
                 // Connect to the ESCs and send them the baseline values
                 for (uint8_t k=0; k<4; ++k) {
@@ -285,7 +290,7 @@ namespace hf {
                 delay(1000);
 
                 // Reset the MPU9250
-                _imu.resetMPU9250(); 
+                _imu.resetMPU9250();
 
                 // get sensor resolutions, only need to do this once
                 _aRes = _imu.getAres(ASCALE);
@@ -293,10 +298,10 @@ namespace hf {
                 _mRes = _imu.getMres(MSCALE);
 
                 // Calibrate gyro and accelerometers, load biases in bias registers
-                _imu.calibrateMPU9250(_gyroBias, _accelBias); 
+                _imu.calibrateMPU9250(_gyroBias, _accelBias);
 
                 // Initialize the MPU9250
-                _imu.initMPU9250(ASCALE, GSCALE, SAMPLE_RATE_DIVISOR); 
+                _imu.initMPU9250(ASCALE, GSCALE, SAMPLE_RATE_DIVISOR);
 
                 // Get magnetometer calibration from AK8963 ROM
                 _imu.initAK8963(MSCALE, MMODE, _magCalibration);
