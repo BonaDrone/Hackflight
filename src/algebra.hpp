@@ -81,18 +81,18 @@ namespace hf {
   }
 
   // Vector length
-  void vec_length(float len, float a[3])
+  void vec_length(float * len, float a[3])
   {
-     len = (a)[0]*(a)[0] + (a)[1]*(a)[1];
-     len += (a)[2]*(a)[2];
-     len = sqrt (len);
+     float tmp;
+     tmp = a[0]*a[0] + a[1]*a[1]+a[2]*a[2];
+     *len = sqrt(tmp);
   }
 
   // Normalize vector
   void vec_normalize(float a[3])
   {
-     double len;
-     vec_length(len,a);
+     float len;
+     vec_length(& len,a);
      if (len != 0.0) {
         len = 1.0 / len;
         a[0] *= len;
@@ -277,5 +277,27 @@ namespace hf {
     a[2][0] = -v[1];
     a[2][1] = v[0];
   }
+
+  void print_3X3(float mmm[3][3]) {
+   int i,j;
+   printf ("matrix mmm is \n");
+   if (mmm == NULL) {
+      printf (" Null \n");
+   } else {
+      for (i=0; i<3; i++) {
+         for (j=0; j<3; j++) {
+            printf ("%f ", mmm[i][j]);
+         }
+         printf (" \n");
+      }
+   }
+}
+
+void vec_print(float a[3])
+{
+   float len;
+   vec_length(& len, a);
+   printf(" a is %f %f %f length of a is %f \n", (a)[0], (a)[1], (a)[2], len);
+}
 
 } // namespace hf
