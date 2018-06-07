@@ -69,14 +69,16 @@ namespace hf {
 
     class KalmanFilter {
       private:
-        float currentState[3] = {0, 0, 0};
+        float currentState[3] = {0, 0, 1};
         float currErrorCovariance[3][3] = {{100, 0, 0},{0, 100, 0},{0, 0, 100}};
-        float ca = 0.5;
+        float ca;
         float H[3][3] = {{9.81, 0, 0}, {0, 9.81, 0}, {0, 0, 9.81}};
         float a_sensor_prev[3] = {0, 0, 0};
+        float sigma_gyro;
+        float sigma_accel;
 
         void getPredictionCovariance(float covariance[3][3], float state_prev[3],
-                                     float deltat, float sigma_gyro)
+                                     float deltat)
         {
             // required matrices for the operations
             float sigma[3][3];
@@ -92,8 +94,7 @@ namespace hf {
             scale_matrix_3x3(covariance, -pow(deltat, 2), covariance);
         }
 
-        void getMeasurementCovariance(float covariance[3][3], float ca,
-                                      float sigma_accel, float a_sensor_prev[3])
+        void getMeasurementCovariance(float covariance[3][3])
         {
             // required matrices for the operations
             float sigma[3][3];
@@ -103,7 +104,7 @@ namespace hf {
             float norm;
             // Compute measurement covariance
             scale_matrix_3x3(sigma, pow(sigma_accel, 2), identity);
-            vec_length(norm, a_sensor_prev);
+            vec_length(& norm, a_sensor_prev);
             accum_scale_matrix_3x3(sigma, (1.0/3.0)*pow(ca, 2)*norm, identity);
             copy_matrix_3x3(covariance, sigma);
         }
@@ -124,7 +125,7 @@ namespace hf {
         }
 
         void predictErrorCovariance(float covariance[3][3], float state[3], float gyro[3],
-                                    float deltat, float errorCovariance[3][3], float sigma_gyro)
+                                    float deltat, float errorCovariance[3][3])
         {
             // required matrices
             float Q[3][3];
@@ -136,7 +137,7 @@ namespace hf {
             float tmp_trans[3][3];
             float tmp2[3][3];
             // predict error covariance
-            getPredictionCovariance(Q, state, deltat, sigma_gyro);
+            getPredictionCovariance(Q, state, deltat);
             accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
             copy_matrix_3x3(tmp, identity);
             transpose_matrix_3x3(tmp_trans, tmp);
@@ -145,8 +146,7 @@ namespace hf {
             accum_scale_matrix_3x3(covariance, 1.0, Q);
         }
 
-        void updateGain(float gain[3][3],float errorCovariance[3][3], float H[3][3],
-                        float ca, float a_sensor_prev[3], float sigma_accel)
+        void updateGain(float gain[3][3],float errorCovariance[3][3])
         {
             // required matrices
             float R[3][3];
@@ -157,7 +157,7 @@ namespace hf {
             float tmp2_inv[3][3];
             // update kalman gain
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
-            getMeasurementCovariance(R, ca, sigma_accel, a_sensor_prev);
+            getMeasurementCovariance(R);
             matrix_product_3x3(tmp, errorCovariance, H_trans);
             matrix_product_3x3(tmp2, H, tmp);
             accum_scale_matrix_3x3(tmp2, 1.0, R);
@@ -165,12 +165,14 @@ namespace hf {
             matrix_product_3x3(gain, tmp, tmp2_inv);
         }
 
-        void updateState(float updatedState[3], float predictedState[3], float gain[3][3],
-                          float measurement[3], float H[3][3])
+        void updateState(float updatedState[3], float predictedState[3], float gain[3][3], float accel[3])
         {
             // required matrices
             float tmp[3];
             float tmp2[3];
+            float measurement[3];
+            vec_scale(tmp, ca, a_sensor_prev);
+            vec_diff(measurement, accel, tmp);
             // update state with measurement
             // predicted_state + K.dot(measurement - H.dot(predicted_state))
             mat_dot_vec_3x3(tmp, H, predictedState);
@@ -180,8 +182,7 @@ namespace hf {
             vec_normalize(updatedState);
         }
 
-        void updateErrorCovariance(float covariance[3][3], float errorCovariance[3][3],
-                                   float H[3][3], float gain[3][3])
+        void updateErrorCovariance(float covariance[3][3], float errorCovariance[3][3], float gain[3][3])
         {
             // required matrices
             float identity[3][3];
@@ -197,13 +198,14 @@ namespace hf {
 
       public:
 
-        KalmanFilter()
+        KalmanFilter(float ca, float sigma_gyro, float sigma_accel)
         {
-
+            ca = ca;
+            sigma_gyro = sigma_gyro;
+            sigma_accel = sigma_accel;
         }
 
-        float estimate(float gyro[3], float accel[3], float measurement[3],
-                       float deltat, float sigma_gyro, float sigma_accel)
+        float estimate(float gyro[3], float accel[3], float deltat)
         {
           float predictedState[3];
           float updatedState[3];
@@ -215,16 +217,18 @@ namespace hf {
           float a_earth;
           // perform estimation
           predictState(predictedState, currentState, gyro, deltat);
-          predictErrorCovariance(errorCovariance, currentState, gyro, deltat, currErrorCovariance, sigma_gyro);
-          updateGain(gain, errorCovariance, H, ca, a_sensor_prev, sigma_accel);
-          updateState(updatedState, predictedState, gain, measurement, H);
-          updateErrorCovariance(updatedErrorCovariance, errorCovariance, H, gain);
+          // The above has been tested
+          predictErrorCovariance(errorCovariance, currentState, gyro, deltat, currErrorCovariance);
+          updateGain(gain, errorCovariance);
+          updateState(updatedState, predictedState, gain, accel);
+          updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
           // Store required values for next iteration
           vec_copy(currentState, updatedState);
           copy_matrix_3x3(currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
           vec_scale(tmp, 9.81, updatedState);
           vec_diff(a_sensor, accel, tmp);
+          vec_copy(a_sensor_prev, a_sensor);
           vec_dot_product(a_earth, a_sensor, updatedState);
           return a_earth;
         }
