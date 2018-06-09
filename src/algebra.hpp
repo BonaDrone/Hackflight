@@ -176,17 +176,17 @@ namespace hf {
   // multiply matrix by scalar and add result to another matrix
   void accum_scale_matrix_3x3(float b[3][3], float s, float a[3][3])
   {
-     b[0][0] += (s) * a[0][0];
-     b[0][1] += (s) * a[0][1];
-     b[0][2] += (s) * a[0][2];
+     b[0][0] += s * a[0][0];
+     b[0][1] += s * a[0][1];
+     b[0][2] += s * a[0][2];
 
-     b[1][0] += (s) * a[1][0];
-     b[1][1] += (s) * a[1][1];
-     b[1][2] += (s) * a[1][2];
+     b[1][0] += s * a[1][0];
+     b[1][1] += s * a[1][1];
+     b[1][2] += s * a[1][2];
 
-     b[2][0] += (s) * a[2][0];
-     b[2][1] += (s) * a[2][1];
-     b[2][2] += (s) * a[2][2];
+     b[2][0] += s * a[2][0];
+     b[2][1] += s * a[2][1];
+     b[2][2] += s * a[2][2];
   }
 
   // matrix product
@@ -276,6 +276,10 @@ namespace hf {
     a[1][0] = v[2];
     a[2][0] = -v[1];
     a[2][1] = v[0];
+    // set diagonal to 0
+    a[0][0] = 0.0;
+    a[1][1] = 0.0;
+    a[2][2] = 0.0;
   }
 
   void print_3X3(float mmm[3][3]) {
