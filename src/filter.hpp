@@ -83,15 +83,15 @@ namespace hf {
             // required matrices for the operations
             float sigma[3][3];
             float identity[3][3];
-            identify_matrix_3x3(identity);
+            identityMatrix3x3(identity);
             float skew_matrix[3][3];
             skew(skew_matrix, state_prev);
             float tmp[3][3];
             // Compute the prediction covariance matrix
-            scale_matrix_3x3(sigma, pow(this->sigma_gyro, 2), identity);
-            matrix_product_3x3(tmp, skew_matrix, sigma);
-            matrix_product_3x3(covariance, tmp, skew_matrix);
-            scale_matrix_3x3(covariance, -pow(deltat, 2), covariance);
+            scaleMatrix3x3(sigma, pow(this->sigma_gyro, 2), identity);
+            matrixProduct3x3(tmp, skew_matrix, sigma);
+            matrixProduct3x3(covariance, tmp, skew_matrix);
+            scaleMatrix3x3(covariance, -pow(deltat, 2), covariance);
         }
 
         void getMeasurementCovariance(float covariance[3][3])
@@ -99,28 +99,28 @@ namespace hf {
             // required matrices for the operations
             float sigma[3][3];
             float identity[3][3];
-            identify_matrix_3x3(identity);
+            identityMatrix3x3(identity);
             float tmp[3][3];
             float norm;
             // Compute measurement covariance
-            scale_matrix_3x3(sigma, pow(this->sigma_accel, 2), identity);
-            vec_length(& norm, this->a_sensor_prev);
-            accum_scale_matrix_3x3(sigma, (1.0/3.0)*pow(this->ca, 2)*norm, identity);
-            copy_matrix_3x3(covariance, sigma);
+            scaleMatrix3x3(sigma, pow(this->sigma_accel, 2), identity);
+            vectorLength(& norm, this->a_sensor_prev);
+            scaleAndAccumulateMatrix3x3(sigma, (1.0/3.0)*pow(this->ca, 2)*norm, identity);
+            copyMatrix3x3(covariance, sigma);
         }
 
         void predictState(float predictedState[3], float gyro[3], float deltat)
         {
             // helper matrices
             float identity[3][3];
-            identify_matrix_3x3(identity);
+            identityMatrix3x3(identity);
             float skew_from_gyro[3][3];
             skew(skew_from_gyro, gyro);
             float tmp[3][3];
             // Predict state
-            accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
-            mat_dot_vec_3x3(predictedState, identity, this->currentState);
-            vec_normalize(predictedState);
+            scaleAndAccumulateMatrix3x3(identity, -deltat, skew_from_gyro);
+            matrixDotVector3x3(predictedState, identity, this->currentState);
+            normalizeVector(predictedState);
         }
 
         void predictErrorCovariance(float covariance[3][3], float gyro[3], float deltat)
@@ -128,7 +128,7 @@ namespace hf {
             // required matrices
             float Q[3][3];
             float identity[3][3];
-            identify_matrix_3x3(identity);
+            identityMatrix3x3(identity);
             float skew_from_gyro[3][3];
             skew(skew_from_gyro, gyro);
             float tmp[3][3];
@@ -136,12 +136,12 @@ namespace hf {
             float tmp2[3][3];
             // predict error covariance
             getPredictionCovariance(Q, this->currentState, deltat);
-            accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
-            copy_matrix_3x3(tmp, identity);
-            transpose_matrix_3x3(tmp_trans, tmp);
-            matrix_product_3x3(tmp2, tmp, this->currErrorCovariance);
-            matrix_product_3x3(covariance, tmp2, tmp_trans);
-            accum_scale_matrix_3x3(covariance, 1.0, Q);
+            scaleAndAccumulateMatrix3x3(identity, -deltat, skew_from_gyro);
+            copyMatrix3x3(tmp, identity);
+            transposeMatrix3x3(tmp_trans, tmp);
+            matrixProduct3x3(tmp2, tmp, this->currErrorCovariance);
+            matrixProduct3x3(covariance, tmp2, tmp_trans);
+            scaleAndAccumulateMatrix3x3(covariance, 1.0, Q);
         }
 
         void updateGain(float gain[3][3], float errorCovariance[3][3])
@@ -149,18 +149,18 @@ namespace hf {
             // required matrices
             float R[3][3];
             float H_trans[3][3];
-            transpose_matrix_3x3(H_trans, this->H);
+            transposeMatrix3x3(H_trans, this->H);
             float tmp[3][3];
             float tmp2[3][3];
             float tmp2_inv[3][3];
             // update kalman gain
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
             getMeasurementCovariance(R);
-            matrix_product_3x3(tmp, errorCovariance, H_trans);
-            matrix_product_3x3(tmp2, this->H, tmp);
-            accum_scale_matrix_3x3(tmp2, 1.0, R);
-            invert_3X3(tmp2_inv, tmp2);
-            matrix_product_3x3(gain, tmp, tmp2_inv);
+            matrixProduct3x3(tmp, errorCovariance, H_trans);
+            matrixProduct3x3(tmp2, this->H, tmp);
+            scaleAndAccumulateMatrix3x3(tmp2, 1.0, R);
+            invert3x3(tmp2_inv, tmp2);
+            matrixProduct3x3(gain, tmp, tmp2_inv);
         }
 
         void updateState(float updatedState[3], float predictedState[3], float gain[3][3], float accel[3])
@@ -169,29 +169,29 @@ namespace hf {
             float tmp[3];
             float tmp2[3];
             float measurement[3];
-            vec_scale(tmp, this->ca, this->a_sensor_prev);
-            vec_diff(measurement, accel, tmp);
+            scaleVector(tmp, this->ca, this->a_sensor_prev);
+            subtractVectors(measurement, accel, tmp);
             // update state with measurement
             // predicted_state + K.dot(measurement - H.dot(predicted_state))
-            mat_dot_vec_3x3(tmp, this->H, predictedState);
-            vec_diff(tmp, measurement, tmp);
-            mat_dot_vec_3x3(tmp2, gain, tmp);
-            vec_sum(updatedState, predictedState, tmp2);
-            vec_normalize(updatedState);
+            matrixDotVector3x3(tmp, this->H, predictedState);
+            subtractVectors(tmp, measurement, tmp);
+            matrixDotVector3x3(tmp2, gain, tmp);
+            sumVectors(updatedState, predictedState, tmp2);
+            normalizeVector(updatedState);
         }
 
         void updateErrorCovariance(float covariance[3][3], float errorCovariance[3][3], float gain[3][3])
         {
             // required matrices
             float identity[3][3];
-            identify_matrix_3x3(identity);
+            identityMatrix3x3(identity);
             float tmp[3][3];
             float tmp2[3][3];
             // update error covariance with measurement
-            matrix_product_3x3(tmp, gain, this->H);
-            matrix_product_3x3(tmp2, tmp, errorCovariance);
-            accum_scale_matrix_3x3(identity, -1.0, tmp2);
-            copy_matrix_3x3(covariance, tmp2);
+            matrixProduct3x3(tmp, gain, this->H);
+            matrixProduct3x3(tmp2, tmp, errorCovariance);
+            scaleAndAccumulateMatrix3x3(identity, -1.0, tmp2);
+            copyMatrix3x3(covariance, tmp2);
         }
 
       public:
@@ -213,7 +213,7 @@ namespace hf {
           float a_sensor[3];
           float tmp[3];
           float a_earth;
-          vec_scale(accel, 9.81, accel); // Scale accel readings since they are measured in gs
+          scaleVector(accel, 9.81, accel); // Scale accel readings since they are measured in gs
           // perform estimation
           predictState(predictedState, gyro, deltat);
           predictErrorCovariance(errorCovariance, gyro, deltat);
@@ -222,13 +222,13 @@ namespace hf {
           updateState(updatedState, predictedState, gain, accel);
           updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
           // Store required values for next iteration
-          vec_copy(this->currentState, updatedState);
-          copy_matrix_3x3(this->currErrorCovariance, updatedErrorCovariance);
+          copyVector(this->currentState, updatedState);
+          copyMatrix3x3(this->currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
-          vec_scale(tmp, 9.81, updatedState);
-          vec_diff(a_sensor, accel, tmp);
-          vec_copy(this->a_sensor_prev, a_sensor);
-          vec_dot_product(& a_earth, a_sensor, updatedState);
+          scaleVector(tmp, 9.81, updatedState);
+          subtractVectors(a_sensor, accel, tmp);
+          copyVector(this->a_sensor_prev, a_sensor);
+          dotProductVectors(& a_earth, a_sensor, updatedState);
           return a_earth;
         }
 

@@ -34,7 +34,7 @@
 
 namespace hf {
   // Copy 3D vector
-  void vec_copy(float b[3],float a[3])
+  void copyVector(float b[3],float a[3])
   {
      (b)[0] = (a)[0];
      (b)[1] = (a)[1];
@@ -43,7 +43,7 @@ namespace hf {
 
 
   // Vector difference
-  void vec_diff(float v21[3], float v2[3], float v1[3])
+  void subtractVectors(float v21[3], float v2[3], float v1[3])
   {
      (v21)[0] = (v2)[0] - (v1)[0];
      (v21)[1] = (v2)[1] - (v1)[1];
@@ -51,7 +51,7 @@ namespace hf {
   }
 
   // Vector sum
-  void vec_sum(float v21[3], float v2[3], float v1[3])
+  void sumVectors(float v21[3], float v2[3], float v1[3])
   {
      (v21)[0] = (v2)[0] + (v1)[0];
      (v21)[1] = (v2)[1] + (v1)[1];
@@ -59,7 +59,7 @@ namespace hf {
   }
 
   // scalar times vector
-  void vec_scale(float c[3],float a, float b[3])
+  void scaleVector(float c[3],float a, float b[3])
   {
      (c)[0] = (a)*(b)[0];
      (c)[1] = (a)*(b)[1];
@@ -67,7 +67,7 @@ namespace hf {
   }
 
   // accumulate scaled vector
-  void vec_accum(float c[3], float a, float b[3])
+  void accumulateScaledVector(float c[3], float a, float b[3])
   {
      (c)[0] += (a)*(b)[0];
      (c)[1] += (a)*(b)[1];
@@ -75,13 +75,13 @@ namespace hf {
   }
 
   // Vector dot product
-  void vec_dot_product(float * c, float a[3], float b[3])
+  void dotProductVectors(float * c, float a[3], float b[3])
   {
      *c = (a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2];
   }
 
   // Vector length
-  void vec_length(float * len, float a[3])
+  void vectorLength(float * len, float a[3])
   {
      float tmp;
      tmp = a[0]*a[0] + a[1]*a[1]+a[2]*a[2];
@@ -89,10 +89,10 @@ namespace hf {
   }
 
   // Normalize vector
-  void vec_normalize(float a[3])
+  void normalizeVector(float a[3])
   {
      float len;
-     vec_length(& len,a);
+     vectorLength(& len,a);
      if (len != 0.0) {
         len = 1.0 / len;
         a[0] *= len;
@@ -102,7 +102,7 @@ namespace hf {
   }
 
   // 3D Vector cross product yeilding vector
-  void vec_cross_product(float c[3], float a[3], float b[3])
+  void crossProductVectors(float c[3], float a[3], float b[3])
   {
      c[0] = (a)[1] * (b)[2] - (a)[2] * (b)[1];
      c[1] = (a)[2] * (b)[0] - (a)[0] * (b)[2];
@@ -110,7 +110,7 @@ namespace hf {
   }
 
   // initialize matrix
-  void identify_matrix_3x3(float m[3][3])
+  void identityMatrix3x3(float m[3][3])
   {
      m[0][0] = 1.0;
      m[0][1] = 0.0;
@@ -126,7 +126,7 @@ namespace hf {
   }
 
   // matrix copy
-  void copy_matrix_3x3(float b[3][3], float a[3][3])
+  void copyMatrix3x3(float b[3][3], float a[3][3])
   {
      b[0][0] = a[0][0];
      b[0][1] = a[0][1];
@@ -142,7 +142,7 @@ namespace hf {
   }
 
   // matrix transpose
-  void transpose_matrix_3x3(float b[3][3], float a[3][3])
+  void transposeMatrix3x3(float b[3][3], float a[3][3])
   {
      b[0][0] = a[0][0];
      b[0][1] = a[1][0];
@@ -158,7 +158,7 @@ namespace hf {
   }
 
   // multiply matrix by scalar
-  void scale_matrix_3x3(float b[3][3], float s, float a[3][3])
+  void scaleMatrix3x3(float b[3][3], float s, float a[3][3])
   {
      b[0][0] = (s) * a[0][0];
      b[0][1] = (s) * a[0][1];
@@ -174,7 +174,7 @@ namespace hf {
   }
 
   // multiply matrix by scalar and add result to another matrix
-  void accum_scale_matrix_3x3(float b[3][3], float s, float a[3][3])
+  void scaleAndAccumulateMatrix3x3(float b[3][3], float s, float a[3][3])
   {
      b[0][0] += s * a[0][0];
      b[0][1] += s * a[0][1];
@@ -191,7 +191,7 @@ namespace hf {
 
   // matrix product
   // c[x][y] = a[x][0]*b[0][y]+a[x][1]*b[1][y]+a[x][2]*b[2][y]+a[x][3]*b[3][y]
-  void matrix_product_3x3(float c[3][3], float a[3][3], float b[3][3])
+  void matrixProduct3x3(float c[3][3], float a[3][3], float b[3][3])
   {
      c[0][0] = a[0][0]*b[0][0]+a[0][1]*b[1][0]+a[0][2]*b[2][0];
      c[0][1] = a[0][0]*b[0][1]+a[0][1]*b[1][1]+a[0][2]*b[2][1];
@@ -207,7 +207,7 @@ namespace hf {
   }
 
   // matrix times vector
-  void mat_dot_vec_3x3(float p[3], float m[3][3], float v[3])
+  void matrixDotVector3x3(float p[3], float m[3][3], float v[3])
   {
      p[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
      p[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
@@ -216,7 +216,7 @@ namespace hf {
 
   // determinant of matrix
   // Computes determinant of matrix m, returning d
-  void determinant_3x3(float * d, float m[3][3])
+  void determinant3x3(float * d, float m[3][3])
   {
      *d = m[0][0] * (m[1][1]*m[2][2] - m[1][2] * m[2][1]);
      *d -= m[0][1] * (m[1][0]*m[2][2] - m[1][2] * m[2][0]);
@@ -226,7 +226,7 @@ namespace hf {
   // adjoint of matrix
   // Computes adjoint of matrix m, returning a
   // (Note that adjoint is just the transpose of the cofactor matrix)
-  void adjoint_3X3(float a[3][3], float m[3][3])
+  void adjoint3x3(float a[3][3], float m[3][3])
   {
      a[0][0] = m[1][1]*m[2][2] - m[1][2]*m[2][1];
      a[1][0] = - (m[1][0]*m[2][2] - m[2][0]*m[1][2]);
@@ -241,7 +241,7 @@ namespace hf {
 
   // compute adjoint of matrix and scale
   // Computes adjoint of matrix m, scales it by s, returning a
-  void scale_adjoint_3X3(float a[3][3], float s, float m[3][3])
+  void scaleAdjoint3x3(float a[3][3], float s, float m[3][3])
   {
      a[0][0] = (s) * (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
      a[1][0] = (s) * (m[1][2] * m[2][0] - m[1][0] * m[2][2]);
@@ -259,12 +259,12 @@ namespace hf {
   // inverse of matrix
   // Compute inverse of matrix a, returning determinant m and
   // inverse b
-  void invert_3X3(float b[3][3], float a[3][3])
+  void invert3x3(float b[3][3], float a[3][3])
   {
      float tmp;
-     determinant_3x3(& tmp, a);
+     determinant3x3(& tmp, a);
      tmp = 1.0 / (tmp);
-     scale_adjoint_3X3(b, tmp, a);
+     scaleAdjoint3x3(b, tmp, a);
   }
 
   // skew matrix from vector
@@ -282,7 +282,7 @@ namespace hf {
     a[2][2] = 0.0;
   }
 
-  void print_3X3(float mmm[3][3]) {
+  void printMatrix3X3(float mmm[3][3]) {
    int i,j;
    printf ("matrix mmm is \n");
    if (mmm == NULL) {
@@ -297,10 +297,10 @@ namespace hf {
    }
 }
 
-void vec_print(float a[3])
+void vecPrint(float a[3])
 {
    float len;
-   vec_length(& len, a);
+   vectorLength(& len, a);
    printf(" a is %f %f %f length of a is %f \n", (a)[0], (a)[1], (a)[2], len);
 }
 
