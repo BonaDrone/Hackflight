@@ -87,12 +87,15 @@ namespace hf {
                 }
             }
 
+            // As a quick patch, this method also gets accel values
             void checkGyroRates(void)
             {
                 float gyroRates[3];
+                float accelGs[3];
 
-                if (_board->getGyrometer(gyroRates)) {
-
+                if (_board->getGyrometer(gyroRates, accelGs)) {
+                    altitudeHold.altitudeEstimator.updateGyro(gyroRates);
+                    altitudeHold.altitudeEstimator.updateAcceleration(accelGs);
                     // Start with demands from receiver
                     demands_t demands;
                     memcpy(&demands, &_receiver->demands, sizeof(demands_t));
@@ -229,6 +232,7 @@ namespace hf {
                 checkReceiver();
                 checkAccelerometer();
                 checkBarometer();
+                altitudeHold.altitudeEstimator.estimate();
             }
 
     }; // class Hackflight

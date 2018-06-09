@@ -45,19 +45,20 @@ namespace hf {
       float ca = 0.5;
       // Zero-velocity update acceleration threshold
       float accel_threshold = 0.3;
-      // Estimated vertical acceleration
-      float accel = 0.0;
       // Sampling period
-      float deltat = 0.0;
+      float previousTime = millis();
       // required filters for altitude and vertical velocity estimation
-      KalmanFilter kalman = KalmanFilter();
+      KalmanFilter kalman = KalmanFilter(ca, sigma_gyro, sigma_accel);
       ComplementaryFilter complementary = ComplementaryFilter(sigma_accel, sigma_baro, accel_threshold);
+      // Estimated past vertical acceleration
+      float pastVerticalAccel = 0;
+      // fake calibration
+      int count = 0;
 
     public:
-
       // estimated altitude and vertical velocity
-      float estimatedAltitude;
-      float estimatedVelocity;
+      float estimatedAltitude = 0;
+      float estimatedVelocity = 0;
 
       void init(void)
       {
@@ -68,20 +69,38 @@ namespace hf {
       {
           baro.update(pressure);
           // Calibrate barometer when the drone is resting
-          if (!armed){
+          if (!armed && count < 100){
             baro.calibrate();
+            count++;
             return;
           }
           return;
       }
 
+      void updateAcceleration(float _accel[3])
+      {
+          imu.updateAcceleration(_accel);
+      }
+
+      void updateGyro(float _gyro[3])
+      {
+          imu.updateGyro(_gyro);
+      }
+
       float estimate()
       {
+          float currentTime = millis();
+          float verticalAccel = kalman.estimate( imu.gyro,
+                                                 imu.accel,
+                                                 (currentTime-previousTime)/1000.0);
           complementary.estimate(& estimatedVelocity,
                                  & estimatedAltitude,
                                  baro.getAltitude(),
-                                 accel,
-                                 deltat);
+                                 pastVerticalAccel,
+                                 (currentTime-previousTime)/1000.0);
+          pastVerticalAccel = verticalAccel;
+          previousTime = currentTime;
+          return estimatedAltitude;
       }
 
   }; // class AltitudeEstimator
@@ -89,9 +108,6 @@ namespace hf {
   class AltitudeHold {
 
     private:
-      // Altitude estimation
-      AltitudeEstimator altitudeEstimator = AltitudeEstimator();
-
       // State variables
       bool holding;
       float referenceAltitude;
@@ -99,6 +115,8 @@ namespace hf {
       float pid;
 
     public:
+      // Altitude estimation
+      AltitudeEstimator altitudeEstimator = AltitudeEstimator();
 
       AltitudeHold()
       {

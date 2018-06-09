@@ -75,24 +75,24 @@ namespace hf {
   }
 
   // Vector dot product
-  void vec_dot_product(float c, float a[3], float b[3])
+  void vec_dot_product(float * c, float a[3], float b[3])
   {
-     c = (a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2];
+     *c = (a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2];
   }
 
   // Vector length
-  void vec_length(float len, float a[3])
+  void vec_length(float * len, float a[3])
   {
-     len = (a)[0]*(a)[0] + (a)[1]*(a)[1];
-     len += (a)[2]*(a)[2];
-     len = sqrt (len);
+     float tmp;
+     tmp = a[0]*a[0] + a[1]*a[1]+a[2]*a[2];
+     *len = sqrt(tmp);
   }
 
   // Normalize vector
   void vec_normalize(float a[3])
   {
-     double len;
-     vec_length(len,a);
+     float len;
+     vec_length(& len,a);
      if (len != 0.0) {
         len = 1.0 / len;
         a[0] *= len;
@@ -176,17 +176,17 @@ namespace hf {
   // multiply matrix by scalar and add result to another matrix
   void accum_scale_matrix_3x3(float b[3][3], float s, float a[3][3])
   {
-     b[0][0] += (s) * a[0][0];
-     b[0][1] += (s) * a[0][1];
-     b[0][2] += (s) * a[0][2];
+     b[0][0] += s * a[0][0];
+     b[0][1] += s * a[0][1];
+     b[0][2] += s * a[0][2];
 
-     b[1][0] += (s) * a[1][0];
-     b[1][1] += (s) * a[1][1];
-     b[1][2] += (s) * a[1][2];
+     b[1][0] += s * a[1][0];
+     b[1][1] += s * a[1][1];
+     b[1][2] += s * a[1][2];
 
-     b[2][0] += (s) * a[2][0];
-     b[2][1] += (s) * a[2][1];
-     b[2][2] += (s) * a[2][2];
+     b[2][0] += s * a[2][0];
+     b[2][1] += s * a[2][1];
+     b[2][2] += s * a[2][2];
   }
 
   // matrix product
@@ -216,11 +216,11 @@ namespace hf {
 
   // determinant of matrix
   // Computes determinant of matrix m, returning d
-  void determinant_3x3(float d, float m[3][3])
+  void determinant_3x3(float * d, float m[3][3])
   {
-     d = m[0][0] * (m[1][1]*m[2][2] - m[1][2] * m[2][1]);
-     d -= m[0][1] * (m[1][0]*m[2][2] - m[1][2] * m[2][0]);
-     d += m[0][2] * (m[1][0]*m[2][1] - m[1][1] * m[2][0]);
+     *d = m[0][0] * (m[1][1]*m[2][2] - m[1][2] * m[2][1]);
+     *d -= m[0][1] * (m[1][0]*m[2][2] - m[1][2] * m[2][0]);
+     *d += m[0][2] * (m[1][0]*m[2][1] - m[1][1] * m[2][0]);
   }
 
   // adjoint of matrix
@@ -261,8 +261,8 @@ namespace hf {
   // inverse b
   void invert_3X3(float b[3][3], float a[3][3])
   {
-     double tmp;
-     determinant_3x3(tmp, a);
+     float tmp;
+     determinant_3x3(& tmp, a);
      tmp = 1.0 / (tmp);
      scale_adjoint_3X3(b, tmp, a);
   }
@@ -276,6 +276,32 @@ namespace hf {
     a[1][0] = v[2];
     a[2][0] = -v[1];
     a[2][1] = v[0];
+    // set diagonal to 0
+    a[0][0] = 0.0;
+    a[1][1] = 0.0;
+    a[2][2] = 0.0;
   }
+
+  void print_3X3(float mmm[3][3]) {
+   int i,j;
+   printf ("matrix mmm is \n");
+   if (mmm == NULL) {
+      printf (" Null \n");
+   } else {
+      for (i=0; i<3; i++) {
+         for (j=0; j<3; j++) {
+            printf ("%f ", mmm[i][j]);
+         }
+         printf (" \n");
+      }
+   }
+}
+
+void vec_print(float a[3])
+{
+   float len;
+   vec_length(& len, a);
+   printf(" a is %f %f %f length of a is %f \n", (a)[0], (a)[1], (a)[2], len);
+}
 
 } // namespace hf

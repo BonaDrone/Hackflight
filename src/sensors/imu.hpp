@@ -35,11 +35,11 @@ namespace hf {
             // This variables will store the latest available readings
             // from the gyro and the IMU. Since this class is Hardware
             // independent this values will have to be supplied
-            float accel[3];
-            float gyro[3];
 
         public:
 
+          float gyro[3];
+          float accel[3];
           // Update last known acceleration values and time of the last measure
           void updateAcceleration(float _accel[3])
           {
