@@ -75,9 +75,9 @@ namespace hf {
   }
 
   // Vector dot product
-  void vec_dot_product(float c, float a[3], float b[3])
+  void vec_dot_product(float * c, float a[3], float b[3])
   {
-     c = (a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2];
+     *c = (a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2];
   }
 
   // Vector length
