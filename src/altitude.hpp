@@ -93,13 +93,11 @@ namespace hf {
           float verticalAccel = kalman.estimate( imu.gyro,
                                                  imu.accel,
                                                  (currentTime-previousTime)/1000.0);
-          Serial.println(verticalAccel);
           complementary.estimate(& estimatedVelocity,
                                  & estimatedAltitude,
                                  baro.getAltitude(),
                                  pastVerticalAccel,
                                  (currentTime-previousTime)/1000.0);
-          Serial.println(estimatedAltitude);
           pastVerticalAccel = verticalAccel;
           previousTime = currentTime;
           return estimatedAltitude;

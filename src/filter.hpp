@@ -223,10 +223,8 @@ namespace hf {
           updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
           // Store required values for next iteration
           vec_copy(this->currentState, updatedState);
-          vec_print(updatedState);
           copy_matrix_3x3(this->currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
-          vec_print(accel);
           vec_scale(tmp, 9.81, updatedState);
           vec_diff(a_sensor, accel, tmp);
           vec_copy(this->a_sensor_prev, a_sensor);
