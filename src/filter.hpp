@@ -71,9 +71,9 @@ namespace hf {
       private:
         float currentState[3] = {0, 0, 1};
         float currErrorCovariance[3][3] = {{100, 0, 0},{0, 100, 0},{0, 0, 100}};
-        float ca;
         float H[3][3] = {{9.81, 0, 0}, {0, 9.81, 0}, {0, 0, 9.81}};
         float a_sensor_prev[3] = {0, 0, 0};
+        float ca;
         float sigma_gyro;
         float sigma_accel;
 
@@ -103,14 +103,13 @@ namespace hf {
             float tmp[3][3];
             float norm;
             // Compute measurement covariance
-            scale_matrix_3x3(sigma, pow(sigma_accel, 2), identity);
-            vec_length(& norm, a_sensor_prev);
-            accum_scale_matrix_3x3(sigma, (1.0/3.0)*pow(ca, 2)*norm, identity);
+            scale_matrix_3x3(sigma, pow(this->sigma_accel, 2), identity);
+            vec_length(& norm, this->a_sensor_prev);
+            accum_scale_matrix_3x3(sigma, (1.0/3.0)*pow(this->ca, 2)*norm, identity);
             copy_matrix_3x3(covariance, sigma);
         }
 
-        void predictState(float predictedState[3], float state[3],
-                           float gyro[3], float deltat)
+        void predictState(float predictedState[3], float gyro[3], float deltat)
         {
             // helper matrices
             float identity[3][3];
@@ -120,12 +119,11 @@ namespace hf {
             float tmp[3][3];
             // Predict state
             accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
-            mat_dot_vec_3x3(predictedState, identity, state);
+            mat_dot_vec_3x3(predictedState, identity, this->currentState);
             vec_normalize(predictedState);
         }
 
-        void predictErrorCovariance(float covariance[3][3], float state[3], float gyro[3],
-                                    float deltat, float errorCovariance[3][3])
+        void predictErrorCovariance(float covariance[3][3], float gyro[3], float deltat)
         {
             // required matrices
             float Q[3][3];
@@ -137,11 +135,11 @@ namespace hf {
             float tmp_trans[3][3];
             float tmp2[3][3];
             // predict error covariance
-            getPredictionCovariance(Q, state, deltat);
+            getPredictionCovariance(Q, this->currentState, deltat);
             accum_scale_matrix_3x3(identity, -deltat, skew_from_gyro);
             copy_matrix_3x3(tmp, identity);
             transpose_matrix_3x3(tmp_trans, tmp);
-            matrix_product_3x3(tmp2, tmp, errorCovariance);
+            matrix_product_3x3(tmp2, tmp, this->currErrorCovariance);
             matrix_product_3x3(covariance, tmp2, tmp_trans);
             accum_scale_matrix_3x3(covariance, 1.0, Q);
         }
@@ -159,6 +157,7 @@ namespace hf {
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
             getMeasurementCovariance(R);
             matrix_product_3x3(tmp, errorCovariance, H_trans);
+            print_3X3(tmp);
             matrix_product_3x3(tmp2, this->H, tmp);
             accum_scale_matrix_3x3(tmp2, 1.0, R);
             invert_3X3(tmp2_inv, tmp2);
@@ -216,9 +215,9 @@ namespace hf {
           float tmp[3];
           float a_earth;
           // perform estimation
-          predictState(predictedState, this->currentState, gyro, deltat);
+          predictState(predictedState, gyro, deltat);
+          predictErrorCovariance(errorCovariance, gyro, deltat);
           // The above has been tested
-          predictErrorCovariance(errorCovariance, this->currentState, gyro, deltat, this->currErrorCovariance);
           updateGain(gain, errorCovariance);
           updateState(updatedState, predictedState, gain, accel);
           updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
