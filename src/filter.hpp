@@ -224,6 +224,7 @@ namespace hf {
           vec_copy(this->currentState, updatedState);
           copy_matrix_3x3(this->currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
+          vec_scale(accel, 9.81, accel); // Scale accel readings since they are measured in gs
           vec_scale(tmp, 9.81, updatedState);
           vec_diff(a_sensor, accel, tmp);
           vec_copy(this->a_sensor_prev, a_sensor);
