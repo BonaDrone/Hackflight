@@ -255,7 +255,7 @@ namespace hf {
             ZUPTIdx = nextIndex;
             // Apply Zero-velocity update
             for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
-                if (ZUPT[k] > accel_threshold) return 0.0;
+                if (ZUPT[k] > this->accel_threshold) return 0.0;
             }
             return vel;
         }
@@ -266,11 +266,11 @@ namespace hf {
         ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
         {
             // Compute the filter gain
-            gain[0] = sqrt(2 * sigma_accel / sigma_baro);
-            gain[1] = sigma_accel / sigma_baro;
+            this->gain[0] = sqrt(2 * sigma_accel / sigma_baro);
+            this->gain[1] = sigma_accel / sigma_baro;
             // If acceleration is below the threshold the ZUPT counter
             // will be increased
-            accel_threshold = accel_threshold;
+            this->accel_threshold = accel_threshold;
             // initialize zero-velocity update
             ZUPTIdx = 0;
             for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
@@ -281,9 +281,9 @@ namespace hf {
         void estimate(float * velocity, float * altitude, float baro_altitude, float accel, float deltat)
         {
             // Apply complementary filter
-            *altitude = *altitude + deltat*((*velocity) + (gain[0] + gain[1]*deltat/2)*(baro_altitude-(*altitude)))+
+            *altitude = *altitude + deltat*((*velocity) + (this->gain[0] + this->gain[1]*deltat/2)*(baro_altitude-(*altitude)))+
              accel*pow(deltat, 2)/2;
-            *velocity = *velocity + deltat*(gain[1]*(baro_altitude-(*altitude)) + accel);
+            *velocity = *velocity + deltat*(this->gain[1]*(baro_altitude-(*altitude)) + accel);
             // Compute zero-velocity update
             *velocity = ApplyZUPT(accel, *velocity);
         }
