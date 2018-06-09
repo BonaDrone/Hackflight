@@ -157,7 +157,6 @@ namespace hf {
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
             getMeasurementCovariance(R);
             matrix_product_3x3(tmp, errorCovariance, H_trans);
-            print_3X3(tmp);
             matrix_product_3x3(tmp2, this->H, tmp);
             accum_scale_matrix_3x3(tmp2, 1.0, R);
             invert_3X3(tmp2_inv, tmp2);
@@ -217,8 +216,8 @@ namespace hf {
           // perform estimation
           predictState(predictedState, gyro, deltat);
           predictErrorCovariance(errorCovariance, gyro, deltat);
-          // The above has been tested
           updateGain(gain, errorCovariance);
+          // The above has been tested
           updateState(updatedState, predictedState, gain, accel);
           updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
           // Store required values for next iteration
@@ -228,7 +227,7 @@ namespace hf {
           vec_scale(tmp, 9.81, updatedState);
           vec_diff(a_sensor, accel, tmp);
           vec_copy(this->a_sensor_prev, a_sensor);
-          vec_dot_product(a_earth, a_sensor, updatedState);
+          vec_dot_product(& a_earth, a_sensor, updatedState);
           return a_earth;
         }
 
