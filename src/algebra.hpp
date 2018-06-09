@@ -216,11 +216,11 @@ namespace hf {
 
   // determinant of matrix
   // Computes determinant of matrix m, returning d
-  void determinant_3x3(float d, float m[3][3])
+  void determinant_3x3(float * d, float m[3][3])
   {
-     d = m[0][0] * (m[1][1]*m[2][2] - m[1][2] * m[2][1]);
-     d -= m[0][1] * (m[1][0]*m[2][2] - m[1][2] * m[2][0]);
-     d += m[0][2] * (m[1][0]*m[2][1] - m[1][1] * m[2][0]);
+     *d = m[0][0] * (m[1][1]*m[2][2] - m[1][2] * m[2][1]);
+     *d -= m[0][1] * (m[1][0]*m[2][2] - m[1][2] * m[2][0]);
+     *d += m[0][2] * (m[1][0]*m[2][1] - m[1][1] * m[2][0]);
   }
 
   // adjoint of matrix
@@ -261,8 +261,8 @@ namespace hf {
   // inverse b
   void invert_3X3(float b[3][3], float a[3][3])
   {
-     double tmp;
-     determinant_3x3(tmp, a);
+     float tmp;
+     determinant_3x3(& tmp, a);
      tmp = 1.0 / (tmp);
      scale_adjoint_3X3(b, tmp, a);
   }
