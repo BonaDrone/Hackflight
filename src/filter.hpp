@@ -88,7 +88,7 @@ namespace hf {
             skew(skew_matrix, state_prev);
             float tmp[3][3];
             // Compute the prediction covariance matrix
-            scale_matrix_3x3(sigma, pow(sigma_gyro, 2), identity);
+            scale_matrix_3x3(sigma, pow(this->sigma_gyro, 2), identity);
             matrix_product_3x3(tmp, skew_matrix, sigma);
             matrix_product_3x3(covariance, tmp, skew_matrix);
             scale_matrix_3x3(covariance, -pow(deltat, 2), covariance);
@@ -151,7 +151,7 @@ namespace hf {
             // required matrices
             float R[3][3];
             float H_trans[3][3];
-            transpose_matrix_3x3(H_trans, H);
+            transpose_matrix_3x3(H_trans, this->H);
             float tmp[3][3];
             float tmp2[3][3];
             float tmp2_inv[3][3];
@@ -159,7 +159,7 @@ namespace hf {
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
             getMeasurementCovariance(R);
             matrix_product_3x3(tmp, errorCovariance, H_trans);
-            matrix_product_3x3(tmp2, H, tmp);
+            matrix_product_3x3(tmp2, this->H, tmp);
             accum_scale_matrix_3x3(tmp2, 1.0, R);
             invert_3X3(tmp2_inv, tmp2);
             matrix_product_3x3(gain, tmp, tmp2_inv);
@@ -171,11 +171,11 @@ namespace hf {
             float tmp[3];
             float tmp2[3];
             float measurement[3];
-            vec_scale(tmp, ca, a_sensor_prev);
+            vec_scale(tmp, this->ca, this->a_sensor_prev);
             vec_diff(measurement, accel, tmp);
             // update state with measurement
             // predicted_state + K.dot(measurement - H.dot(predicted_state))
-            mat_dot_vec_3x3(tmp, H, predictedState);
+            mat_dot_vec_3x3(tmp, this->H, predictedState);
             vec_diff(tmp, measurement, tmp);
             mat_dot_vec_3x3(tmp2, gain, tmp);
             vec_sum(updatedState, predictedState, tmp2);
@@ -190,7 +190,7 @@ namespace hf {
             float tmp[3][3];
             float tmp2[3][3];
             // update error covariance with measurement
-            matrix_product_3x3(tmp, gain, H);
+            matrix_product_3x3(tmp, gain, this->H);
             matrix_product_3x3(tmp2, tmp, errorCovariance);
             accum_scale_matrix_3x3(identity, -1.0, tmp2);
             copy_matrix_3x3(covariance, tmp2);
@@ -200,9 +200,9 @@ namespace hf {
 
         KalmanFilter(float ca, float sigma_gyro, float sigma_accel)
         {
-            ca = ca;
-            sigma_gyro = sigma_gyro;
-            sigma_accel = sigma_accel;
+            this->ca = ca;
+            this->sigma_gyro = sigma_gyro;
+            this->sigma_accel = sigma_accel;
         }
 
         float estimate(float gyro[3], float accel[3], float deltat)
@@ -216,19 +216,19 @@ namespace hf {
           float tmp[3];
           float a_earth;
           // perform estimation
-          predictState(predictedState, currentState, gyro, deltat);
+          predictState(predictedState, this->currentState, gyro, deltat);
           // The above has been tested
-          predictErrorCovariance(errorCovariance, currentState, gyro, deltat, currErrorCovariance);
+          predictErrorCovariance(errorCovariance, this->currentState, gyro, deltat, this->currErrorCovariance);
           updateGain(gain, errorCovariance);
           updateState(updatedState, predictedState, gain, accel);
           updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
           // Store required values for next iteration
-          vec_copy(currentState, updatedState);
-          copy_matrix_3x3(currErrorCovariance, updatedErrorCovariance);
+          vec_copy(this->currentState, updatedState);
+          copy_matrix_3x3(this->currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
           vec_scale(tmp, 9.81, updatedState);
           vec_diff(a_sensor, accel, tmp);
-          vec_copy(a_sensor_prev, a_sensor);
+          vec_copy(this->a_sensor_prev, a_sensor);
           vec_dot_product(a_earth, a_sensor, updatedState);
           return a_earth;
         }
