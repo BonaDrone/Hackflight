@@ -144,7 +144,7 @@ namespace hf {
             accum_scale_matrix_3x3(covariance, 1.0, Q);
         }
 
-        void updateGain(float gain[3][3],float errorCovariance[3][3])
+        void updateGain(float gain[3][3], float errorCovariance[3][3])
         {
             // required matrices
             float R[3][3];
@@ -213,6 +213,7 @@ namespace hf {
           float a_sensor[3];
           float tmp[3];
           float a_earth;
+          vec_scale(accel, 9.81, accel); // Scale accel readings since they are measured in gs
           // perform estimation
           predictState(predictedState, gyro, deltat);
           predictErrorCovariance(errorCovariance, gyro, deltat);
@@ -222,9 +223,10 @@ namespace hf {
           updateErrorCovariance(updatedErrorCovariance, errorCovariance, gain);
           // Store required values for next iteration
           vec_copy(this->currentState, updatedState);
+          vec_print(updatedState);
           copy_matrix_3x3(this->currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
-          vec_scale(accel, 9.81, accel); // Scale accel readings since they are measured in gs
+          vec_print(accel);
           vec_scale(tmp, 9.81, updatedState);
           vec_diff(a_sensor, accel, tmp);
           vec_copy(this->a_sensor_prev, a_sensor);
