@@ -72,25 +72,25 @@ namespace hf {
         float currentState[3] = {0, 0, 1};
         float currErrorCovariance[3][3] = {{100, 0, 0},{0, 100, 0},{0, 0, 100}};
         float H[3][3] = {{9.81, 0, 0}, {0, 9.81, 0}, {0, 0, 9.81}};
-        float a_sensor_prev[3] = {0, 0, 0};
+        float previousAccelSensor[3] = {0, 0, 0};
         float ca;
-        float sigma_gyro;
-        float sigma_accel;
+        float sigmaGyro;
+        float sigmaAccel;
 
-        void getPredictionCovariance(float covariance[3][3], float state_prev[3],
+        void getPredictionCovariance(float covariance[3][3], float previousState[3],
                                      float deltat)
         {
             // required matrices for the operations
             float sigma[3][3];
             float identity[3][3];
             identityMatrix3x3(identity);
-            float skew_matrix[3][3];
-            skew(skew_matrix, state_prev);
+            float skewMatrix[3][3];
+            skew(skewMatrix, previousState);
             float tmp[3][3];
             // Compute the prediction covariance matrix
-            scaleMatrix3x3(sigma, pow(this->sigma_gyro, 2), identity);
-            matrixProduct3x3(tmp, skew_matrix, sigma);
-            matrixProduct3x3(covariance, tmp, skew_matrix);
+            scaleMatrix3x3(sigma, pow(this->sigmaGyro, 2), identity);
+            matrixProduct3x3(tmp, skewMatrix, sigma);
+            matrixProduct3x3(covariance, tmp, skewMatrix);
             scaleMatrix3x3(covariance, -pow(deltat, 2), covariance);
         }
 
@@ -103,8 +103,8 @@ namespace hf {
             float tmp[3][3];
             float norm;
             // Compute measurement covariance
-            scaleMatrix3x3(sigma, pow(this->sigma_accel, 2), identity);
-            vectorLength(& norm, this->a_sensor_prev);
+            scaleMatrix3x3(sigma, pow(this->sigmaAccel, 2), identity);
+            vectorLength(& norm, this->previousAccelSensor);
             scaleAndAccumulateMatrix3x3(sigma, (1.0/3.0)*pow(this->ca, 2)*norm, identity);
             copyMatrix3x3(covariance, sigma);
         }
@@ -114,11 +114,11 @@ namespace hf {
             // helper matrices
             float identity[3][3];
             identityMatrix3x3(identity);
-            float skew_from_gyro[3][3];
-            skew(skew_from_gyro, gyro);
+            float skewFromGyro[3][3];
+            skew(skewFromGyro, gyro);
             float tmp[3][3];
             // Predict state
-            scaleAndAccumulateMatrix3x3(identity, -deltat, skew_from_gyro);
+            scaleAndAccumulateMatrix3x3(identity, -deltat, skewFromGyro);
             matrixDotVector3x3(predictedState, identity, this->currentState);
             normalizeVector(predictedState);
         }
@@ -129,18 +129,18 @@ namespace hf {
             float Q[3][3];
             float identity[3][3];
             identityMatrix3x3(identity);
-            float skew_from_gyro[3][3];
-            skew(skew_from_gyro, gyro);
+            float skewFromGyro[3][3];
+            skew(skewFromGyro, gyro);
             float tmp[3][3];
-            float tmp_trans[3][3];
+            float tmpTransposed[3][3];
             float tmp2[3][3];
             // predict error covariance
             getPredictionCovariance(Q, this->currentState, deltat);
-            scaleAndAccumulateMatrix3x3(identity, -deltat, skew_from_gyro);
+            scaleAndAccumulateMatrix3x3(identity, -deltat, skewFromGyro);
             copyMatrix3x3(tmp, identity);
-            transposeMatrix3x3(tmp_trans, tmp);
+            transposeMatrix3x3(tmpTransposed, tmp);
             matrixProduct3x3(tmp2, tmp, this->currErrorCovariance);
-            matrixProduct3x3(covariance, tmp2, tmp_trans);
+            matrixProduct3x3(covariance, tmp2, tmpTransposed);
             scaleAndAccumulateMatrix3x3(covariance, 1.0, Q);
         }
 
@@ -148,19 +148,19 @@ namespace hf {
         {
             // required matrices
             float R[3][3];
-            float H_trans[3][3];
-            transposeMatrix3x3(H_trans, this->H);
+            float HTransposed[3][3];
+            transposeMatrix3x3(HTransposed, this->H);
             float tmp[3][3];
             float tmp2[3][3];
-            float tmp2_inv[3][3];
+            float tmp2Inverse[3][3];
             // update kalman gain
             // P.dot(H.T).dot(inv(H.dot(P).dot(H.T) + R))
             getMeasurementCovariance(R);
-            matrixProduct3x3(tmp, errorCovariance, H_trans);
+            matrixProduct3x3(tmp, errorCovariance, HTransposed);
             matrixProduct3x3(tmp2, this->H, tmp);
             scaleAndAccumulateMatrix3x3(tmp2, 1.0, R);
-            invert3x3(tmp2_inv, tmp2);
-            matrixProduct3x3(gain, tmp, tmp2_inv);
+            invert3x3(tmp2Inverse, tmp2);
+            matrixProduct3x3(gain, tmp, tmp2Inverse);
         }
 
         void updateState(float updatedState[3], float predictedState[3], float gain[3][3], float accel[3])
@@ -169,7 +169,7 @@ namespace hf {
             float tmp[3];
             float tmp2[3];
             float measurement[3];
-            scaleVector(tmp, this->ca, this->a_sensor_prev);
+            scaleVector(tmp, this->ca, this->previousAccelSensor);
             subtractVectors(measurement, accel, tmp);
             // update state with measurement
             // predicted_state + K.dot(measurement - H.dot(predicted_state))
@@ -196,11 +196,11 @@ namespace hf {
 
       public:
 
-        KalmanFilter(float ca, float sigma_gyro, float sigma_accel)
+        KalmanFilter(float ca, float sigmaGyro, float sigmaAccel)
         {
             this->ca = ca;
-            this->sigma_gyro = sigma_gyro;
-            this->sigma_accel = sigma_accel;
+            this->sigmaGyro = sigmaGyro;
+            this->sigmaAccel = sigmaAccel;
         }
 
         float estimate(float gyro[3], float accel[3], float deltat)
@@ -210,9 +210,9 @@ namespace hf {
           float errorCovariance[3][3];
           float updatedErrorCovariance[3][3];
           float gain[3][3];
-          float a_sensor[3];
+          float accelSensor[3];
           float tmp[3];
-          float a_earth;
+          float accelEarth;
           scaleVector(accel, 9.81, accel); // Scale accel readings since they are measured in gs
           // perform estimation
           predictState(predictedState, gyro, deltat);
@@ -226,10 +226,10 @@ namespace hf {
           copyMatrix3x3(this->currErrorCovariance, updatedErrorCovariance);
           // return vertical acceleration estimate
           scaleVector(tmp, 9.81, updatedState);
-          subtractVectors(a_sensor, accel, tmp);
-          copyVector(this->a_sensor_prev, a_sensor);
-          dotProductVectors(& a_earth, a_sensor, updatedState);
-          return a_earth;
+          subtractVectors(accelSensor, accel, tmp);
+          copyVector(this->previousAccelSensor, accelSensor);
+          dotProductVectors(& accelEarth, accelSensor, updatedState);
+          return accelEarth;
         }
 
     }; // Class KalmanFilter
@@ -241,7 +241,7 @@ namespace hf {
         // filter gain
         float gain[2];
         // Zero-velocity update
-        float accel_threshold;
+        float accelThreshold;
         static const uint8_t ZUPT_SIZE = 12;
         uint8_t ZUPTIdx;
         float   ZUPT[ZUPT_SIZE];
@@ -255,7 +255,7 @@ namespace hf {
             ZUPTIdx = nextIndex;
             // Apply Zero-velocity update
             for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
-                if (ZUPT[k] > this->accel_threshold) return 0.0;
+                if (ZUPT[k] > this->accelThreshold) return 0.0;
             }
             return vel;
         }
@@ -263,14 +263,14 @@ namespace hf {
 
       public:
 
-        ComplementaryFilter(float sigma_accel, float sigma_baro, float accel_threshold)
+        ComplementaryFilter(float sigmaAccel, float sigmaBaro, float accelThreshold)
         {
             // Compute the filter gain
-            this->gain[0] = sqrt(2 * sigma_accel / sigma_baro);
-            this->gain[1] = sigma_accel / sigma_baro;
+            this->gain[0] = sqrt(2 * sigmaAccel / sigmaBaro);
+            this->gain[1] = sigmaAccel / sigmaBaro;
             // If acceleration is below the threshold the ZUPT counter
             // will be increased
-            this->accel_threshold = accel_threshold;
+            this->accelThreshold = accelThreshold;
             // initialize zero-velocity update
             ZUPTIdx = 0;
             for (uint8_t k = 0; k < ZUPT_SIZE; ++k) {
@@ -278,12 +278,12 @@ namespace hf {
             }
         }
 
-        void estimate(float * velocity, float * altitude, float baro_altitude, float accel, float deltat)
+        void estimate(float * velocity, float * altitude, float baroAltitude, float accel, float deltat)
         {
             // Apply complementary filter
-            *altitude = *altitude + deltat*((*velocity) + (this->gain[0] + this->gain[1]*deltat/2)*(baro_altitude-(*altitude)))+
+            *altitude = *altitude + deltat*((*velocity) + (this->gain[0] + this->gain[1]*deltat/2)*(baroAltitude-(*altitude)))+
              accel*pow(deltat, 2)/2;
-            *velocity = *velocity + deltat*(this->gain[1]*(baro_altitude-(*altitude)) + accel);
+            *velocity = *velocity + deltat*(this->gain[1]*(baroAltitude-(*altitude)) + accel);
             // Compute zero-velocity update
             *velocity = ApplyZUPT(accel, *velocity);
         }
