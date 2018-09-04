@@ -62,10 +62,10 @@ namespace hf {
             // Paramters to experiment with ------------------------------------------------------------------------
 
             // MPU9250 full-scale settings
-            static const Ascale_t ASCALE = AFS_8G;
-            static const Gscale_t GSCALE = GFS_2000DPS;
-            static const Mscale_t MSCALE = MFS_16BITS;
-            static const Mmode_t  MMODE  = M_100Hz;
+            static const MPU9250::Ascale_t ASCALE = MPU9250::AFS_8G;
+            static const MPU9250::Gscale_t GSCALE = MPU9250::GFS_2000DPS;
+            static const MPU9250::Mscale_t MSCALE = MPU9250::MFS_16BITS;
+            static const MPU9250::Mmode_t  MMODE  = MPU9250::M_100Hz;
 
             // SAMPLE_RATE_DIVISOR: (1 + SAMPLE_RATE_DIVISOR) is a simple divisor of the fundamental 1000 kHz rate of the gyro and accel, so 
             // SAMPLE_RATE_DIVISOR = 0 means 1 kHz sample rate for both accel and gyro, 4 means 200 Hz, etc.
@@ -169,13 +169,13 @@ namespace hf {
                 // Start the MPU9250
                 switch (_imu.begin()) {
 
-                    case MPU_ERROR_IMU_ID:
+                    case MPU9250::ERROR_IMU_ID:
                         error("Bad IMU device ID");
                         break;
-                    case MPU_ERROR_MAG_ID:
+                    case MPU9250::ERROR_MAG_ID:
                         error("Bad magnetometer device ID");
                         break;
-                    case MPU_ERROR_SELFTEST:
+                    case MPU9250::ERROR_SELFTEST:
                         //error("Failed self-test");
                         break;
                     default:
