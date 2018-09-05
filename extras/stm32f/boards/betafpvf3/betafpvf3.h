@@ -1,5 +1,5 @@
 /*
-   omnibusf3.cpp : Board class for Omnibus F3
+   betafpvf3.h : Board class for BetaFPV F3 Brushed board
 
    Copyright (C) 2018 Simon D. Levy 
 
@@ -22,24 +22,25 @@
 #pragma once
 
 #include <boards/softquat.hpp>
+
 #include <MPU6000.h>
 
-class OmnibusF3 : public hf::SoftwareQuaternionBoard  {
+class BetaFPVF3 : public hf::SoftwareQuaternionBoard  {
 
     private:
-
-        MPU6000 * _imu;
 
         void initMotors(void);
         void initUsb(void);
         void initImu(void);
+
+        MPU6000 * _imu;
 
     protected: 
 
         // Board class overrides
         virtual void     writeMotor(uint8_t index, float value) override;
         virtual void     delaySeconds(float sec) override;
-        virtual void     setLed(bool is_on) override;
+        virtual void     setLed(bool isOn) override;
         virtual uint32_t getMicroseconds(void) override;
         virtual void     reboot(void) override;
         static void      outchar(char c);
@@ -49,9 +50,10 @@ class OmnibusF3 : public hf::SoftwareQuaternionBoard  {
 
         // SoftwareQuaternionBoard class overrides
         virtual bool     imuRead(void) override;
-        virtual void     updateQuaternion(float deltat); 
+        virtual void     updateQuaternion(float deltat) override; 
+
     public:
 
-        OmnibusF3(void);
+        BetaFPVF3(void);
 
-}; // class OmnibusF3
+}; // class BetaFPVF3

@@ -62,8 +62,8 @@ namespace hf {
             // Paramters to experiment with ------------------------------------------------------------------------
 
             // MPU9250 full-scale settings
-            static const MPU9250::Ascale_t ASCALE = MPU9250::AFS_8G;
-            static const MPU9250::Gscale_t GSCALE = MPU9250::GFS_2000DPS;
+            static const MPUIMU::Ascale_t ASCALE  = MPUIMU::AFS_8G;
+            static const MPUIMU::Gscale_t GSCALE  = MPUIMU::GFS_2000DPS;
             static const MPU9250::Mscale_t MSCALE = MPU9250::MFS_16BITS;
             static const MPU9250::Mmode_t  MMODE  = MPU9250::M_100Hz;
 
@@ -127,8 +127,10 @@ namespace hf {
 
                     if (_imu.checkNewAccelGyroData()) {
 
-                        _imu.readAccelerometer(_ax, _ay, _az);
-                        _imu.readGyrometer(_gx, _gy, _gz);
+                        _imu.readAccelerometer(_ay, _ax, _az);
+                        _imu.readGyrometer(_gy, _gx, _gz);
+
+                        _gx = -_gx;
 
                         return true;
 
@@ -136,6 +138,11 @@ namespace hf {
                 } 
 
                 return false;
+            }
+
+            void updateQuaternion(float deltat) 
+            {                   
+                _quaternionFilter.update(-_ay, _ax, _az, _gy, _gx, -_gz, deltat); 
             }
 
         public:
@@ -169,13 +176,13 @@ namespace hf {
                 // Start the MPU9250
                 switch (_imu.begin()) {
 
-                    case MPU9250::ERROR_IMU_ID:
+                    case MPUIMU::ERROR_IMU_ID:
                         error("Bad IMU device ID");
                         break;
-                    case MPU9250::ERROR_MAG_ID:
+                    case MPUIMU::ERROR_MAG_ID:
                         error("Bad magnetometer device ID");
                         break;
-                    case MPU9250::ERROR_SELFTEST:
+                    case MPUIMU::ERROR_SELFTEST:
                         //error("Failed self-test");
                         break;
                     default:
