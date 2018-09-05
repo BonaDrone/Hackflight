@@ -1,5 +1,5 @@
 /*
-   omnibusf3.cpp : Board implementation for Omnibus F3
+   betafpvf3.h : Board implmentation for BetaFPV F3 Brushed board
 
    Copyright (C) 2018 Simon D. Levy 
 
@@ -19,10 +19,10 @@
    along with Hackflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "omnibusf3.h"
+#include "betafpvf3.h"
 
-static const uint16_t BRUSHLESS_PWM_RATE   = 480;
-static const uint16_t BRUSHLESS_IDLE_PULSE = 1000; 
+static const uint16_t BRUSHED_PWM_RATE     = 32000;
+static const uint16_t BRUSHED_IDLE_PULSE   = 0; 
 
 static const float    MOTOR_MIN = 1000;
 static const float    MOTOR_MAX = 2000;
@@ -36,6 +36,7 @@ extern "C" {
 #include "drivers/timer.h"
 #include "drivers/time.h"
 #include "drivers/pwm_output.h"
+#include "drivers/light_led.h"
 #include "drivers/serial.h"
 #include "drivers/serial_uart.h"
 #include "drivers/serial_usb_vcp.h"
@@ -49,20 +50,7 @@ extern "C" {
 
     static serialPort_t * _serial0;
 
-    /*
-    static serialPort_t * _serial_extra;
-
-    static char tmp = 'a';
-
-    static void serial_event(uint16_t value, void * data)
-    {
-        tmp = (char)value;
-
-        (void)data;
-    }
-    */
-
-    OmnibusF3::OmnibusF3(void)
+    BetaFPVF3::BetaFPVF3(void)
     {
         // Set up the LED (uses the beeper for some reason)
         beeperLedInit();
@@ -71,14 +59,13 @@ extern "C" {
         initUsb();
         initImu();
 
-        //_serial_extra = uartOpen(UARTDEV_2,  serial_event, NULL,  115200, MODE_RX, SERIAL_NOT_INVERTED);
-
         RealBoard::init();
     }
 
-    void OmnibusF3::initImu(void)
+    void BetaFPVF3::initImu(void)
     {
         spi_init(MPU6000_SPI_INSTANCE, IOGetByTag(IO_TAG(MPU6000_CS_PIN)));
+
         _imu = new MPU6000(MPUIMU::AFS_2G, MPUIMU::GFS_250DPS);
 
         switch (_imu->begin()) {
@@ -94,18 +81,17 @@ extern "C" {
         }
     }
 
-    void OmnibusF3::initUsb(void)
+    void BetaFPVF3::initUsb(void)
     {
         _serial0 = usbVcpOpen();
     }
 
-    void OmnibusF3::initMotors(void)
+    void BetaFPVF3::initMotors(void)
     {
-
         motorDevConfig_t dev;
 
-        dev.motorPwmRate = BRUSHLESS_PWM_RATE;
-        dev.motorPwmProtocol = PWM_TYPE_STANDARD;
+        dev.motorPwmRate = BRUSHED_PWM_RATE;
+        dev.motorPwmProtocol = PWM_TYPE_BRUSHED;
         dev.motorPwmInversion = false;
         dev.useUnsyncedPwm = true;
         dev.useBurstDshot = false;
@@ -115,66 +101,63 @@ extern "C" {
         dev.ioTags[2] = timerioTagGetByUsage(TIM_USE_MOTOR, 2);
         dev.ioTags[3] = timerioTagGetByUsage(TIM_USE_MOTOR, 3);
 
-        motorDevInit(&dev, BRUSHLESS_IDLE_PULSE, 4);
+        motorDevInit(&dev, BRUSHED_IDLE_PULSE, 4);
 
         pwmEnableMotors();
-
-        writeMotor(0, 0);
-        writeMotor(1, 0);
-        writeMotor(2, 0);
-        writeMotor(3, 0);
     }
 
-    void OmnibusF3::writeMotor(uint8_t index, float value)
+    void BetaFPVF3::writeMotor(uint8_t index, float value)
     {
         pwmWriteMotor(index, MOTOR_MIN + value*(MOTOR_MAX-MOTOR_MIN));
     }
 
-    void OmnibusF3::delaySeconds(float sec)
+    void BetaFPVF3::delaySeconds(float sec)
     {
         delay((uint16_t)(sec*1000));
     }
 
-    void OmnibusF3::setLed(bool isOn)
+    void BetaFPVF3::setLed(bool isOn)
     {
         beeperLedSet(isOn);
     }
 
-    uint32_t OmnibusF3::getMicroseconds(void)
+    uint32_t BetaFPVF3::getMicroseconds(void)
     {
         return micros();
     }
 
-    void OmnibusF3::reboot(void)
+    void BetaFPVF3::reboot(void)
     {
         systemResetToBootloader();
     }
 
-    uint8_t OmnibusF3::serialAvailableBytes(void)
+    uint8_t BetaFPVF3::serialAvailableBytes(void)
     {
         return serialRxBytesWaiting(_serial0);
     }
 
-    uint8_t OmnibusF3::serialReadByte(void)
+    uint8_t BetaFPVF3::serialReadByte(void)
     {
         return serialRead(_serial0);
     }
 
-    void OmnibusF3::serialWriteByte(uint8_t c)
+    void BetaFPVF3::serialWriteByte(uint8_t c)
     {
         serialWrite(_serial0, c);
     }
 
-    bool OmnibusF3::imuRead(void)
+    bool BetaFPVF3::imuRead(void)
     {
         if (_imu->checkNewData()) {  
 
-            // Note reversed X/Y order because of IMU rotation            
             _imu->readAccelerometer(_ay, _ax, _az);
             _imu->readGyrometer(_gy, _gx, _gz);
 
-            // Negate for same reason
+            _gx = -_gx;
             _gy = -_gy;
+            _gz = -_gz;
+
+            hf::Debug::printlnfloat(_gz);
 
             return true;
         }  
@@ -182,27 +165,9 @@ extern "C" {
         return false;
     }
 
-    // ay ax gy gx
-    // +  +  +  + 
-    // +  +  +  - 
-    // +  +  -  + 
-    // +  +  -  - 
-    // +  -  +  + 
-    // +  -  +  - 
-    // +  -  -  + 
-    // +  -  -  - 
-    // -  +  +  + 
-    // -  +  +  - 
-    // -  +  -  + 
-    // -  +  -  - 
-    // -  -  +  + 
-    // -  -  +  - 
-    // -  -  -  + 
-    // -  -  -  - 
-
-    void OmnibusF3::updateQuaternion(float deltat) 
+    void BetaFPVF3::updateQuaternion(float deltat) 
     {                   
-        _quaternionFilter.update(_ay, -_ax, _az, _gy, _gx, -_gz, deltat); 
+        _quaternionFilter.update(_ay, _ax, -_az, _gy, _gx, -_gz, deltat); 
     }
 
 
@@ -211,5 +176,6 @@ extern "C" {
         for (char *p=buf; *p; p++)
             serialWrite(_serial0, *p);
     }
+
 
 } // extern "C"
