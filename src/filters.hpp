@@ -22,8 +22,7 @@
 
 #include <cmath>
 #include <math.h>
-
-#include "debug.hpp"
+#include <stdint.h>
 
 namespace hf {
 

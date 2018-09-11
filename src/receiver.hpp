@@ -23,8 +23,8 @@
 #include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <stdint.h>
 
-#include "debug.hpp"
 #include "datatypes.hpp"
 
 namespace hf {
@@ -33,7 +33,7 @@ namespace hf {
 
         friend class Hackflight;
         friend class RealBoard;
-        friend class Parser;
+        friend class MspParser;
 
         private: 
 
@@ -198,7 +198,6 @@ namespace hf {
 
         bool throttleIsDown(void)
         {
-            //Debug::printlnfloat(getRawval(CHANNEL_THROTTLE));
             return getRawval(CHANNEL_THROTTLE) < -1 + MARGIN;
         }
 

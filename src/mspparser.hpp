@@ -1,5 +1,5 @@
 /*
-   parser.hpp : parser for MSP (Multiwii Serial Protocol) messages
+   mspparser.hpp : parser for MSP (Multiwii Serial Protocol) messages
 
    Copyright (c) 2018 Simon D. Levy
 
@@ -20,24 +20,13 @@
 
 #pragma once
 
-#include "receiver.hpp"
-#include "mixer.hpp"
-#include "datatypes.hpp"
+#include <string.h>
 
 namespace hf {
 
-    class Parser {
-
-        friend class Hackflight;
+    class MspParser {
 
         private:
-
-        // See http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol
-        static const uint8_t MSP_RC_NORMAL        =    121;
-        static const uint8_t MSP_ATTITUDE_RADIANS =    122; 
-        static const uint8_t MSP_ALTITUDE_METERS  =    123; 
-        static const uint8_t MSP_SET_MOTOR_NORMAL =    215;    
-        static const uint8_t MSP_SET_ARMED        =    216;    
 
         static const int INBUF_SIZE  = 128;
         static const int OUTBUF_SIZE = 128;
@@ -51,17 +40,13 @@ namespace hf {
             HEADER_CMD
         } serialState_t;
 
-        state_t *  _vehicleState;
-        Receiver * _receiver;
-        Mixer *    _mixer;
-
         uint8_t _checksum;
         uint8_t _inBuf[INBUF_SIZE];
         uint8_t _inBufIndex;
         uint8_t _outBuf[OUTBUF_SIZE];
         uint8_t _outBufIndex;
         uint8_t _outBufSize;
-        uint8_t _cmdMSP;
+        uint8_t _cmdMsp;
         uint8_t _offset;
         uint8_t _dataSize;
 
@@ -78,6 +63,7 @@ namespace hf {
             serialize8(a & 0xFF);
             serialize8((a >> 8) & 0xFF);
         }
+
 
         uint8_t read8(void)
         {
@@ -98,28 +84,6 @@ namespace hf {
             return t;
         }
 
-        float readFloat(void)
-        {
-            float f = 0;
-            uint32_t t = read32();
-            memcpy(&f, &t, 4);
-            return f;
-        }
-
-        void serializeFloats(float f[], uint8_t n)
-        {
-            _outBufSize = 0;
-            _outBufIndex = 0;
-
-            headSerialReply(4*n);
-
-            for (uint8_t k=0; k<n; ++k) {
-                uint32_t a;
-                memcpy(&a, &f[k], 4);
-                serialize32(a);
-            }
-        }
-
         void serialize32(uint32_t a)
         {
             serialize8(a & 0xFF);
@@ -136,94 +100,90 @@ namespace hf {
             serialize8(err ? '!' : '>');
             _checksum = 0;               // start calculating a new _checksum
             serialize8(s);
-            serialize8(_cmdMSP);
+            serialize8(_cmdMsp);
         }
+
 
         void headSerialReply(uint8_t s)
         {
             headSerialResponse(0, s);
         }
 
-        void headSerialError(uint8_t s)
+        protected:
+
+        void sendFloats(float * src, uint8_t count)
         {
-            headSerialResponse(1, s);
-        }
+            _outBufSize = 0;
+            _outBufIndex = 0;
 
-        void tailSerialReply(void)
-        {
-            serialize8(_checksum);
-        }
+            headSerialReply(4*count);
 
-        void dispatchCommand(void)
-        {
-            switch (_cmdMSP) {
-
-                case MSP_SET_MOTOR_NORMAL:
-                    for (uint8_t i = 0; i < _mixer->nmotors; i++) {
-                        _mixer->motorsDisarmed[i] = readFloat();
-                    }
-                    headSerialReply(0);
-                    break;
-
-                case MSP_SET_ARMED:
-                    if (read8()) {  // got arming command: arm only if throttle is down
-                        if (_receiver->throttleIsDown()) {
-                            _vehicleState->armed = true;
-                        }
-                    }
-                    else {          // got disarming command: always disarm
-                        _vehicleState->armed = false;
-                    }
-                    headSerialReply(0);
-                    break;
-
-                case MSP_RC_NORMAL:
-                    {
-                        float rawvals[6];
-                        for (uint8_t k=0; k<6; ++k) {
-                            rawvals[k] = _receiver->getRawval(k);
-                        }
-                        serializeFloats(rawvals, 6);
-                    }
-                    break;
-
-                case MSP_ATTITUDE_RADIANS: 
-                    serializeFloats(_vehicleState->eulerAngles, 3);
-                    break;
-
-                case MSP_ALTITUDE_METERS: 
-                    serializeFloats(&_vehicleState->altitude, 2);
-                    break;
-
-                    // don't know how to handle the (valid) message, indicate error
-                default:                   
-                    headSerialError(0);
-                    break;
+            for (uint8_t k=0; k<count; ++k) {
+                uint32_t a;
+                memcpy(&a, &src[k], 4);
+                serialize32(a);
             }
         }
 
-        protected:
-
-        void init(state_t * vehicleState, Receiver * receiver, Mixer * mixer)
+        void receiveFloats(float * dst, uint8_t count)
         {
-            _vehicleState = vehicleState;
-            _receiver = receiver;
-            _mixer = mixer;
+            for (uint8_t k=0; k<count; ++k) {
+                dst[k] = readFloat();
+            }
+            headSerialReply(0);
+        }
 
+        bool readBool(void)
+        {
+            bool retval = (bool)read8();
+            headSerialReply(0);
+            return retval;
+        }
+
+        float readFloat(void)
+        {
+            float f = 0;
+            uint32_t t = read32();
+            memcpy(&f, &t, 4);
+            return f;
+        }
+
+        void error(void)
+        {
+            headSerialResponse(1, 0);
+        }
+
+        static const uint8_t MSP_NONE   = 0;
+        static const uint8_t MSP_REBOOT = 1;
+
+        // See http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol
+        static const uint8_t MSP_GET_RC_NORMAL        = 121;
+        static const uint8_t MSP_GET_ATTITUDE_RADIANS = 122; 
+        static const uint8_t MSP_GET_ALTITUDE_METERS  = 123; 
+        static const uint8_t MSP_SET_MOTOR_NORMAL     = 215;    
+        static const uint8_t MSP_SET_ARMED            = 216;    
+
+        void init(void)
+        {
             _checksum = 0;
             _outBufIndex = 0;
             _outBufSize = 0;
-            _cmdMSP = 0;
+            _cmdMsp = 0;
             _offset = 0;
             _dataSize = 0;
             _parserState = IDLE;
         }
 
-        bool update(uint8_t c)
+        uint8_t update(uint8_t c)
         {
+            uint8_t retval = MSP_NONE;            
+
             switch (_parserState) {
+
                 case IDLE:
-                    if (c == 'R') return true; // got reboot command
+                    if (c == 'R') {
+                        return MSP_REBOOT; // got reboot command
+                    }
                     _parserState = (c == '$') ? HEADER_START : IDLE;
                     break;
                 case HEADER_START:
@@ -245,7 +205,7 @@ namespace hf {
                     _parserState = HEADER_SIZE;      // the command is to follow
                     break;
                 case HEADER_SIZE:
-                    _cmdMSP = c;
+                    _cmdMsp = c;
                     _checksum ^= c;
                     _parserState = HEADER_CMD;
                     break;
@@ -255,15 +215,16 @@ namespace hf {
                         _inBuf[_offset++] = c;
                     } else  {
                         if (_checksum == c) {        // compare calculated and transferred _checksum
-                            dispatchCommand();
-                            tailSerialReply();
+                            dispatchCommand(_cmdMsp);
+                            retval = _cmdMsp;
+                            serialize8(_checksum);                            
                         }
                         _parserState = IDLE;
                     }
 
             } // switch (_parserState)
 
-            return false; // no reboot
+            return retval; 
 
         } // update
 
@@ -278,8 +239,9 @@ namespace hf {
             return _outBuf[_outBufIndex++];
         }
 
+        virtual void dispatchCommand(uint8_t cmd) = 0;
 
-    }; // class MSP
+    }; // class MspParser
 
 
 } // namespace

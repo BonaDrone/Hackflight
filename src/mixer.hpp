@@ -20,10 +20,7 @@
 
 #pragma once
 
-#include "board.hpp"
 #include "filters.hpp"
-#include "debug.hpp"
-#include "datatypes.hpp"
 
 #include <cstring>
 
@@ -32,7 +29,7 @@ namespace hf {
     class Mixer {
 
         friend class Hackflight;
-        friend class Parser;
+        friend class MspParser;
         friend class RealBoard;
 
         private:
