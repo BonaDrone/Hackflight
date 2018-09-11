@@ -24,7 +24,7 @@
 
 #include "sensor.hpp"
 #include "board.hpp"
-#include "parser.hpp"
+#include "mspparser.hpp"
 #include "mixer.hpp"
 #include "receiver.hpp"
 #include "debug.hpp"
@@ -37,7 +37,7 @@
 
 namespace hf {
 
-    class Hackflight {
+    class Hackflight : public MspParser {
 
         private: 
 
@@ -64,9 +64,6 @@ namespace hf {
 
             // Demands sent to mixer
             demands_t _demands;
-            
-            // Parser for serial messages
-            Parser _parser;
 
             // Safety
             bool _safeToArm;
@@ -179,8 +176,6 @@ namespace hf {
                     _safeToArm = !_receiver->getAux2State();
                 }
 
-                //Debug::printf("%d\n", _receiver->throttleIsDown());
-
                 // Arm (after lots of safety checks!)
                 if (    _safeToArm &&
                         !_state.armed && 
@@ -206,13 +201,13 @@ namespace hf {
             void doSerialComms(void)
             {
                 while (_board->serialAvailableBytes() > 0) {
-                    if (_parser.update(_board->serialReadByte())) {
+                    if (MspParser::update(_board->serialReadByte()) == MspParser::MSP_REBOOT) {
                         _board->reboot(); // support "make flash" from STM32F boards
                     }
                 }
 
-                while (_parser.availableBytes() > 0) {
-                    _board->serialWriteByte(_parser.readByte());
+                while (MspParser::availableBytes() > 0) {
+                    _board->serialWriteByte(MspParser::readByte());
                 }
 
                 // Support motor testing from GCS
@@ -230,15 +225,58 @@ namespace hf {
                         sensor->modifyState(_state, time);
                     }
                 }
-
-                //Debug::printf("forward: %+2.2f    rightward: %+2.2f\n", 
-                //        _state.velocityForward, _state.velocityRightward);
             }
 
             void add_sensor(Sensor * sensor)
             {
                 _sensors[_sensor_count++] = sensor;
             }
+
+        protected:
+
+        virtual void dispatchCommand(uint8_t cmd) override
+        {
+            switch (cmd) {
+
+                case MSP_SET_MOTOR_NORMAL:
+                    MspParser::receiveFloats(_mixer->motorsDisarmed, _mixer->nmotors);
+                    break;
+
+                case MSP_SET_ARMED:
+                    if (MspParser::readBool()) {  // got arming command: arm only if throttle is down
+                        if (_receiver->throttleIsDown()) {
+                            _state.armed = true;
+                        }
+                    }
+                    else {          // got disarming command: always disarm
+                        _state.armed = false;
+                    }
+                    break;
+
+                case MSP_GET_RC_NORMAL:
+                    {
+                        float rawvals[6];
+                        for (uint8_t k=0; k<6; ++k) {
+                            rawvals[k] = _receiver->getRawval(k);
+                        }
+                        MspParser::sendFloats(rawvals, 6);
+                    }
+                    break;
+
+                case MSP_GET_ATTITUDE_RADIANS: 
+                    MspParser::sendFloats(_state.eulerAngles, 3);
+                    break;
+
+                case MSP_GET_ALTITUDE_METERS: 
+                    MspParser::sendFloats(&_state.altitude, 2);
+                    break;
+
+                    // don't know how to handle the (valid) message, indicate error
+                default:           
+                    MspParser::error();        
+                    break;
+            }
+        }
 
         public:
 
@@ -267,8 +305,8 @@ namespace hf {
                 // Support safety override by simulator
                 _state.armed = armed;
 
-                // Initialize parser for serial comms
-                _parser.init(&_state, receiver, mixer);
+                // Initialize MPS parser for serial comms
+                MspParser::init();
 
                 // Initialize the receiver
                 _receiver->init();
