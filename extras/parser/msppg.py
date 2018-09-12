@@ -658,6 +658,21 @@ class Java_Emitter(CodeEmitter):
 
         self.output.write(s)
 
+# Firmware header emitter ===============================================================================
+
+class Header_Emitter(object):
+
+    def __init__(self, msgdict):
+
+        output = _openw('../../src/mspcommands.hpp')
+
+        output.write('// AUTO-GENERATED CODE: DO NOT EDIT\n\n')
+        output.write('# pragma once\n\n')
+
+        for msgtype in msgdict.keys():
+
+            output.write('static const uint8_t CMD_%s = %d;\n' % (msgtype.ljust(30), msgdict[msgtype][0]))
+
 # main ===============================================================================================
 
 if __name__ == '__main__':
@@ -711,3 +726,6 @@ if __name__ == '__main__':
 
     # Emite Java
     Java_Emitter(msgdict)
+
+    # Emit firmware header
+    Header_Emitter(msgdict)

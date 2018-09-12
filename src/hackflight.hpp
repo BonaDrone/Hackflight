@@ -25,6 +25,7 @@
 #include "sensor.hpp"
 #include "board.hpp"
 #include "mspparser.hpp"
+#include "mspcommands.hpp"
 #include "mixer.hpp"
 #include "receiver.hpp"
 #include "debug.hpp"
@@ -161,7 +162,10 @@ namespace hf {
 
             void checkReceiver(void)
             {
-                if (!_receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial)) return;
+                // Check whether receiver data is available
+                if (!_receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial)) {
+                    return;
+                }
 
                 // Update stabilizer with cyclic demands
                 _stabilizer->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
@@ -201,7 +205,7 @@ namespace hf {
             void doSerialComms(void)
             {
                 while (_board->serialAvailableBytes() > 0) {
-                    if (MspParser::update(_board->serialReadByte()) == MspParser::MSP_REBOOT) {
+                    if (MspParser::update(_board->serialReadByte())) { // true return value from update means reboot
                         _board->reboot(); // support "make flash" from STM32F boards
                     }
                 }
@@ -238,11 +242,11 @@ namespace hf {
         {
             switch (cmd) {
 
-                case MSP_SET_MOTOR_NORMAL:
+                case CMD_SET_MOTOR_NORMAL:
                     MspParser::receiveFloats(_mixer->motorsDisarmed, _mixer->nmotors);
                     break;
 
-                case MSP_SET_ARMED:
+                case CMD_SET_ARMED:
                     if (MspParser::readBool()) {  // got arming command: arm only if throttle is down
                         if (_receiver->throttleIsDown()) {
                             _state.armed = true;
@@ -253,7 +257,7 @@ namespace hf {
                     }
                     break;
 
-                case MSP_GET_RC_NORMAL:
+                case CMD_GET_RC_NORMAL:
                     {
                         float rawvals[6];
                         for (uint8_t k=0; k<6; ++k) {
@@ -263,11 +267,11 @@ namespace hf {
                     }
                     break;
 
-                case MSP_GET_ATTITUDE_RADIANS: 
+                case CMD_GET_ATTITUDE_RADIANS: 
                     MspParser::sendFloats(_state.eulerAngles, 3);
                     break;
 
-                case MSP_GET_ALTITUDE_METERS: 
+                case CMD_GET_ALTITUDE_METERS: 
                     MspParser::sendFloats(&_state.altitude, 2);
                     break;
 
