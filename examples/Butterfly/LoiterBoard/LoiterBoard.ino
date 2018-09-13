@@ -30,10 +30,10 @@
 #include <VL53L1X.h>
 #include <Bitcraze_PMW3901.h>
 
-#include "hackflight.hpp"
+//#include "hackflight.hpp"
 
-static const uint8_t VCC_PIN = 8;
-static const uint8_t GND_PIN = 9;
+static const uint8_t VCC_PIN = A0;
+static const uint8_t GND_PIN = A1;
 
 static const uint8_t CS_PIN  = 10;
 
@@ -64,12 +64,12 @@ void setup(void)
     // Debugging
     Serial.begin(115200);
 
-    Wire.begin();
+    delay(200);
 
-    delay(100);
+    Wire.begin(TWI_PINS_6_7);
 
     // Output to flight controller
-    Serial1.begin(115200);
+    //Serial1.begin(115200);
 
     if (!_distanceSensor.begin()) {
         error("VL53L1X");
@@ -82,22 +82,28 @@ void setup(void)
 
 void loop(void)
 {
+    // Declare measurement variables static so they'll persist between calls to loop()
+    static uint16_t distance;
+
     if (_distanceSensor.newDataReady()) {
-
-        uint8_t distanceMm = _distanceSensor.getDistance();
-
-        int16_t fx = 0, fy = 0;
-        _flowSensor.readMotionCount(&fx, &fy);
-
-        Serial.print("Distance: ");
-        Serial.print(distanceMm);
-        Serial.print(" mm;  Flow:  ");
-        Serial.print(fx);
-        Serial.print(" ");
-        Serial.println(fy);
-
-        static uint8_t c;
-        Serial1.write(c);
-        c = (c+1) % 0xFF;
+        distance = _distanceSensor.getDistance(); //Get the result of the measurement from the sensor
     }
+
+    Serial.print("Distance: ");
+    Serial.print(distance);
+    Serial.println(" mm");
+
+    /*
+    int16_t fx = 0, fy = 0;
+    _flowSensor.readMotionCount(&fx, &fy);
+    Serial.print(fx);
+    Serial.print(" ");
+    Serial.println(fy);
+
+    delay(50);
+
+    static uint8_t c;
+    Serial1.write(c);
+    c = (c+1) % 0xFF;
+    */
 }
