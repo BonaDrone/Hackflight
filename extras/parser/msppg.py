@@ -26,6 +26,8 @@ import os
 import json
 from pkg_resources import resource_string
 
+# Helper functions ===========================================================================
+
 def clean(string):
     cleaned_string = string[1: len(string) - 1]
     return cleaned_string
@@ -43,12 +45,13 @@ def _openw(fname):
     print('Creating file ' + fname)
     return open(fname, 'w')
 
+# Code-emitter classes=======================================================================
+
 class CodeEmitter(object):
 
     def __init__(self, folder, ext):
 
         mkdir_if_missing('output/%s' % folder)
-        self._copyfile('%s.makefile' % folder, '%s/Makefile' % folder)
 
         self.indent = '    '
 
@@ -87,7 +90,7 @@ class CodeEmitter(object):
 
     def _getsrc(self, filename):
 
-        return resource_string('msppg_resources', filename).decode('utf-8')
+        return resource_string('resources', filename).decode('utf-8')
  
     def _getargnames(self, message):
 
@@ -103,6 +106,14 @@ class CodeEmitter(object):
                 zip(message[1], message[2]) if argname.lower()!='comment']
 
 
+class CompileableCodeEmitter(CodeEmitter):
+
+    def __init__(self, folder, ext):
+
+        CodeEmitter.__init__(self, folder, ext)
+
+        self._copyfile('%s.makefile' % folder, '%s/Makefile' % folder)
+
 # Python emitter ============================================================================
 
 class Python_Emitter(CodeEmitter):
@@ -112,7 +123,7 @@ class Python_Emitter(CodeEmitter):
 
         CodeEmitter.__init__(self, 'python', 'py')
 
-        for filename in os.listdir('./msppg_resources'):
+        for filename in os.listdir('./resources'):
             if filename.endswith('.py') and not filename in ['__init__.py', 'setup.py']:
                 CodeEmitter._copyfile(self, '%s' % filename, 'python/' + ('%s' % filename))
 
@@ -208,30 +219,21 @@ class Python_Emitter(CodeEmitter):
 
 # C++ / Arduino emitter ============================================================================
 
-class CPP_Emitter(CodeEmitter):
+class CPP_Emitter(CompileableCodeEmitter):
 
     def __init__(self, msgdict):
 
-        CodeEmitter.__init__(self, 'cpp', 'cpp')
-        mkdir_if_missing('output/cpp/msppg')
+        CompileableCodeEmitter.__init__(self, 'cpp', 'cpp')
 
         # Create C++ example
         self._copyfile('example.cpp', 'cpp/example.cpp')
 
-        # Create Arduino stuff
-        mkdir_if_missing('output/arduino')
-        mkdir_if_missing('output/arduino/MSPPG')
-        mkdir_if_missing('output/arduino/MSPPG/examples')
-        mkdir_if_missing('output/arduino/MSPPG/examples/imuexample')
-        self._copyfile('imuexample.ino', 'arduino/MSPPG/examples/imuexample/imuexample.ino')
-
         self.type2decl = {'byte': 'byte', 'short' : 'short', 'float' : 'float', 'int' : 'int'}
 
-        self.coutput = _openw('output/cpp/msppg/MSPPG.cpp')
-        self.houtput = _openw('output/cpp/msppg/MSPPG.h')
-
-        self.acoutput = _openw('output/arduino/MSPPG/MSPPG.cpp')
-        self.ahoutput = _openw('output/arduino/MSPPG/MSPPG.h')
+        # Create firwmare stuff
+        mkdir_if_missing('../../src/parser/')
+        self.coutput = _openw('../../src/parser/MSPPG.cpp')
+        self.houtput = _openw('../../src/parser/MSPPG.h')
 
         self._cwrite(self.warning('//'))
 
@@ -249,7 +251,6 @@ class CPP_Emitter(CodeEmitter):
 
             self._hwrite(self.indent*2 + 'static MSP_Message serialize_%s' % msgtype)
             self._write_params(self.houtput, argtypes, argnames)
-            self._write_params(self.ahoutput, argtypes, argnames)
             self._hwrite(';\n\n')
 
             # Write handler code for incoming messages
@@ -311,8 +312,8 @@ class CPP_Emitter(CodeEmitter):
                 self._hwrite(2*self.indent + '%s_Handler() {}\n\n' % msgtype)
                 self._hwrite(2*self.indent + 'virtual void handle_%s' % msgtype)
                 self._write_params(self.houtput, argtypes, argnames)
-                self._write_params(self.ahoutput, argtypes, argnames)
-                self._hwrite('{ }\n\n')
+                #self._hwrite('{ }\n\n')
+                self._hwrite('= 0;\n\n')
                 self._hwrite('};\n\n')
                 
                 # Write handler method
@@ -338,7 +339,6 @@ class CPP_Emitter(CodeEmitter):
             # Add parser method for serializing message
             self._cwrite('MSP_Message MSP_Parser::serialize_%s' % msgtype)
             self._write_params(self.coutput, argtypes, argnames)
-            self._write_params(self.acoutput, argtypes, argnames)
             self._cwrite(' {\n\n')
             self._cwrite(self.indent + 'MSP_Message msg;\n\n')
             msgsize = self._msgsize(argtypes)
@@ -366,20 +366,18 @@ class CPP_Emitter(CodeEmitter):
     def _cwrite(self, s):
 
         self.coutput.write(s)
-        self.acoutput.write(s)
 
     def _hwrite(self, s):
 
         self.houtput.write(s)
-        self.ahoutput.write(s)
 
 # C emitter ===============================================================================
 
-class C_Emitter(CodeEmitter):
+class C_Emitter(CompileableCodeEmitter):
 
     def __init__(self, msgdict):
 
-        CodeEmitter.__init__(self, 'c', 'c')
+        CompileableCodeEmitter.__init__(self, 'c', 'c')
         mkdir_if_missing('output/c/msppg')
         self._copyfile('example.c', 'c/example.c')
 
@@ -520,11 +518,11 @@ class C_Emitter(CodeEmitter):
 
 # Java emitter =======================================================================================
 
-class Java_Emitter(CodeEmitter):
+class Java_Emitter(CompileableCodeEmitter):
 
     def __init__(self, msgdict):
 
-        CodeEmitter.__init__(self, 'java', 'java')
+        CompileableCodeEmitter.__init__(self, 'java', 'java')
 
         self._copyfile('example.java', 'java/example.java')
 
