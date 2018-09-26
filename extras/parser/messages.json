@@ -52,18 +52,97 @@
    {"m3": "float"},
    {"m4": "float"}],
 
-  "SET_ARMED": 
-  [{"ID": 216},
-   {"comment": "Arm/disarm from MSP"}, 
-   {"flag": "byte"}],
+  "GET_MOTOR_NORMAL":
+  [{"ID": 124},
+   {"comment": "We get the motor floating-point values in [0,1], rather than PWM"},
+   {"m1": "float"},
+   {"m2": "float"},
+   {"m3": "float"},
+   {"m4": "float"}],
+   
+  "CLEAR_EEPROM":
+  [{"ID": 0},
+   {"comment": "Clear all EEPROM memory"},
+   {"code": "byte"}],
+    
+  "WP_ARM":
+  [{"ID": 1},
+   {"comment": "Navigation order, arm the drone"},
+   {"code": "byte"}],
 
-  "SET_RC_NORMAL": 
-  [{"ID": 222},
-   {"c1": "float"}, 
-   {"c2": "float"}, 
-   {"c3": "float"}, 
-   {"c4": "float"}, 
-   {"c5": "float"}, 
-   {"c6": "float"}]
+  "WP_DISARM":
+  [{"ID": 2},
+   {"comment": "Navigation order, disarm the drone"},
+   {"code": "byte"}],
+   
+  "WP_LAND":
+  [{"ID": 3},
+   {"comment": "Navigation order, land"},
+   {"code": "byte"}],
+
+  "WP_TAKE_OFF":
+  [{"ID": 4},
+   {"comment": "Navigation order, take off"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_FORWARD":
+  [{"ID": 5},
+   {"comment": "Navigation order, go forward"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_BACKWARD":
+  [{"ID": 6},
+   {"comment": "Navigation order, go backward"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_LEFT":
+  [{"ID": 7},
+   {"comment": "Navigation order, go left"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_RIGHT":
+  [{"ID": 8},
+   {"comment": "Navigation order, go right"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_CHANGE_ALTITUDE":
+  [{"ID": 9},
+   {"comment": "Navigation order, change altitude"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_CHANGE_SPEED":
+  [{"ID": 10},
+   {"comment": "Navigation order, change speed"},
+   {"speed": "byte"},
+   {"code": "byte"}],
+
+  "WP_HOVER":
+  [{"ID": 11},
+   {"comment": "Navigation order, hover during some seconds"},
+   {"seconds": "byte"},
+   {"code": "byte"}],
+
+  "WP_TURN_CW":
+  [{"ID": 12},
+   {"comment": "Navigation order, turn cw (looking drone from the top)"},
+   {"degrees": "byte"},
+   {"code": "byte"}],
+
+  "WP_TURN_CCW":
+  [{"ID": 13},
+   {"comment": "Navigation order, turn ccw (looking drone from the top)"},
+   {"degrees": "byte"},
+   {"code": "byte"}],
+
+  "WP_MISSION_FLAG":
+  [{"ID": 23},
+   {"comment": "begin of mission codes flag"},
+   {"flag": "byte"}]
 
 }
