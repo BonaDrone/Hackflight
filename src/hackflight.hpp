@@ -234,6 +234,27 @@ namespace hf {
                 _sensors[_sensor_count++] = sensor;
             }
 
+            // XXX only for debuging purposes
+            void readEEPROM()
+            {
+                int address = 0;
+                uint8_t value;
+                while (true)
+                {
+                    // read a byte from the current address of the EEPROM
+                    value = EEPROM.read(address);
+                    Serial.print(address);
+                    Serial.print("\t");
+                    Serial.print(value);
+                    Serial.println();
+                    address = address + 1;
+                    if (address == EEPROM.length()) {
+                      address = 0;
+                      break;
+                    }
+                  }
+            }
+
         protected:
 
 
@@ -352,7 +373,10 @@ namespace hf {
                 checkQuaternion();
 
                 // Check optional sensors
-                checkOptionalSensors();
+                checkSensors();
+                
+                // XXX Only for debuging purposes
+                // readEEPROM();
             } 
 
     }; // class Hackflight
