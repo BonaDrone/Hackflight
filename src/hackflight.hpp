@@ -36,6 +36,8 @@
 #include "sensors/gyrometer.hpp"
 #include "sensors/quaternion.hpp"
 
+#include "planner.hpp"
+
 namespace hf {
 
     class Hackflight : public MspParser {
@@ -47,6 +49,7 @@ namespace hf {
             Receiver   * _receiver;
             Rate       * _ratePid;
             Mixer      * _mixer;
+            Planner      planner;
 
             // PID controllers
             PID_Controller * _pid_controllers[256];
@@ -298,10 +301,17 @@ namespace hf {
             
             virtual void handle_CLEAR_EEPROM_Request(uint8_t & code) override
             {
-              for (int i = 0 ; i < EEPROM.length() ; i++) 
-              {
-                  EEPROM.write(i, 0);
-              }
+                for (int i = 0 ; i < EEPROM.length() ; i++) 
+                {
+                    EEPROM.write(i, 0);
+                }
+            }
+            
+            virtual void handle_WP_MISSION_FLAG_Request(uint8_t & flag) override
+            {
+                _board->flashLed(true);
+                delay(1000);
+                _board->flashLed(false);
             }
 
         public:
@@ -313,6 +323,10 @@ namespace hf {
                 _receiver = receiver;
                 _mixer    = mixer;
                 _ratePid  = ratePid;
+                
+                planner.init();
+                // For debuging purposes
+                planner.printMission();
 
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
