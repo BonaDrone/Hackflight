@@ -89,15 +89,13 @@ hf::Rate ratePid = hf::Rate(
         0.01f,  // Gyro yaw I
         5.00f); // Demands to rate
 
-hf::Level level = hf::Level(
-        0.25f,   // Roll Level P
-        0.25f);  // Pitch Level P
+hf::Level level = hf::Level(0.40f);  // Pitch Level P
 
 hf::AltitudeHold althold = hf::AltitudeHold(
-        1.00f,   // Altitude Hold P
+        1.000f,   // Altitude Hold P
         0.15f,   // Altitude Hold Velocity P
         0.01f,   // Altitude Hold Velocity I
-        0.05f);  // Altitude Hold Velocity D
+        0.01f);  // Altitude Hold Velocity D
 
 void setup(void)
 {
@@ -105,9 +103,9 @@ void setup(void)
     Serial4.begin(115200);
 
     // Trim receiver via software
-    rc.setTrimRoll(-0.0012494f);
-    rc.setTrimPitch(-0.0058769f);
-    rc.setTrimYaw(-0.0192190f);
+    rc.setTrimRoll(-0.0103722f);
+    rc.setTrimPitch(-0.0372178f);
+    rc.setTrimYaw(-0.0384381f);
 
     // 0 means the controller will always be active, but by changing
     // that number it can be linked to a different aux state

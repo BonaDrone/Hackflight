@@ -35,8 +35,15 @@ namespace hf {
         private: 
 
               // Arbitrary constants
-              const float WINDUP_MAX      = 0.40f;
-              const float HOVER_THROTTLE  = 0.05f;
+              const float WINDUP_MAX             = 0.40f;
+              const float HOVER_THROTTLE         = -0.1f;
+              const float Vz_MAX                 = 1.00f; 
+              const float Vz_MIN                 = 0.00f;
+              
+              // Constants for velocity control when outside deadband. Linearly
+              // map stick position to desired velocity
+              const float M = (Vz_MAX - Vz_MIN) / (1.0f - Receiver::STICK_DEADBAND);
+              const float N = Vz_MIN - M * Receiver::STICK_DEADBAND;
 
               // Setpoint class for PID control
               Setpoint setpoint;
