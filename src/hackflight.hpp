@@ -237,6 +237,12 @@ namespace hf {
                 _sensors[_sensor_count++] = sensor;
             }
 
+            void checkPlanner(void)
+            {
+              if (_state.executingMission == false) return;
+              
+            }
+
             // XXX only for debuging purposes
             void readEEPROM()
             {
@@ -313,6 +319,11 @@ namespace hf {
                 delay(1000);
                 _board->flashLed(false);
             }
+            
+            virtual void handle_WP_MISSION_BEGIN_Request(uint8_t & flag) override
+            {
+                _state.executingMission = true;
+            }
 
         public:
 
@@ -325,7 +336,7 @@ namespace hf {
                 _ratePid  = ratePid;
                 
                 planner.init();
-                // For debuging purposes
+                // XXX For debuging purposes
                 planner.printMission();
 
                 // Support for mandatory sensors
@@ -343,6 +354,8 @@ namespace hf {
 
                 // Support safety override by simulator
                 _state.armed = armed;
+                // Will be set to true when start mission message is received
+                _state.executingMission = false;
 
                 // Initialize MPS parser for serial comms
                 MspParser::init();
@@ -379,6 +392,8 @@ namespace hf {
 
             void update(void)
             {
+                // Check planner
+                checkPlanner();
                 // Grab control signal if available
                 checkReceiver();
 

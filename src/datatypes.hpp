@@ -36,6 +36,7 @@ typedef struct {
     float eulerAngles[3];
     float angularVelocities[3];
     bool  armed;
+    bool  executingMission;
     float altitude;
     float variometer;
     float positionX;
