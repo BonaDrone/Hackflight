@@ -52,6 +52,9 @@ namespace hf {
           int _currentActionIndex = 0;
           action_t _currentAction;
           
+          // for actions that involve time
+          uint32_t _startActionTime = micros();
+          
           float _integralPosition[3] = {0, 0, 0};
                         
           void loadMission(action_t mission[256])
@@ -126,25 +129,43 @@ namespace hf {
 
         protected:
 
-            bool isActionComplete(state_t & state)
+            bool isActionComplete(state_t & state, demands_t & demands)
             {
-              // check if desired position and angle of the current waypoint
-              // has been reached
-              return false;
+              // XXX each action with its own validator ?
+              if (abs(demands.z - state.altitude) > 0.05)
+              {
+                return false;
+              }
+              if (((micros() - _startActionTime) / 1000000.0f) < _currentAction.duration)
+              {
+                return false;
+              }
+              return true;
             }
 
-            void executeAction(state_t & state)
-            {
-              // Activate or deacivate PID controllers to be executed by 
-              // Hackflight as required by the action to be performed
-            }
-            
         public:
           
             void init(void)
             {
-              loadMission(_mission);
-              _currentAction = _mission[_currentActionIndex];
+                loadMission(_mission);
+                _currentAction = _mission[_currentActionIndex];
+            }
+            
+            void executeAction(state_t & state, demands_t & demands)
+            {
+                // XXX Handle arm and disarm actions, also land
+                if (isActionComplete(state, demands))
+                {
+                  // Load next action
+                  _currentActionIndex += 1;
+                  _currentAction = _mission[_currentActionIndex];
+                  // update setpoint
+                  demands.z = _currentAction.position[2];
+                  // update starting time
+                  _startActionTime  = micros(); 
+                  return;
+                }
+                
             }
             
             // XXX only for debuging purposes
