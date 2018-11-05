@@ -211,7 +211,7 @@ namespace hf {
 
         public:
 
-        static constexpr float STICK_DEADBAND = 0.20;
+        static constexpr float STICK_DEADBAND = 0.40;
 
         void setTrimRoll(float trim)
         {
