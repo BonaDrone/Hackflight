@@ -39,11 +39,6 @@ namespace hf {
               const float HOVER_THROTTLE         = 0.17f;
               const float Vz_MAX                 = 1.00f; 
               const float Vz_MIN                 = 0.00f;
-              
-              // Constants for velocity control when outside deadband. Linearly
-              // map stick position to desired velocity
-              const float M = (Vz_MAX - Vz_MIN) / (1.0f - Receiver::STICK_DEADBAND);
-              const float N = Vz_MIN - M * Receiver::STICK_DEADBAND;
 
               // Setpoint class for PID control
               Setpoint setpoint;
@@ -78,7 +73,7 @@ namespace hf {
             AltitudeHold(float altHoldP, float altHoldVelP, float altHoldVelI, float altHoldVelD, float minAltitude=0.1) : _minAltitude(minAltitude)
             {
                 // Initialize PID controller
-                setpoint.init(altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, WINDUP_MAX);
+                setpoint.init(altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, WINDUP_MAX, Vz_MAX, Vz_MIN);
             }
 
     };  // class AltitudeHold
