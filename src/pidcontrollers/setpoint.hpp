@@ -52,6 +52,9 @@ namespace hf {
             float _integralError;
             float _altitudeTarget;
             float _previousTime;
+            // derivative error control variable to avoid high values
+            // on controller activation 
+            bool _firstIteration = true;
 
             bool inBand(float demand)
             {
@@ -62,6 +65,7 @@ namespace hf {
             {
                 _lastError = 0;
                 _integralError = 0;
+                _firstIteration = true;
             }
             
             float computeCorrection(float velTarget, float velActual, float deltaT)
@@ -69,7 +73,17 @@ namespace hf {
                 float velError = velTarget - velActual;
                 // Update error integral and error derivative
                 _integralError = Filter::constrainAbs(_integralError + velError * deltaT, _windupMax);
-                float deltaError = (velError - _lastError) / deltaT;
+                float deltaError;
+                // Avoid high derivative errors on controller activation by skipping
+                // the first derivative computation, where _lastError is 0
+                if (!_firstIteration)
+                {
+                    deltaError = (velError - _lastError) / deltaT;
+                }
+                else {
+                    deltaError = 0;
+                    _firstIteration = false;
+                }
                 _lastError = velError;
 
                 // Compute control correction
