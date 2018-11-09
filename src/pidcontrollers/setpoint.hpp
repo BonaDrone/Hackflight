@@ -73,16 +73,13 @@ namespace hf {
                 float velError = velTarget - velActual;
                 // Update error integral and error derivative
                 _integralError = Filter::constrainAbs(_integralError + velError * deltaT, _windupMax);
-                float deltaError;
+                float deltaError = (velError - _lastError) / deltaT;
                 // Avoid high derivative errors on controller activation by skipping
                 // the first derivative computation, where _lastError is 0
-                if (!_firstIteration)
+                if (_firstIteration)
                 {
-                    deltaError = (velError - _lastError) / deltaT;
-                }
-                else {
-                    deltaError = 0;
-                    _firstIteration = false;
+                  deltaError = 0;
+                  _firstIteration = false;
                 }
                 _lastError = velError;
 
