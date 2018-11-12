@@ -38,35 +38,10 @@
 #include "receivers/sbus.hpp"
 #include "mixers/quadx.hpp"
 
-#include "sensors/rangefinder.hpp"
+#include "sensors/rangefinders/vl53l1x.hpp"
 
 #include "pidcontrollers/level.hpp"
 #include "pidcontrollers/althold.hpp"
-
-class VL53L1X_Rangefinder : public hf::Rangefinder {
-
-    private:
-
-        VL53L1X _distanceSensor;
-
-    protected:
-
-        virtual bool distanceAvailable(float & distance) override
-        {
-            if (_distanceSensor.newDataReady()) {
-                distance = _distanceSensor.getDistance() / 1000.f; // mm => m
-                return true;
-            }
-            return false;
-        }
-
-    public:
-
-        void begin(void)
-        {
-            _distanceSensor.begin();
-        }
-}; // class VL53L1X_Rangefinder 
 
 // Change this as needed
 #define SBUS_SERIAL Serial1
@@ -79,7 +54,7 @@ hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL)
 
 hf::MixerQuadX mixer;
 
-VL53L1X_Rangefinder rangefinder;
+hf::VL53L1X_Rangefinder rangefinder;
 
 hf::Rate ratePid = hf::Rate(
         0.10f,  // Gyro Roll/Pitch P
