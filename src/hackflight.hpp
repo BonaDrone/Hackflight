@@ -204,6 +204,7 @@ namespace hf {
 
             void doSerialComms(void)
             {
+                _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
 
                     if (MspParser::parse(_board->serialReadByte())) {
