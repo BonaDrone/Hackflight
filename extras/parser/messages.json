@@ -143,6 +143,11 @@
   "WP_MISSION_FLAG":
   [{"ID": 23},
    {"comment": "begin of mission codes flag"},
-   {"flag": "byte"}]
+   {"flag": "byte"}],
+
+  "WP_MISSION_BEGIN":
+  [{"ID": 30},
+   {"comment": "Start mission execution"},
+    {"flag": "byte"}] 
 
 }
