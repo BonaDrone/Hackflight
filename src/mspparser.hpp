@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <EEPROM.h>
+
 namespace hf {
 
     class MspParser {
@@ -39,6 +41,9 @@ namespace hf {
 
             static const int INBUF_SIZE  = 128;
             static const int OUTBUF_SIZE = 128;
+            
+            int EEPROMIndex = 0;
+            bool incomingMission = 0;
 
             typedef enum serialState_t {
                 IDLE,
@@ -191,6 +196,26 @@ namespace hf {
                 return _outBuf[_outBufIndex++];
             }
 
+            void processMissionCommand(uint8_t command)
+            {
+                if (incomingMission && command != 23)
+                {
+                    EEPROM.write(EEPROMindex, command);
+                    EEPROMindex += 1;
+                    if (command != 1 && command != 2 && command != 3)
+                    {
+                        uint8_t commandData = readCommandData();
+                        EEPROM.write(EEPROMindex, commandData);
+                        EEPROMindex += 1;
+                    }
+                }
+            }
+            
+            uint8_t readCommandData(void)
+            {
+              return _inBuf[_inBufIndex++] & 0xff;
+            }
+            
             // returns true if reboot request, false otherwise
             bool parse(uint8_t c)
             {
@@ -266,6 +291,7 @@ namespace hf {
 
             void dispatchRequestMessage(void)
             {
+                processMissionCommand(_command);
                 switch (_command) {
 
                     case 102:
@@ -540,6 +566,7 @@ namespace hf {
 
                     case 23:
                     {
+                        incomingMission = incomingMission ? false : true;
                         uint8_t flag = 0;
                         handle_WP_MISSION_FLAG_Request(flag);
                         prepareToSendFloats(1);
