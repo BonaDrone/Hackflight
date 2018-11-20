@@ -351,6 +351,7 @@ namespace hf {
 
                     case 23:
                     {
+                        incomingMission = incomingMission ? false : true;
                         uint8_t flag = 0;
                         handle_WP_MISSION_FLAG_Request(flag);
                         prepareToSendFloats(1);
@@ -564,7 +565,6 @@ namespace hf {
 
                     case 30:
                     {
-                        incomingMission = incomingMission ? false : true;
                         uint8_t flag = 0;
                         handle_WP_MISSION_BEGIN_Request(flag);
                         prepareToSendFloats(1);
