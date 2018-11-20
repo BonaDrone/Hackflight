@@ -132,7 +132,7 @@ namespace hf {
             bool isActionComplete(state_t & state, demands_t & demands)
             {
               // XXX each action with its own validator ?
-              if (abs(demands.z - state.altitude) > 0.05)
+              if (abs(demands.altitude - state.altitude) > 0.05)
               {
                 return false;
               }
@@ -160,7 +160,7 @@ namespace hf {
                   _currentActionIndex += 1;
                   _currentAction = _mission[_currentActionIndex];
                   // update setpoint
-                  demands.z = _currentAction.position[2];
+                  demands.altitude = _currentAction.position[2];
                   // update starting time
                   _startActionTime  = micros(); 
                   return;

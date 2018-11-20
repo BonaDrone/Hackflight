@@ -64,7 +64,7 @@ namespace hf {
 
             void serialWriteByte(uint8_t c)
             {
-              return _dataOnSerial4 ? Serial4.write(c) : Serial.write(c);
+              _dataOnSerial4 ? Serial4.write(c) : Serial.write(c);
             }
 
             virtual uint32_t getMicroseconds(void) override

@@ -28,6 +28,7 @@ typedef struct {
     float roll;
     float pitch;
     float yaw;
+    float altitude;
 
 } demands_t;
 

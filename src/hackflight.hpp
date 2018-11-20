@@ -403,7 +403,7 @@ namespace hf {
                 checkQuaternion();
 
                 // Check optional sensors
-                checkSensors();
+                checkOptionalSensors();
                 
                 // XXX Only for debuging purposes
                 // readEEPROM();
