@@ -36,7 +36,7 @@ namespace hf {
 
               // Arbitrary constants
               const float WINDUP_MAX             = 1.50f;
-              const float HOVER_THROTTLE         = 0.15f;
+              const float HOVER_THROTTLE         = 0.00f;
               const float Vz_MAX                 = 1.00f; 
               const float Vz_MIN                 = 0.00f;
 

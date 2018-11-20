@@ -40,7 +40,7 @@ namespace hf {
 
         private:
           
-            const float FEED_FORWARD = 0.5;
+            const float FEED_FORWARD = 0.55;
             
             float PTerms[2];
             
