@@ -337,7 +337,7 @@ namespace hf {
                 _ratePid  = ratePid;
                 
                 planner.init();
-                // XXX For debuging purposes
+                // XXX For debuging purposes.
                 planner.printMission();
 
                 // Support for mandatory sensors
