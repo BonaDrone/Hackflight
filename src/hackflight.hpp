@@ -344,9 +344,9 @@ namespace hf {
                 _mixer    = mixer;
                 _ratePid  = ratePid;
                 
-                planner.init();
+                //planner.init();
                 // XXX For debuging purposes.
-                planner.printMission();
+                //planner.printMission();
 
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);

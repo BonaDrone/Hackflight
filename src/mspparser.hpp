@@ -586,8 +586,11 @@ namespace hf {
                     {
                         uint8_t version = 0;
                         handle_FIRMWARE_VERSION_Request(version);
-                        prepareToSendFloats(1);
-                        sendFloat(version);
+                        //prepareToSendFloats(1);
+                        //sendFloat(version);
+                        //headSerialResponse(0, 1);
+                        headSerialReply(1);
+                        serialize8(version);
                         serialize8(_checksum);
                         } break;
 
