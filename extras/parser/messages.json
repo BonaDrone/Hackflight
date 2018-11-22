@@ -148,6 +148,11 @@
   "WP_MISSION_BEGIN":
   [{"ID": 30},
    {"comment": "Start mission execution"},
-    {"flag": "byte"}] 
+   {"flag": "byte"}], 
+
+  "FIRMWARE_VERSION":
+  [{"ID": 50},
+   {"comment": "Current firmware version"},
+   {"version": "byte"}] 
 
 }

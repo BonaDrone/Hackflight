@@ -44,6 +44,9 @@ namespace hf {
 
         private: 
 
+            // XXX use a proper version formating
+            uint8_t _firmwareVersion = 1;
+
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
             Receiver   * _receiver;
@@ -324,6 +327,11 @@ namespace hf {
             virtual void handle_WP_MISSION_BEGIN_Request(uint8_t & flag) override
             {
                 _state.executingMission = true;
+            }
+            
+            virtual void handle_FIRMWARE_VERSION_Request(uint8_t & version) override
+            {
+                version = _firmwareVersion; 
             }
 
         public:
