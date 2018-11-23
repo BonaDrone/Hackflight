@@ -43,7 +43,7 @@ namespace hf {
             static const int OUTBUF_SIZE = 128;
             
             int EEPROMindex = 0;
-            bool incomingMission = 0;
+            bool incomingMission = false;
 
             typedef enum serialState_t {
                 IDLE,

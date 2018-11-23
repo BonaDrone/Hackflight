@@ -36,12 +36,10 @@ namespace hf {
 
 
     class Planner {
-
-        friend class Hackflight;
         
         private:
           
-          bool _hasMission = false;
+          bool _hasMission;
           
           // Set of possible actions
           static const uint8_t WP_ARM             = 1;
@@ -82,7 +80,7 @@ namespace hf {
                 uint8_t value = EEPROM.read(address);
                 // There is no action with code 0, so if a 0 is read we can
                 // safely say that the mission is already loaded and stop reading 
-                if (value == 0) {
+                if (value == 0 || value == 255) {
                   break;
                 }
                 int newAddress = addActionToMission(value, mission, actionIndex, address);
@@ -101,47 +99,41 @@ namespace hf {
             switch (value) {
               
               case WP_ARM:
-              {
                   action.action = WP_ARM;
-              } break;
+                  break;
               
               case WP_DISARM:
-              {
                   action.action = WP_DISARM;
-              } break;
+                  break;
               
               case WP_TAKE_OFF:
-              {
                   action.action = WP_TAKE_OFF;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = EEPROM.read(++address);
-              } break;
+                  break;
               
               case WP_LAND:
-              {
                   action.action = WP_LAND;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = 0;
-              } break;
+                  break;
               
               case WP_CHANGE_ALTITUDE:
-              {
                   action.action = WP_CHANGE_ALTITUDE;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = EEPROM.read(++address);
-              } break;
+                  break;
               
               case WP_HOVER:
-              {
-                action.action = WP_HOVER;
-                action.position[0] = _integralPosition[0];
-                action.position[1] = _integralPosition[1];
-                action.position[2] = _integralPosition[2];
-                action.duration = EEPROM.read(++address);
-              } break;
+                  action.action = WP_HOVER;
+                  action.position[0] = _integralPosition[0];
+                  action.position[1] = _integralPosition[1];
+                  action.position[2] = _integralPosition[2];
+                  action.duration = EEPROM.read(++address);
+                  break;
             }
             mission[actionIndex] = action;
             return address;
@@ -152,21 +144,23 @@ namespace hf {
             bool isActionComplete(state_t & state, demands_t & demands)
             {
               // XXX each action with its own validator ?
+              bool actionComplete = true;
               if (abs(demands.altitude - state.altitude) > 0.05)
               {
-                return false;
+                actionComplete = false;
               }
               if (((micros() - _startActionTime) / 1000000.0f) < _currentAction.duration)
               {
-                return false;
+                actionComplete = false;
               }
-              return true;
+              return actionComplete;
             }
 
         public:
           
             void init(void)
             {
+                _hasMission = false;
                 loadMission(_mission);
                 _currentActionIndex = 0;
                 _currentAction = _mission[_currentActionIndex];
