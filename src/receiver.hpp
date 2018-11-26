@@ -37,6 +37,8 @@ namespace hf {
 
         private: 
 
+        bool _gotNewFrame = false;
+
         static constexpr uint8_t DEFAULT_CHANNEL_MAP[6] = {0, 1, 2, 3, 4, 5};
 
         const float THROTTLE_MARGIN   = 0.1f;
@@ -145,10 +147,12 @@ namespace hf {
         bool getDemands(float yawAngle)
         {
             // Wait till there's a new frame
-            if (!gotNewFrame()) return false;
+            if (!gotNewFrame() && !_gotNewFrame) return false;
 
             // Read raw channel values
-            readRawvals();
+            // XXX Comment when receiving via wifi and uncomment when receiving
+            // XXX via SBUS. Eventually find a better way.
+            //readRawvals();
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);

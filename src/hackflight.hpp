@@ -96,6 +96,7 @@ namespace hf {
                     _quaternion.modifyState(_state, time);
 
                     // Synch serial comms to quaternion check
+                    _receiver->_gotNewFrame = false;
                     doSerialComms();
                 }
             }
@@ -332,6 +333,18 @@ namespace hf {
             virtual void handle_FIRMWARE_VERSION_Request(uint8_t & version) override
             {
                 version = _firmwareVersion; 
+            }
+
+            virtual void handle_SET_RC_NORMAL_Request(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6) override
+            {
+                // Match SBUS channel map
+                // received on -> goes to
+                // 0->2,1->0,2->1,3->3,4->5,5->4
+                // And 0->T, 1->R, 2->P, 3->Y, 4->AUX1, 5->AUX2
+                float _channels[6] = {c2, c3, c1, c4, c6, c5};
+                memset(_receiver->rawvals, 0, _receiver->MAXCHAN*sizeof(float));
+                memcpy(_receiver->rawvals, _channels, _receiver->MAXCHAN*sizeof(float));
+                _receiver->_gotNewFrame = true;
             }
 
         public:
