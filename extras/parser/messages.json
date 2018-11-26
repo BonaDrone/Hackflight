@@ -21,6 +21,15 @@
    {"c5": "float"}, 
    {"c6": "float"}],
 
+  "SET_RC_NORMAL": 
+  [{"ID": 222},
+   {"c1": "float"}, 
+   {"c2": "float"}, 
+   {"c3": "float"}, 
+   {"c4": "float"}, 
+   {"c5": "float"}, 
+   {"c6": "float"}],
+
   "ATTITUDE_RADIANS": 
   [{"ID": 122},
    {"roll"    : "float"}, 
@@ -37,6 +46,11 @@
    {"agl"   : "float"}, 
    {"flowx" : "float"},
    {"flowy" : "float"}],  
+
+  "SET_ARMED": 
+  [{"ID": 216},
+   {"comment": "Arm/disarm from MSP"}, 
+   {"flag": "byte"}],
 
   "FAKE_INT": 
   [{"ID": 199},

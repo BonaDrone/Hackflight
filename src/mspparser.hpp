@@ -338,6 +338,29 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 222:
+                    {
+                        float c1 = 0;
+                        memcpy(&c1,  &_inBuf[0], sizeof(float));
+
+                        float c2 = 0;
+                        memcpy(&c2,  &_inBuf[4], sizeof(float));
+
+                        float c3 = 0;
+                        memcpy(&c3,  &_inBuf[8], sizeof(float));
+
+                        float c4 = 0;
+                        memcpy(&c4,  &_inBuf[12], sizeof(float));
+
+                        float c5 = 0;
+                        memcpy(&c5,  &_inBuf[16], sizeof(float));
+
+                        float c6 = 0;
+                        memcpy(&c6,  &_inBuf[20], sizeof(float));
+
+                        handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
+                        } break;
+
                     case 122:
                     {
                         float roll = 0;
@@ -373,6 +396,14 @@ namespace hf {
                         sendFloat(flowx);
                         sendFloat(flowy);
                         serialize8(_checksum);
+                        } break;
+
+                    case 216:
+                    {
+                        uint8_t flag = 0;
+                        memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_ARMED_Request(flag);
                         } break;
 
                     case 199:
@@ -422,8 +453,8 @@ namespace hf {
                     {
                         uint8_t code = 0;
                         handle_CLEAR_EEPROM_Request(code);
-                        prepareToSendFloats(1);
-                        sendFloat(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -431,8 +462,8 @@ namespace hf {
                     {
                         uint8_t code = 0;
                         handle_WP_ARM_Request(code);
-                        prepareToSendFloats(1);
-                        sendFloat(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -440,8 +471,8 @@ namespace hf {
                     {
                         uint8_t code = 0;
                         handle_WP_DISARM_Request(code);
-                        prepareToSendFloats(1);
-                        sendFloat(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -449,8 +480,8 @@ namespace hf {
                     {
                         uint8_t code = 0;
                         handle_WP_LAND_Request(code);
-                        prepareToSendFloats(1);
-                        sendFloat(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -459,9 +490,9 @@ namespace hf {
                         uint8_t meters = 0;
                         uint8_t code = 0;
                         handle_WP_TAKE_OFF_Request(meters, code);
-                        prepareToSendFloats(2);
-                        sendFloat(meters);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -470,9 +501,9 @@ namespace hf {
                         uint8_t meters = 0;
                         uint8_t code = 0;
                         handle_WP_GO_FORWARD_Request(meters, code);
-                        prepareToSendFloats(2);
-                        sendFloat(meters);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -481,9 +512,9 @@ namespace hf {
                         uint8_t meters = 0;
                         uint8_t code = 0;
                         handle_WP_GO_BACKWARD_Request(meters, code);
-                        prepareToSendFloats(2);
-                        sendFloat(meters);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -492,9 +523,9 @@ namespace hf {
                         uint8_t meters = 0;
                         uint8_t code = 0;
                         handle_WP_GO_LEFT_Request(meters, code);
-                        prepareToSendFloats(2);
-                        sendFloat(meters);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -503,9 +534,9 @@ namespace hf {
                         uint8_t meters = 0;
                         uint8_t code = 0;
                         handle_WP_GO_RIGHT_Request(meters, code);
-                        prepareToSendFloats(2);
-                        sendFloat(meters);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -514,9 +545,9 @@ namespace hf {
                         uint8_t meters = 0;
                         uint8_t code = 0;
                         handle_WP_CHANGE_ALTITUDE_Request(meters, code);
-                        prepareToSendFloats(2);
-                        sendFloat(meters);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -525,9 +556,9 @@ namespace hf {
                         uint8_t speed = 0;
                         uint8_t code = 0;
                         handle_WP_CHANGE_SPEED_Request(speed, code);
-                        prepareToSendFloats(2);
-                        sendFloat(speed);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(speed);
+                        sendByte(code);
                         serialize8(_checksum);
                         } break;
 
@@ -536,9 +567,59 @@ namespace hf {
                         uint8_t seconds = 0;
                         uint8_t code = 0;
                         handle_WP_HOVER_Request(seconds, code);
-                        prepareToSendFloats(2);
-                        sendFloat(seconds);
-                        sendFloat(code);
+                        prepareToSendBytes(2);
+                        sendByte(seconds);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 12:
+                    {
+                        uint8_t degrees = 0;
+                        uint8_t code = 0;
+                        handle_WP_TURN_CW_Request(degrees, code);
+                        prepareToSendBytes(2);
+                        sendByte(degrees);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 13:
+                    {
+                        uint8_t degrees = 0;
+                        uint8_t code = 0;
+                        handle_WP_TURN_CCW_Request(degrees, code);
+                        prepareToSendBytes(2);
+                        sendByte(degrees);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 23:
+                    {
+                        incomingMission = incomingMission ? false : true;
+                        uint8_t flag = 0;
+                        handle_WP_MISSION_FLAG_Request(flag);
+                        prepareToSendBytes(1);
+                        sendByte(flag);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 30:
+                    {
+                        uint8_t flag = 0;
+                        handle_WP_MISSION_BEGIN_Request(flag);
+                        prepareToSendBytes(1);
+                        sendByte(flag);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 50:
+                    {
+                        uint8_t version = 0;
+                        handle_FIRMWARE_VERSION_Request(version);
+                        prepareToSendBytes(1);
+                        sendByte(version);
                         serialize8(_checksum);
                         } break;
 
@@ -562,43 +643,6 @@ namespace hf {
                         int16_t magz = getArgument(8);
                         handle_RAW_IMU_Data(accx, accy, accz, gyrx, gyry, gyrz, magx, magy, magz);
                         } break;
-
-                    case 23:
-                    {
-                        incomingMission = incomingMission ? false : true;
-                        uint8_t flag = 0;
-                        handle_WP_MISSION_FLAG_Request(flag);
-                        prepareToSendFloats(1);
-                        sendFloat(flag);
-                        serialize8(_checksum);
-                        } break;
-
-                    case 30:
-                    {
-                        uint8_t flag = 0;
-                        handle_WP_MISSION_BEGIN_Request(flag);
-                        prepareToSendFloats(1);
-                        sendFloat(flag);
-                        serialize8(_checksum);
-                        } break;
-
-                    case 50:
-                    {
-                        uint8_t version = 0;
-                        handle_FIRMWARE_VERSION_Request(version);
-                        _outBufSize = 0;
-                        _outBufIndex = 0;
-                        headSerialReply(1);
-                        serialize8(version);
-                        serialize8(_checksum);
-                        } break;
-
-                }
-            }
-
-            void dispatchDataMessage(void)
-            {
-                switch (_command) {
 
                     case 121:
                     {
@@ -626,11 +670,134 @@ namespace hf {
                         handle_ALTITUDE_METERS_Data(estalt, vario);
                         } break;
 
+                    case 126:
+                    {
+                        float agl = getArgument(0);
+                        float flowx = getArgument(1);
+                        float flowy = getArgument(2);
+                        handle_LOITER_Data(agl, flowx, flowy);
+                        } break;
+
                     case 199:
                     {
                         int32_t value1 = getArgument(0);
                         int32_t value2 = getArgument(1);
                         handle_FAKE_INT_Data(value1, value2);
+                        } break;
+
+                    case 124:
+                    {
+                        float m1 = getArgument(0);
+                        float m2 = getArgument(1);
+                        float m3 = getArgument(2);
+                        float m4 = getArgument(3);
+                        handle_GET_MOTOR_NORMAL_Data(m1, m2, m3, m4);
+                        } break;
+
+                    case 0:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_CLEAR_EEPROM_Data(code);
+                        } break;
+
+                    case 1:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_WP_ARM_Data(code);
+                        } break;
+
+                    case 2:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_WP_DISARM_Data(code);
+                        } break;
+
+                    case 3:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_WP_LAND_Data(code);
+                        } break;
+
+                    case 4:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_TAKE_OFF_Data(meters, code);
+                        } break;
+
+                    case 5:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_FORWARD_Data(meters, code);
+                        } break;
+
+                    case 6:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_BACKWARD_Data(meters, code);
+                        } break;
+
+                    case 7:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_LEFT_Data(meters, code);
+                        } break;
+
+                    case 8:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_RIGHT_Data(meters, code);
+                        } break;
+
+                    case 9:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_CHANGE_ALTITUDE_Data(meters, code);
+                        } break;
+
+                    case 10:
+                    {
+                        uint8_t speed = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_CHANGE_SPEED_Data(speed, code);
+                        } break;
+
+                    case 11:
+                    {
+                        uint8_t seconds = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_HOVER_Data(seconds, code);
+                        } break;
+
+                    case 12:
+                    {
+                        uint8_t degrees = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_TURN_CW_Data(degrees, code);
+                        } break;
+
+                    case 13:
+                    {
+                        uint8_t degrees = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_TURN_CCW_Data(degrees, code);
+                        } break;
+
+                    case 23:
+                    {
+                        uint8_t flag = getArgument(0);
+                        handle_WP_MISSION_FLAG_Data(flag);
+                        } break;
+
+                    case 30:
+                    {
+                        uint8_t flag = getArgument(0);
+                        handle_WP_MISSION_BEGIN_Data(flag);
                         } break;
 
                     case 50:
@@ -690,6 +857,26 @@ namespace hf {
                 (void)c6;
             }
 
+            virtual void handle_SET_RC_NORMAL_Request(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            {
+                (void)c1;
+                (void)c2;
+                (void)c3;
+                (void)c4;
+                (void)c5;
+                (void)c6;
+            }
+
+            virtual void handle_SET_RC_NORMAL_Data(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            {
+                (void)c1;
+                (void)c2;
+                (void)c3;
+                (void)c4;
+                (void)c5;
+                (void)c6;
+            }
+
             virtual void handle_ATTITUDE_RADIANS_Request(float & roll, float & pitch, float & yaw)
             {
                 (void)roll;
@@ -735,6 +922,11 @@ namespace hf {
                 (void)flag;
             }
 
+            virtual void handle_SET_ARMED_Data(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
             virtual void handle_FAKE_INT_Request(int32_t & value1, int32_t & value2)
             {
                 (void)value1;
@@ -745,6 +937,14 @@ namespace hf {
             {
                 (void)value1;
                 (void)value2;
+            }
+
+            virtual void handle_SET_MOTOR_NORMAL_Request(float  m1, float  m2, float  m3, float  m4)
+            {
+                (void)m1;
+                (void)m2;
+                (void)m3;
+                (void)m4;
             }
 
             virtual void handle_SET_MOTOR_NORMAL_Data(float  m1, float  m2, float  m3, float  m4)
@@ -1030,6 +1230,26 @@ namespace hf {
                 return 30;
             }
 
+            static uint8_t serialize_SET_RC_NORMAL(uint8_t bytes[], float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 24;
+                bytes[4] = 222;
+
+                memcpy(&bytes[5], &c1, sizeof(float));
+                memcpy(&bytes[9], &c2, sizeof(float));
+                memcpy(&bytes[13], &c3, sizeof(float));
+                memcpy(&bytes[17], &c4, sizeof(float));
+                memcpy(&bytes[21], &c5, sizeof(float));
+                memcpy(&bytes[25], &c6, sizeof(float));
+
+                bytes[29] = CRC8(&bytes[3], 26);
+
+                return 30;
+            }
+
             static uint8_t serialize_ATTITUDE_RADIANS_Request(uint8_t bytes[])
             {
                 bytes[0] = 36;
@@ -1116,6 +1336,21 @@ namespace hf {
                 return 18;
             }
 
+            static uint8_t serialize_SET_ARMED(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 216;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
             static uint8_t serialize_FAKE_INT_Request(uint8_t bytes[])
             {
                 bytes[0] = 36;
@@ -1142,21 +1377,6 @@ namespace hf {
                 bytes[13] = CRC8(&bytes[3], 10);
 
                 return 14;
-            }
-
-            static uint8_t serialize_SET_MOTOR_NORMAL(uint8_t bytes[], float  m1, float  m2, float  m3, float  m4)
-            {
-                bytes[0] = 36;
-                bytes[1] = 77;
-                bytes[2] = 62;
-                bytes[3] = 1;
-                bytes[4] = 216;
-
-                memcpy(&bytes[5], &flag, sizeof(uint8_t));
-
-                bytes[6] = CRC8(&bytes[3], 3);
-
-                return 7;
             }
 
             static uint8_t serialize_SET_MOTOR_NORMAL(uint8_t bytes[], float  m1, float  m2, float  m3, float  m4)
