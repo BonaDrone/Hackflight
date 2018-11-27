@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <EEPROM.h>
+
 namespace hf {
 
     class MspParser {
@@ -39,6 +41,9 @@ namespace hf {
 
             static const int INBUF_SIZE  = 128;
             static const int OUTBUF_SIZE = 128;
+
+            int EEPROMindex = 0;
+            bool incomingMission = false;
 
             typedef enum serialState_t {
                 IDLE,
@@ -165,6 +170,26 @@ namespace hf {
             float getArgument(uint8_t k)
             {
                 return (float)k; // XXX for testing only
+            }
+
+            void processMissionCommand(uint8_t command)
+            {
+                if (incomingMission && command != 23)
+                {
+                    EEPROM.write(EEPROMindex, command);
+                    EEPROMindex += 1;
+                    if (command != 1 && command != 2 && command != 3)
+                    {
+                        uint8_t commandData = readCommandData();
+                        EEPROM.write(EEPROMindex, commandData);
+                        EEPROMindex += 1;
+                    }
+                }
+            }
+                        
+            uint8_t readCommandData(void)
+            {
+                return _inBuf[_inBufIndex++] & 0xff;
             }
 
         protected:

@@ -41,7 +41,7 @@ namespace hf {
 
             static const int INBUF_SIZE  = 128;
             static const int OUTBUF_SIZE = 128;
-            
+
             int EEPROMindex = 0;
             bool incomingMission = false;
 
@@ -186,12 +186,12 @@ namespace hf {
                     }
                 }
             }
-                        
+
             uint8_t readCommandData(void)
             {
                 return _inBuf[_inBufIndex++] & 0xff;
             }
-                        
+
         protected:
 
             void init(void)
