@@ -186,7 +186,7 @@ namespace hf {
                     }
                 }
             }
-
+                        
             uint8_t readCommandData(void)
             {
                 return _inBuf[_inBufIndex++] & 0xff;
@@ -359,6 +359,14 @@ namespace hf {
                         memcpy(&c6,  &_inBuf[20], sizeof(float));
 
                         handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
+                        } break;
+
+                    case 223:
+                    {
+                        uint8_t flag = 0;
+                        memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_LOST_SIGNAL_Request(flag);
                         } break;
 
                     case 122:
@@ -877,6 +885,16 @@ namespace hf {
                 (void)c6;
             }
 
+            virtual void handle_LOST_SIGNAL_Request(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_LOST_SIGNAL_Data(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
             virtual void handle_ATTITUDE_RADIANS_Request(float & roll, float & pitch, float & yaw)
             {
                 (void)roll;
@@ -1248,6 +1266,21 @@ namespace hf {
                 bytes[29] = CRC8(&bytes[3], 26);
 
                 return 30;
+            }
+
+            static uint8_t serialize_LOST_SIGNAL(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 223;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
             static uint8_t serialize_ATTITUDE_RADIANS_Request(uint8_t bytes[])

@@ -30,6 +30,11 @@
    {"c5": "float"}, 
    {"c6": "float"}],
 
+  "LOST_SIGNAL": 
+  [{"ID": 223},
+   {"comment": "ESP32 lost signal MSP message"}, 
+   {"flag": "byte"}],
+
   "ATTITUDE_RADIANS": 
   [{"ID": 122},
    {"roll"    : "float"}, 

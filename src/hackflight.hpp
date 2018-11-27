@@ -158,11 +158,16 @@ namespace hf {
 
             void checkFailsafe(void)
             {
-                if (_state.armed && (_receiver->lostSignal() || _board->isBatteryLow())) {
+                if (_state.armed &&
+                   (_receiver->lostSignal(_receiver->_bypassReceiver) || _board->isBatteryLow())) {
                     _mixer->cutMotors();
                     _state.armed = false;
                     _failsafe = true;
                     _board->showArmedStatus(false);
+                    if (_receiver->_lostSignal)
+                    {
+                      _receiver->_bypassReceiver = false;
+                    }
                 }
             } 
 
@@ -346,7 +351,14 @@ namespace hf {
                 memcpy(_receiver->rawvals, _channels, _receiver->MAXCHAN*sizeof(float));
                 _receiver->_gotNewFrame = true;
                 _receiver->_bypassReceiver = true;
+                _receiver->_lostSignal = false;
             }
+            
+            virtual void handle_LOST_SIGNAL_Request(uint8_t  flag) override
+            {
+                _receiver->_lostSignal = flag;
+            }
+
 
         public:
 
