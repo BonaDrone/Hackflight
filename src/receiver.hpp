@@ -36,8 +36,12 @@ namespace hf {
         friend class MspParser;
 
         private: 
-
+        // Receiving via Wifi should set this boolean to true so that RC values
+        // are updated
         bool _gotNewFrame = false;
+        // Allow bypassing the receiver method that updates RC values. Receiving
+        // via wifi should set it to true to avoid overwritting RC values
+        bool _bypassReceiver = false;
 
         static constexpr uint8_t DEFAULT_CHANNEL_MAP[6] = {0, 1, 2, 3, 4, 5};
 
@@ -105,6 +109,14 @@ namespace hf {
         // These must be overridden for each receiver
         virtual bool gotNewFrame(void) = 0;
         virtual void readRawvals(void) = 0;
+        // Enable readRawvals bypass 
+        void readRawvals(bool bypass)
+        {
+          if (!bypass)
+          {
+            readRawvals();
+          }
+        }
 
         // This can be overridden optionally
         virtual void begin(void) { }
@@ -150,9 +162,7 @@ namespace hf {
             if (!gotNewFrame() && !_gotNewFrame) return false;
 
             // Read raw channel values
-            // XXX Comment when receiving via wifi and uncomment when receiving
-            // XXX via SBUS. Eventually find a better way.
-            //readRawvals();
+            readRawvals(_bypassReceiver);
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);

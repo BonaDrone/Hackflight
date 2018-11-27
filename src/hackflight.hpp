@@ -345,6 +345,7 @@ namespace hf {
                 memset(_receiver->rawvals, 0, _receiver->MAXCHAN*sizeof(float));
                 memcpy(_receiver->rawvals, _channels, _receiver->MAXCHAN*sizeof(float));
                 _receiver->_gotNewFrame = true;
+                _receiver->_bypassReceiver = true;
             }
 
         public:
