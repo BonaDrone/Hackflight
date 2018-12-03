@@ -172,6 +172,21 @@
   "FIRMWARE_VERSION":
   [{"ID": 50},
    {"comment": "Current firmware version"},
-   {"version": "byte"}] 
+   {"version": "byte"}],
+   
+  "SET_MOSQUITO_VERSION":
+  [{"ID": 223},
+   {"comment": "Set the type of Mosquito (90 or 150) being used"},
+   {"version": "byte"}],  
+  
+  "SET_PID_CONSTANTS":
+  [{"ID": 224},
+   {"comment": "Set the controllers' parameters"},
+   {"RateP": "float"}],
+     
+   "SET_POSITIONING_BOARD":
+   [{"ID": 225},
+    {"comment": "Specify whether the positioning board is present or not"},
+    {"hasBoard": "byte"}]
 
 }

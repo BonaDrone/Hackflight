@@ -631,6 +631,30 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 223:
+                    {
+                        uint8_t version = 0;
+                        memcpy(&version,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_MOSQUITO_VERSION_Request(version);
+                        } break;
+
+                    case 224:
+                    {
+                        float RateP = 0;
+                        memcpy(&RateP,  &_inBuf[0], sizeof(float));
+
+                        handle_SET_PID_CONSTANTS_Request(RateP);
+                        } break;
+
+                    case 225:
+                    {
+                        uint8_t hasBoard = 0;
+                        memcpy(&hasBoard,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_POSITIONING_BOARD_Request(hasBoard);
+                        } break;
+
                 }
             }
 
@@ -1177,6 +1201,36 @@ namespace hf {
             virtual void handle_FIRMWARE_VERSION_Data(uint8_t & version)
             {
                 (void)version;
+            }
+
+            virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t  version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_MOSQUITO_VERSION_Data(uint8_t  version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_PID_CONSTANTS_Request(float  RateP)
+            {
+                (void)RateP;
+            }
+
+            virtual void handle_SET_PID_CONSTANTS_Data(float  RateP)
+            {
+                (void)RateP;
+            }
+
+            virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t  hasBoard)
+            {
+                (void)hasBoard;
+            }
+
+            virtual void handle_SET_POSITIONING_BOARD_Data(uint8_t  hasBoard)
+            {
+                (void)hasBoard;
             }
 
         public:
@@ -1923,6 +1977,51 @@ namespace hf {
                 bytes[4] = 50;
 
                 memcpy(&bytes[5], &version, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_MOSQUITO_VERSION(uint8_t bytes[], uint8_t  version)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 223;
+
+                memcpy(&bytes[5], &version, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_PID_CONSTANTS(uint8_t bytes[], float  RateP)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 4;
+                bytes[4] = 224;
+
+                memcpy(&bytes[5], &RateP, sizeof(float));
+
+                bytes[9] = CRC8(&bytes[3], 6);
+
+                return 10;
+            }
+
+            static uint8_t serialize_SET_POSITIONING_BOARD(uint8_t bytes[], uint8_t  hasBoard)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 225;
+
+                memcpy(&bytes[5], &hasBoard, sizeof(uint8_t));
 
                 bytes[6] = CRC8(&bytes[3], 3);
 
