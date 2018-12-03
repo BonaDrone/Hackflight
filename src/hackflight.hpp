@@ -317,7 +317,7 @@ namespace hf {
             
             virtual void handle_CLEAR_EEPROM_Request(uint8_t & code) override
             {
-                for (int i = 0 ; i < EEPROM.length() ; i++) 
+                for (int i = PARAMETER_SLOTS ; i < EEPROM.length() ; i++) 
                 {
                     EEPROM.write(i, 0);
                 }
@@ -396,7 +396,7 @@ namespace hf {
                 _receiver->begin();
                 
                 // Initialize the planner
-                planner.init();
+                planner.init(PARAMETER_SLOTS);
                 // XXX Only for debuging purposes.
                 //planner.printMission();
 

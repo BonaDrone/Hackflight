@@ -62,9 +62,9 @@ namespace hf {
           // the action and takes in to account the position of the previous action 
           float _integralPosition[3] = {0, 0, 0};
                         
-          void loadMission(action_t mission[256])
+          void loadMission(action_t mission[256], int startingAddress)
           {
-              int address = 0;
+              int address = startingAddress;
               int actionIndex = 0;
               int EEPROMlength = EEPROM.length();
               // Although we iterate through the whole EEPROM length the index
@@ -158,10 +158,10 @@ namespace hf {
 
         public:
           
-            void init(void)
+            void init(int startingAddress)
             {
                 _hasMission = false;
-                loadMission(_mission);
+                loadMission(_mission, startingAddress);
                 _currentActionIndex = 0;
                 _currentAction = _mission[_currentActionIndex];
             }
