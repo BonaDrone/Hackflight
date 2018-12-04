@@ -184,9 +184,9 @@
    {"comment": "Set the controllers' parameters"},
    {"RateP": "float"}],
      
-   "SET_POSITIONING_BOARD":
-   [{"ID": 225},
-    {"comment": "Specify whether the positioning board is present or not"},
-    {"hasBoard": "byte"}]
+  "SET_POSITIONING_BOARD":
+  [{"ID": 225},
+   {"comment": "Specify whether the positioning board is present or not"},
+   {"hasBoard": "byte"}]
 
 }
