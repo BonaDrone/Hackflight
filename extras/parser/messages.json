@@ -31,7 +31,7 @@
    {"c6": "float"}],
 
   "LOST_SIGNAL": 
-  [{"ID": 223},
+  [{"ID": 226},
    {"comment": "ESP32 lost signal MSP message"}, 
    {"flag": "byte"}],
 

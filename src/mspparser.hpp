@@ -364,7 +364,7 @@ namespace hf {
                         handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
                         } break;
 
-                    case 223:
+                    case 226:
                     {
                         uint8_t flag = 0;
                         memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
@@ -1331,7 +1331,7 @@ namespace hf {
                 bytes[1] = 77;
                 bytes[2] = 62;
                 bytes[3] = 1;
-                bytes[4] = 223;
+                bytes[4] = 226;
 
                 memcpy(&bytes[5], &flag, sizeof(uint8_t));
 
