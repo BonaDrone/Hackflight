@@ -276,7 +276,9 @@ namespace hf {
 
         protected:
 
-
+            // Map parameters to EEPROM addresses
+            static const uint8_t MOSQUITO_VERSION  = 0;
+            static const uint8_t POSITIONING_BOARD = 1;
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
             {
@@ -359,6 +361,15 @@ namespace hf {
                 _receiver->_lostSignal = flag;
             }
 
+            virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t version) override
+            {
+                EEPROM.write(MOSQUITO_VERSION, version);
+            }
+            
+            virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t hasBoard) override
+            {
+                EEPROM.write(POSITIONING_BOARD, hasBoard);
+            }
 
         public:
 

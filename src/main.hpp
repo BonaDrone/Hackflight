@@ -55,11 +55,8 @@ namespace hf {
               // Params
               bool hasPositioningBoard = false;
               bool isMosquito90 = false;
-          
-              // Map parameters to EEPROM addresses
-              static const uint8_t MOSQUITO_VERSION  = 0;
-              static const uint8_t POSITIONING_BOARD = 1;
-                            
+
+
               // Required objects to run Hackflight 
               hf::Hackflight h;
               hf::MixerQuadX mixer;
@@ -78,6 +75,9 @@ namespace hf {
                   
               void loadParameters(void)
               {
+                  // Parameter are currently defined in Hackflight because is
+                  // the one in charge of serial communications. Hence, MSP
+                  // message handlers are defined there.
                   isMosquito90 = bool(EEPROM.read(MOSQUITO_VERSION));
                   hasPositioningBoard = bool(EEPROM.read(POSITIONING_BOARD));
               }
