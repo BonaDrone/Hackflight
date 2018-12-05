@@ -644,10 +644,25 @@ namespace hf {
 
                     case 224:
                     {
-                        float RateP = 0;
-                        memcpy(&RateP,  &_inBuf[0], sizeof(float));
+                        float gyroRollPitchP = 0;
+                        memcpy(&gyroRollPitchP,  &_inBuf[0], sizeof(float));
 
-                        handle_SET_PID_CONSTANTS_Request(RateP);
+                        float gyroRollPitchI = 0;
+                        memcpy(&gyroRollPitchI,  &_inBuf[4], sizeof(float));
+
+                        float gyroRollPitchD = 0;
+                        memcpy(&gyroRollPitchD,  &_inBuf[8], sizeof(float));
+
+                        float gyroYawP = 0;
+                        memcpy(&gyroYawP,  &_inBuf[12], sizeof(float));
+
+                        float gyroYawI = 0;
+                        memcpy(&gyroYawI,  &_inBuf[16], sizeof(float));
+
+                        float demandsToRate = 0;
+                        memcpy(&demandsToRate,  &_inBuf[20], sizeof(float));
+
+                        handle_SET_PID_CONSTANTS_Request(gyroRollPitchP, gyroRollPitchI, gyroRollPitchD, gyroYawP, gyroYawI, demandsToRate);
                         } break;
 
                     case 225:
@@ -1216,14 +1231,24 @@ namespace hf {
                 (void)version;
             }
 
-            virtual void handle_SET_PID_CONSTANTS_Request(float  RateP)
+            virtual void handle_SET_PID_CONSTANTS_Request(float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate)
             {
-                (void)RateP;
+                (void)gyroRollPitchP;
+                (void)gyroRollPitchI;
+                (void)gyroRollPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
             }
 
-            virtual void handle_SET_PID_CONSTANTS_Data(float  RateP)
+            virtual void handle_SET_PID_CONSTANTS_Data(float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate)
             {
-                (void)RateP;
+                (void)gyroRollPitchP;
+                (void)gyroRollPitchI;
+                (void)gyroRollPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
             }
 
             virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t  hasBoard)
@@ -2001,19 +2026,24 @@ namespace hf {
                 return 7;
             }
 
-            static uint8_t serialize_SET_PID_CONSTANTS(uint8_t bytes[], float  RateP)
+            static uint8_t serialize_SET_PID_CONSTANTS(uint8_t bytes[], float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate)
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
                 bytes[2] = 62;
-                bytes[3] = 4;
+                bytes[3] = 24;
                 bytes[4] = 224;
 
-                memcpy(&bytes[5], &RateP, sizeof(float));
+                memcpy(&bytes[5], &gyroRollPitchP, sizeof(float));
+                memcpy(&bytes[9], &gyroRollPitchI, sizeof(float));
+                memcpy(&bytes[13], &gyroRollPitchD, sizeof(float));
+                memcpy(&bytes[17], &gyroYawP, sizeof(float));
+                memcpy(&bytes[21], &gyroYawI, sizeof(float));
+                memcpy(&bytes[25], &demandsToRate, sizeof(float));
 
-                bytes[9] = CRC8(&bytes[3], 6);
+                bytes[29] = CRC8(&bytes[3], 26);
 
-                return 10;
+                return 30;
             }
 
             static uint8_t serialize_SET_POSITIONING_BOARD(uint8_t bytes[], uint8_t  hasBoard)

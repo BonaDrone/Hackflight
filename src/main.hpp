@@ -53,8 +53,15 @@ namespace hf {
         private:
 
               // Params
-              bool hasPositioningBoard = false;
-              bool isMosquito90 = false;
+              bool _hasPositioningBoard = false;
+              bool _isMosquito90 = false;
+              // Rate PID params
+              float _gyroRollPitchP;
+              float _gyroRollPitchI;
+              float _gyroRollPitchD;
+              float _gyroYawP;
+              float _gyroYawI;
+              float _demandsToRate;
 
 
               // Required objects to run Hackflight 
@@ -64,12 +71,12 @@ namespace hf {
               
               // Controllers
               hf::Rate ratePid = hf::Rate(
-                  0.06f,  // Gyro Roll/Pitch P
-                  0.01f,  // Gyro Roll/Pitch I
-                  0.00f,  // Gyro Roll/Pitch D
-                  0.06f,  // Gyro yaw P
-                  0.01f,  // Gyro yaw I
-                  5.00f); // Demands to rate
+                _gyroRollPitchP,
+                _gyroRollPitchI,
+                _gyroRollPitchD,
+                _gyroYawP,
+                _gyroYawI,
+                _demandsToRate);
 
               hf::Level level = hf::Level(0.30f);  // Pitch Level P
                   
@@ -78,8 +85,16 @@ namespace hf {
                   // Parameter are currently defined in Hackflight because is
                   // the one in charge of serial communications. Hence, MSP
                   // message handlers are defined there.
-                  isMosquito90 = bool(EEPROM.read(MOSQUITO_VERSION));
-                  hasPositioningBoard = bool(EEPROM.read(POSITIONING_BOARD));
+                  (bool)EEPROM.get(MOSQUITO_VERSION, _isMosquito90);
+                  (bool)EEPROM.get(POSITIONING_BOARD, _hasPositioningBoard);
+                  // Load Rate PID parameters (each float is 4 bytes)
+                  EEPROM.get(RATE_PID, _gyroRollPitchP);
+                  EEPROM.get(RATE_PID + 1 * sizeof(float), _gyroRollPitchI);
+                  EEPROM.get(RATE_PID + 2 * sizeof(float), _gyroRollPitchD);
+                  EEPROM.get(RATE_PID + 3 * sizeof(float), _gyroYawP);
+                  EEPROM.get(RATE_PID + 4 * sizeof(float), _gyroYawI);
+                  EEPROM.get(RATE_PID + 5 * sizeof(float), _demandsToRate);
+                  
               }
 
         protected:
@@ -103,13 +118,13 @@ namespace hf {
                 // that number it can be linked to a different aux state
                 h.addPidController(&level, 0);
                 
-                if (isMosquito90) {
+                if (_isMosquito90) {
                     h.init(new hf::BonadroneBrushed(), &rc, &mixer, &ratePid);
                 } else {
                     h.init(new hf::BonadroneMultiShot(), &rc, &mixer, &ratePid);
                 }
                 // Add additional sensors
-                if (hasPositioningBoard)
+                if (_hasPositioningBoard)
                 {
                     hf::VL53L1X_Rangefinder rangefinder;
                     rangefinder.begin();

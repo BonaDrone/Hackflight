@@ -182,7 +182,12 @@
   "SET_PID_CONSTANTS":
   [{"ID": 224},
    {"comment": "Set the controllers' parameters"},
-   {"RateP": "float"}],
+   {"gyroRollPitchP": "float"},
+   {"gyroRollPitchI": "float"},
+   {"gyroRollPitchD": "float"},
+   {"gyroYawP": "float"},
+   {"gyroYawI": "float"},
+   {"demandsToRate": "float"}],
      
   "SET_POSITIONING_BOARD":
   [{"ID": 225},

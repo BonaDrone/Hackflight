@@ -279,6 +279,7 @@ namespace hf {
             // Map parameters to EEPROM addresses
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
+            static const uint8_t RATE_PID          = 3;
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
             {
@@ -363,12 +364,24 @@ namespace hf {
 
             virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t version) override
             {
-                EEPROM.write(MOSQUITO_VERSION, version);
+                EEPROM.put(MOSQUITO_VERSION, version);
             }
             
             virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t hasBoard) override
             {
-                EEPROM.write(POSITIONING_BOARD, hasBoard);
+                EEPROM.put(POSITIONING_BOARD, hasBoard);
+            }
+            
+            virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollPitchP,
+                float gyroRollPitchI, float gyroRollPitchD, float gyroYawP,
+                float gyroYawI, float demandsToRate) override
+            {
+                EEPROM.put(RATE_PID, gyroRollPitchP);
+                EEPROM.put(RATE_PID + 1 * sizeof(float), gyroRollPitchI);
+                EEPROM.put(RATE_PID + 2 * sizeof(float), gyroRollPitchD);
+                EEPROM.put(RATE_PID + 3 * sizeof(float), gyroYawP);
+                EEPROM.put(RATE_PID + 4 * sizeof(float), gyroYawI);
+                EEPROM.put(RATE_PID + 5 * sizeof(float), demandsToRate);
             }
 
         public:
