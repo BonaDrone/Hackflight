@@ -187,7 +187,8 @@
    {"gyroRollPitchD": "float"},
    {"gyroYawP": "float"},
    {"gyroYawI": "float"},
-   {"demandsToRate": "float"}],
+   {"demandsToRate": "float"},
+   {"levelP": "float"}],
      
   "SET_POSITIONING_BOARD":
   [{"ID": 225},

@@ -62,6 +62,8 @@ namespace hf {
               float _gyroYawP;
               float _gyroYawI;
               float _demandsToRate;
+              // Level Params
+              float _levelP;
 
 
               // Required objects to run Hackflight 
@@ -78,12 +80,13 @@ namespace hf {
                   _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
                   _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
                   // Load Rate PID parameters (each float is 4 bytes)
-                  EEPROM.get(RATE_PID, _gyroRollPitchP);
-                  EEPROM.get(RATE_PID + 1 * sizeof(float), _gyroRollPitchI);
-                  EEPROM.get(RATE_PID + 2 * sizeof(float), _gyroRollPitchD);
-                  EEPROM.get(RATE_PID + 3 * sizeof(float), _gyroYawP);
-                  EEPROM.get(RATE_PID + 4 * sizeof(float), _gyroYawI);
-                  EEPROM.get(RATE_PID + 5 * sizeof(float), _demandsToRate);
+                  EEPROM.get(PID_CONSTANTS, _gyroRollPitchP);
+                  EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollPitchI);
+                  EEPROM.get(PID_CONSTANTS + 2 * sizeof(float), _gyroRollPitchD);
+                  EEPROM.get(PID_CONSTANTS + 3 * sizeof(float), _gyroYawP);
+                  EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), _gyroYawI);
+                  EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), _demandsToRate);
+                  EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), _levelP);
                   
               }
 
@@ -113,7 +116,7 @@ namespace hf {
                   _gyroYawI,
                   _demandsToRate);
 
-                hf::Level level = hf::Level(0.30f);  // Pitch Level P
+                hf::Level level = hf::Level(_levelP);  // Pitch Level P
 
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
