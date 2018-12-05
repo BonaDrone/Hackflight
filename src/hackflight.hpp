@@ -279,7 +279,7 @@ namespace hf {
             // Map parameters to EEPROM addresses
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
-            static const uint8_t RATE_PID          = 3;
+            static const uint8_t RATE_PID          = 2;
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
             {
