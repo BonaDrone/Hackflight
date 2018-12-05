@@ -277,9 +277,12 @@ namespace hf {
         protected:
 
             // Map parameters to EEPROM addresses
+            static const uint8_t GENERAL_CONFIG    = 0;
+            static const uint8_t RATE_PID          = 1;
+            // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
-            static const uint8_t RATE_PID          = 2;
+
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
             {
@@ -364,12 +367,24 @@ namespace hf {
 
             virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t version) override
             {
-                EEPROM.put(MOSQUITO_VERSION, version);
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                if (version)
+                {
+                  EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                } else {
+                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                }
             }
             
             virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t hasBoard) override
             {
-                EEPROM.put(POSITIONING_BOARD, hasBoard);
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                if (hasBoard)
+                {
+                  EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                } else {
+                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                }
             }
             
             virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollPitchP,

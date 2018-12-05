@@ -71,11 +71,12 @@ namespace hf {
                   
               void loadParameters(void)
               {
-                  // Parameter are currently defined in Hackflight because is
+                  // Parameters are currently defined in Hackflight because is
                   // the one in charge of serial communications. Hence, MSP
                   // message handlers are defined there.
-                  (bool)EEPROM.get(MOSQUITO_VERSION, _isMosquito90);
-                  (bool)EEPROM.get(POSITIONING_BOARD, _hasPositioningBoard);
+                  uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                  _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
+                  _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
                   // Load Rate PID parameters (each float is 4 bytes)
                   EEPROM.get(RATE_PID, _gyroRollPitchP);
                   EEPROM.get(RATE_PID + 1 * sizeof(float), _gyroRollPitchI);
