@@ -68,17 +68,6 @@ namespace hf {
               hf::Hackflight h;
               hf::MixerQuadX mixer;
               hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL);
-              
-              // Controllers
-              hf::Rate ratePid = hf::Rate(
-                _gyroRollPitchP,
-                _gyroRollPitchI,
-                _gyroRollPitchD,
-                _gyroYawP,
-                _gyroYawI,
-                _demandsToRate);
-
-              hf::Level level = hf::Level(0.30f);  // Pitch Level P
                   
               void loadParameters(void)
               {
@@ -113,6 +102,17 @@ namespace hf {
                 rc.setTrimRoll(-0.0030506f);
                 rc.setTrimPitch(-0.0372178f);
                 rc.setTrimYaw(-0.0384381f);
+
+                // Instantiate controllers after loading parameters
+                hf::Rate ratePid = hf::Rate(
+                  _gyroRollPitchP,
+                  _gyroRollPitchI,
+                  _gyroRollPitchD,
+                  _gyroYawP,
+                  _gyroYawI,
+                  _demandsToRate);
+
+                hf::Level level = hf::Level(0.30f);  // Pitch Level P
 
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
