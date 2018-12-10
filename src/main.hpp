@@ -40,6 +40,7 @@
 // Additional Controllers 
 // (Rate is included by default as it is always required)
 #include "pidcontrollers/level.hpp"
+#include "pidcontrollers/althold.hpp"
 
 // Change this as needed
 #define SBUS_SERIAL Serial1
@@ -64,6 +65,12 @@ namespace hf {
               float _demandsToRate;
               // Level Params
               float _levelP;
+              // AltHold params
+              float _altHoldP;
+              float _altHoldVelP;
+              float _altHoldVelI;
+              float _altHoldVelD;
+              float _minAltitude;
 
 
               // Required objects to run Hackflight 
@@ -87,6 +94,11 @@ namespace hf {
                   EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), _gyroYawI);
                   EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), _demandsToRate);
                   EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), _levelP);
+                  EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), _altHoldP);
+                  EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), _altHoldVelP);
+                  EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), _altHoldVelI);
+                  EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), _altHoldVelD);
+                  EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), _minAltitude);
                   
               }
 
@@ -137,6 +149,14 @@ namespace hf {
                     hf::OpticalFlow opticalflow;
                     opticalflow.begin();
                     h.addSensor(&opticalflow);
+                    
+                    hf::AltitudeHold althold = hf::AltitudeHold(
+                        _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
+                        _altHoldVelP,   // Altitude Hold Velocity P
+                        _altHoldVelI,   // Altitude Hold Velocity I
+                        _altHoldVelD,   // Altitude Hold Velocity D
+                        _minAltitude);  // Min altitude
+                    h.addPidController(&althold, 2);
                 }
                 
             } // init

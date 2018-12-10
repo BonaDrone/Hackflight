@@ -188,7 +188,16 @@
    {"gyroYawP": "float"},
    {"gyroYawI": "float"},
    {"demandsToRate": "float"},
-   {"levelP": "float"}],
+   {"levelP": "float"},
+   {"altHoldP": "float"},
+   {"altHoldVelP": "float"},
+   {"altHoldVelI": "float"},
+   {"altHoldVelD": "float"},
+   {"minAltitude": "float"},
+   {"param6": "float"},
+   {"param7": "float"},
+   {"param8": "float"},
+   {"param9": "float"}],
      
   "SET_POSITIONING_BOARD":
   [{"ID": 225},

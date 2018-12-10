@@ -389,7 +389,10 @@ namespace hf {
             
             virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollPitchP,
                 float gyroRollPitchI, float gyroRollPitchD, float gyroYawP,
-                float gyroYawI, float demandsToRate, float levelP) override
+                float gyroYawI, float demandsToRate, float levelP,
+                float altHoldP, float altHoldVelP, float altHoldVelI, float altHoldVelD,
+                float minAltitude, float param6, float param7,
+                float param8, float param9) override
             {
                 EEPROM.put(PID_CONSTANTS, gyroRollPitchP);
                 EEPROM.put(PID_CONSTANTS + 1 * sizeof(float), gyroRollPitchI);
@@ -398,6 +401,11 @@ namespace hf {
                 EEPROM.put(PID_CONSTANTS + 4 * sizeof(float), gyroYawI);
                 EEPROM.put(PID_CONSTANTS + 5 * sizeof(float), demandsToRate);
                 EEPROM.put(PID_CONSTANTS + 6 * sizeof(float), levelP);
+                EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), altHoldP);
+                EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), altHoldVelP);
+                EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), altHoldVelI);
+                EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), altHoldVelD);
+                EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
                 
             }
 
