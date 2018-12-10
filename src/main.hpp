@@ -130,6 +130,18 @@ namespace hf {
 
                 hf::Level level = hf::Level(_levelP);  // Pitch Level P
 
+                // Add additional sensors
+                if (_hasPositioningBoard)
+                {
+                    hf::AltitudeHold althold = hf::AltitudeHold(
+                        _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
+                        _altHoldVelP,   // Altitude Hold Velocity P
+                        _altHoldVelI,   // Altitude Hold Velocity I
+                        _altHoldVelD,   // Altitude Hold Velocity D
+                        _minAltitude);  // Min altitude
+                    h.addPidController(&althold, 2);
+                }
+
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
                 h.addPidController(&level, 0);
@@ -148,15 +160,7 @@ namespace hf {
                     
                     hf::OpticalFlow opticalflow;
                     opticalflow.begin();
-                    h.addSensor(&opticalflow);
-                    
-                    hf::AltitudeHold althold = hf::AltitudeHold(
-                        _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
-                        _altHoldVelP,   // Altitude Hold Velocity P
-                        _altHoldVelI,   // Altitude Hold Velocity I
-                        _altHoldVelD,   // Altitude Hold Velocity D
-                        _minAltitude);  // Min altitude
-                    h.addPidController(&althold, 2);
+                    h.addSensor(&opticalflow);                    
                 }
                 
             } // init
