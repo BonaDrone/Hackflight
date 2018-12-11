@@ -112,6 +112,12 @@ namespace hf {
                 headSerialReply(count*size);
             }
 
+            void acknowledgeResponse(void)
+            {
+                prepareToSend(0, 0);
+                serialize8(_checksum);
+            }
+
             void prepareToSendBytes(uint8_t count)
             {
                 prepareToSend(count, 1);
@@ -362,6 +368,7 @@ namespace hf {
                         memcpy(&c6,  &_inBuf[20], sizeof(float));
 
                         handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
+                        acknowledgeResponse();
                         } break;
 
                     case 226:
@@ -370,6 +377,7 @@ namespace hf {
                         memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
 
                         handle_LOST_SIGNAL_Request(flag);
+                        acknowledgeResponse();
                         } break;
 
                     case 122:
@@ -415,6 +423,7 @@ namespace hf {
                         memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
 
                         handle_SET_ARMED_Request(flag);
+                        acknowledgeResponse();
                         } break;
 
                     case 199:
@@ -443,6 +452,7 @@ namespace hf {
                         memcpy(&m4,  &_inBuf[12], sizeof(float));
 
                         handle_SET_MOTOR_NORMAL_Request(m1, m2, m3, m4);
+                        acknowledgeResponse();
                         } break;
 
                     case 124:
@@ -640,6 +650,7 @@ namespace hf {
                         memcpy(&version,  &_inBuf[0], sizeof(uint8_t));
 
                         handle_SET_MOSQUITO_VERSION_Request(version);
+                        acknowledgeResponse();
                         } break;
 
                     case 224:
@@ -693,6 +704,7 @@ namespace hf {
                         memcpy(&param9,  &_inBuf[60], sizeof(float));
 
                         handle_SET_PID_CONSTANTS_Request(gyroRollPitchP, gyroRollPitchI, gyroRollPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
+                        acknowledgeResponse();
                         } break;
 
                     case 225:
@@ -701,6 +713,7 @@ namespace hf {
                         memcpy(&hasBoard,  &_inBuf[0], sizeof(uint8_t));
 
                         handle_SET_POSITIONING_BOARD_Request(hasBoard);
+                        acknowledgeResponse();
                         } break;
 
                 }

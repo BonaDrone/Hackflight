@@ -112,6 +112,12 @@ namespace hf {
                 headSerialReply(count*size);
             }
 
+            void acknowledgeResponse(void)
+            {
+                prepareToSend(0, 0);
+                serialize8(_checksum);
+            }
+
             void prepareToSendBytes(uint8_t count)
             {
                 prepareToSend(count, 1);
