@@ -276,6 +276,12 @@ namespace hf {
 
         protected:
 
+            // Map parameters to EEPROM addresses
+            static const uint8_t GENERAL_CONFIG    = 0;
+            static const uint8_t PID_CONSTANTS     = 1;
+            // booleans values are stored as the bits of the byte at address 0
+            static const uint8_t MOSQUITO_VERSION  = 0;
+            static const uint8_t POSITIONING_BOARD = 1;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -317,7 +323,7 @@ namespace hf {
             
             virtual void handle_CLEAR_EEPROM_Request(uint8_t & code) override
             {
-                for (int i = 0 ; i < EEPROM.length() ; i++) 
+                for (int i = PARAMETER_SLOTS ; i < EEPROM.length() ; i++) 
                 {
                     EEPROM.write(i, 0);
                 }
@@ -359,6 +365,49 @@ namespace hf {
                 _receiver->_lostSignal = flag;
             }
 
+            virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t version) override
+            {
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                if (version)
+                {
+                  EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                } else {
+                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                }
+            }
+            
+            virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t hasBoard) override
+            {
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                if (hasBoard)
+                {
+                  EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                } else {
+                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                }
+            }
+            
+            virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollPitchP,
+                float gyroRollPitchI, float gyroRollPitchD, float gyroYawP,
+                float gyroYawI, float demandsToRate, float levelP,
+                float altHoldP, float altHoldVelP, float altHoldVelI, float altHoldVelD,
+                float minAltitude, float param6, float param7,
+                float param8, float param9) override
+            {
+                EEPROM.put(PID_CONSTANTS, gyroRollPitchP);
+                EEPROM.put(PID_CONSTANTS + 1 * sizeof(float), gyroRollPitchI);
+                EEPROM.put(PID_CONSTANTS + 2 * sizeof(float), gyroRollPitchD);
+                EEPROM.put(PID_CONSTANTS + 3 * sizeof(float), gyroYawP);
+                EEPROM.put(PID_CONSTANTS + 4 * sizeof(float), gyroYawI);
+                EEPROM.put(PID_CONSTANTS + 5 * sizeof(float), demandsToRate);
+                EEPROM.put(PID_CONSTANTS + 6 * sizeof(float), levelP);
+                EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), altHoldP);
+                EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), altHoldVelP);
+                EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), altHoldVelI);
+                EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), altHoldVelD);
+                EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
+                
+            }
 
         public:
 
@@ -396,7 +445,7 @@ namespace hf {
                 _receiver->begin();
                 
                 // Initialize the planner
-                planner.init();
+                planner.init(PARAMETER_SLOTS);
                 // XXX Only for debuging purposes.
                 //planner.printMission();
 

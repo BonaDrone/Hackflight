@@ -36,13 +36,16 @@ namespace hf {
         public:
 
             static const uint8_t MAXMSG = 255;
+            
+            // Number of EEPROM reserved slots for parameters
+            static const int PARAMETER_SLOTS = 100;
 
         private:
 
             static const int INBUF_SIZE  = 128;
             static const int OUTBUF_SIZE = 128;
 
-            int EEPROMindex = 0;
+            int EEPROMindex = PARAMETER_SLOTS;
             bool incomingMission = false;
 
             typedef enum serialState_t {
@@ -107,6 +110,12 @@ namespace hf {
                 _outBufSize = 0;
                 _outBufIndex = 0;
                 headSerialReply(count*size);
+            }
+
+            void acknowledgeResponse(void)
+            {
+                prepareToSend(0, 0);
+                serialize8(_checksum);
             }
 
             void prepareToSendBytes(uint8_t count)

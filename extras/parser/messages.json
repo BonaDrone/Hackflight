@@ -31,7 +31,7 @@
    {"c6": "float"}],
 
   "LOST_SIGNAL": 
-  [{"ID": 223},
+  [{"ID": 226},
    {"comment": "ESP32 lost signal MSP message"}, 
    {"flag": "byte"}],
 
@@ -172,6 +172,36 @@
   "FIRMWARE_VERSION":
   [{"ID": 50},
    {"comment": "Current firmware version"},
-   {"version": "byte"}] 
+   {"version": "byte"}],
+   
+  "SET_MOSQUITO_VERSION":
+  [{"ID": 223},
+   {"comment": "Set the type of Mosquito (90 or 150) being used"},
+   {"version": "byte"}],  
+  
+  "SET_PID_CONSTANTS":
+  [{"ID": 224},
+   {"comment": "Set the controllers' parameters"},
+   {"gyroRollPitchP": "float"},
+   {"gyroRollPitchI": "float"},
+   {"gyroRollPitchD": "float"},
+   {"gyroYawP": "float"},
+   {"gyroYawI": "float"},
+   {"demandsToRate": "float"},
+   {"levelP": "float"},
+   {"altHoldP": "float"},
+   {"altHoldVelP": "float"},
+   {"altHoldVelI": "float"},
+   {"altHoldVelD": "float"},
+   {"minAltitude": "float"},
+   {"param6": "float"},
+   {"param7": "float"},
+   {"param8": "float"},
+   {"param9": "float"}],
+     
+  "SET_POSITIONING_BOARD":
+  [{"ID": 225},
+   {"comment": "Specify whether the positioning board is present or not"},
+   {"hasBoard": "byte"}]
 
 }

@@ -36,13 +36,16 @@ namespace hf {
         public:
 
             static const uint8_t MAXMSG = 255;
+            
+            // Number of EEPROM reserved slots for parameters
+            static const int PARAMETER_SLOTS = 100;
 
         private:
 
             static const int INBUF_SIZE  = 128;
             static const int OUTBUF_SIZE = 128;
 
-            int EEPROMindex = 0;
+            int EEPROMindex = PARAMETER_SLOTS;
             bool incomingMission = false;
 
             typedef enum serialState_t {
@@ -107,6 +110,12 @@ namespace hf {
                 _outBufSize = 0;
                 _outBufIndex = 0;
                 headSerialReply(count*size);
+            }
+
+            void acknowledgeResponse(void)
+            {
+                prepareToSend(0, 0);
+                serialize8(_checksum);
             }
 
             void prepareToSendBytes(uint8_t count)
@@ -359,14 +368,16 @@ namespace hf {
                         memcpy(&c6,  &_inBuf[20], sizeof(float));
 
                         handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
+                        acknowledgeResponse();
                         } break;
 
-                    case 223:
+                    case 226:
                     {
                         uint8_t flag = 0;
                         memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
 
                         handle_LOST_SIGNAL_Request(flag);
+                        acknowledgeResponse();
                         } break;
 
                     case 122:
@@ -412,6 +423,7 @@ namespace hf {
                         memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
 
                         handle_SET_ARMED_Request(flag);
+                        acknowledgeResponse();
                         } break;
 
                     case 199:
@@ -440,6 +452,7 @@ namespace hf {
                         memcpy(&m4,  &_inBuf[12], sizeof(float));
 
                         handle_SET_MOTOR_NORMAL_Request(m1, m2, m3, m4);
+                        acknowledgeResponse();
                         } break;
 
                     case 124:
@@ -629,6 +642,78 @@ namespace hf {
                         prepareToSendBytes(1);
                         sendByte(version);
                         serialize8(_checksum);
+                        } break;
+
+                    case 223:
+                    {
+                        uint8_t version = 0;
+                        memcpy(&version,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_MOSQUITO_VERSION_Request(version);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 224:
+                    {
+                        float gyroRollPitchP = 0;
+                        memcpy(&gyroRollPitchP,  &_inBuf[0], sizeof(float));
+
+                        float gyroRollPitchI = 0;
+                        memcpy(&gyroRollPitchI,  &_inBuf[4], sizeof(float));
+
+                        float gyroRollPitchD = 0;
+                        memcpy(&gyroRollPitchD,  &_inBuf[8], sizeof(float));
+
+                        float gyroYawP = 0;
+                        memcpy(&gyroYawP,  &_inBuf[12], sizeof(float));
+
+                        float gyroYawI = 0;
+                        memcpy(&gyroYawI,  &_inBuf[16], sizeof(float));
+
+                        float demandsToRate = 0;
+                        memcpy(&demandsToRate,  &_inBuf[20], sizeof(float));
+
+                        float levelP = 0;
+                        memcpy(&levelP,  &_inBuf[24], sizeof(float));
+
+                        float altHoldP = 0;
+                        memcpy(&altHoldP,  &_inBuf[28], sizeof(float));
+
+                        float altHoldVelP = 0;
+                        memcpy(&altHoldVelP,  &_inBuf[32], sizeof(float));
+
+                        float altHoldVelI = 0;
+                        memcpy(&altHoldVelI,  &_inBuf[36], sizeof(float));
+
+                        float altHoldVelD = 0;
+                        memcpy(&altHoldVelD,  &_inBuf[40], sizeof(float));
+
+                        float minAltitude = 0;
+                        memcpy(&minAltitude,  &_inBuf[44], sizeof(float));
+
+                        float param6 = 0;
+                        memcpy(&param6,  &_inBuf[48], sizeof(float));
+
+                        float param7 = 0;
+                        memcpy(&param7,  &_inBuf[52], sizeof(float));
+
+                        float param8 = 0;
+                        memcpy(&param8,  &_inBuf[56], sizeof(float));
+
+                        float param9 = 0;
+                        memcpy(&param9,  &_inBuf[60], sizeof(float));
+
+                        handle_SET_PID_CONSTANTS_Request(gyroRollPitchP, gyroRollPitchI, gyroRollPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 225:
+                    {
+                        uint8_t hasBoard = 0;
+                        memcpy(&hasBoard,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_POSITIONING_BOARD_Request(hasBoard);
+                        acknowledgeResponse();
                         } break;
 
                 }
@@ -1179,6 +1264,66 @@ namespace hf {
                 (void)version;
             }
 
+            virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t  version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_MOSQUITO_VERSION_Data(uint8_t  version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_PID_CONSTANTS_Request(float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                (void)gyroRollPitchP;
+                (void)gyroRollPitchI;
+                (void)gyroRollPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_SET_PID_CONSTANTS_Data(float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                (void)gyroRollPitchP;
+                (void)gyroRollPitchI;
+                (void)gyroRollPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t  hasBoard)
+            {
+                (void)hasBoard;
+            }
+
+            virtual void handle_SET_POSITIONING_BOARD_Data(uint8_t  hasBoard)
+            {
+                (void)hasBoard;
+            }
+
         public:
 
             static uint8_t serialize_RAW_IMU_Request(uint8_t bytes[])
@@ -1274,7 +1419,7 @@ namespace hf {
                 bytes[1] = 77;
                 bytes[2] = 62;
                 bytes[3] = 1;
-                bytes[4] = 223;
+                bytes[4] = 226;
 
                 memcpy(&bytes[5], &flag, sizeof(uint8_t));
 
@@ -1923,6 +2068,66 @@ namespace hf {
                 bytes[4] = 50;
 
                 memcpy(&bytes[5], &version, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_MOSQUITO_VERSION(uint8_t bytes[], uint8_t  version)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 223;
+
+                memcpy(&bytes[5], &version, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_PID_CONSTANTS(uint8_t bytes[], float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 64;
+                bytes[4] = 224;
+
+                memcpy(&bytes[5], &gyroRollPitchP, sizeof(float));
+                memcpy(&bytes[9], &gyroRollPitchI, sizeof(float));
+                memcpy(&bytes[13], &gyroRollPitchD, sizeof(float));
+                memcpy(&bytes[17], &gyroYawP, sizeof(float));
+                memcpy(&bytes[21], &gyroYawI, sizeof(float));
+                memcpy(&bytes[25], &demandsToRate, sizeof(float));
+                memcpy(&bytes[29], &levelP, sizeof(float));
+                memcpy(&bytes[33], &altHoldP, sizeof(float));
+                memcpy(&bytes[37], &altHoldVelP, sizeof(float));
+                memcpy(&bytes[41], &altHoldVelI, sizeof(float));
+                memcpy(&bytes[45], &altHoldVelD, sizeof(float));
+                memcpy(&bytes[49], &minAltitude, sizeof(float));
+                memcpy(&bytes[53], &param6, sizeof(float));
+                memcpy(&bytes[57], &param7, sizeof(float));
+                memcpy(&bytes[61], &param8, sizeof(float));
+                memcpy(&bytes[65], &param9, sizeof(float));
+
+                bytes[69] = CRC8(&bytes[3], 66);
+
+                return 70;
+            }
+
+            static uint8_t serialize_SET_POSITIONING_BOARD(uint8_t bytes[], uint8_t  hasBoard)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 225;
+
+                memcpy(&bytes[5], &hasBoard, sizeof(uint8_t));
 
                 bytes[6] = CRC8(&bytes[3], 3);
 
