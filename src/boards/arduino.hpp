@@ -31,6 +31,7 @@ namespace hf {
 
             uint8_t _led_pin;
             bool    _led_inverted;
+            bool    _dataOnSerial4;
 
         protected:
 
@@ -46,19 +47,24 @@ namespace hf {
                         (_led_inverted?HIGH:LOW));
             }
 
+            void setSerialFlag(void)
+            {
+                _dataOnSerial4 = Serial4.available() ? true : false;
+            }
+
             uint8_t serialAvailableBytes(void)
             {
-                return Serial.available();
+                return _dataOnSerial4 ? Serial4.available() : Serial.available();
             }
 
             uint8_t serialReadByte(void)
             {
-                return Serial.read();
+                return _dataOnSerial4 ? Serial4.read() : Serial.read();
             }
 
             void serialWriteByte(uint8_t c)
             {
-                Serial.write(c);
+              _dataOnSerial4 ? Serial4.write(c) : Serial.write(c);
             }
 
             virtual uint32_t getMicroseconds(void) override
@@ -72,6 +78,7 @@ namespace hf {
             {
                 _led_pin = ledPin;
                 _led_inverted = ledInverted;
+                _dataOnSerial4 = false;
 
                 pinMode(_led_pin, OUTPUT);
                 digitalWrite(_led_pin, _led_inverted ? HIGH : LOW);

@@ -28,6 +28,7 @@ typedef struct {
     float roll;
     float pitch;
     float yaw;
+    float altitude;
 
 } demands_t;
 
@@ -36,6 +37,7 @@ typedef struct {
     float eulerAngles[3];
     float angularVelocities[3];
     bool  armed;
+    bool  executingMission;
     float altitude;
     float variometer;
     float positionX;

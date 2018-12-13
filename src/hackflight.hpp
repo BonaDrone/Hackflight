@@ -36,17 +36,23 @@
 #include "sensors/gyrometer.hpp"
 #include "sensors/quaternion.hpp"
 
+#include "planner.hpp"
+
 namespace hf {
 
     class Hackflight : public MspParser {
 
         private: 
 
+            // XXX use a proper version formating
+            uint8_t _firmwareVersion = 1;
+
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
             Receiver   * _receiver;
             Rate       * _ratePid;
             Mixer      * _mixer;
+            Planner      planner;
 
             // PID controllers
             PID_Controller * _pid_controllers[256];
@@ -90,6 +96,7 @@ namespace hf {
                     _quaternion.modifyState(_state, time);
 
                     // Synch serial comms to quaternion check
+                    _receiver->_gotNewFrame = false;
                     doSerialComms();
                 }
             }
@@ -151,11 +158,16 @@ namespace hf {
 
             void checkFailsafe(void)
             {
-                if (_state.armed && (_receiver->lostSignal() || _board->isBatteryLow())) {
+                if (_state.armed &&
+                   (_receiver->lostSignal(_receiver->_bypassReceiver) || _board->isBatteryLow())) {
                     _mixer->cutMotors();
                     _state.armed = false;
                     _failsafe = true;
                     _board->showArmedStatus(false);
+                    if (_receiver->_lostSignal)
+                    {
+                      _receiver->_bypassReceiver = false;
+                    }
                 }
             } 
 
@@ -201,6 +213,7 @@ namespace hf {
 
             void doSerialComms(void)
             {
+                _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
 
                     if (MspParser::parse(_board->serialReadByte())) {
@@ -234,8 +247,41 @@ namespace hf {
                 _sensors[_sensor_count++] = sensor;
             }
 
+            void checkPlanner(void)
+            {
+              if (_state.executingMission == false) return;
+              
+            }
+
+            // XXX only for debuging purposes
+            void readEEPROM()
+            {
+                int address = 0;
+                uint8_t value;
+                while (true)
+                {
+                    // read a byte from the current address of the EEPROM
+                    value = EEPROM.read(address);
+                    Serial.print(address);
+                    Serial.print("\t");
+                    Serial.print(value);
+                    Serial.println();
+                    address = address + 1;
+                    if (address == EEPROM.length()) {
+                      address = 0;
+                      break;
+                    }
+                  }
+            }
+
         protected:
 
+            // Map parameters to EEPROM addresses
+            static const uint8_t GENERAL_CONFIG    = 0;
+            static const uint8_t PID_CONSTANTS     = 1;
+            // booleans values are stored as the bits of the byte at address 0
+            static const uint8_t MOSQUITO_VERSION  = 0;
+            static const uint8_t POSITIONING_BOARD = 1;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -274,6 +320,94 @@ namespace hf {
                 _mixer->motorsDisarmed[2] = m3;
                 _mixer->motorsDisarmed[3] = m4;
             }
+            
+            virtual void handle_CLEAR_EEPROM_Request(uint8_t & code) override
+            {
+                for (int i = PARAMETER_SLOTS ; i < EEPROM.length() ; i++) 
+                {
+                    EEPROM.write(i, 0);
+                }
+            }
+            
+            virtual void handle_WP_MISSION_FLAG_Request(uint8_t & flag) override
+            {
+                _board->flashLed(true);
+                delay(1000);
+                _board->flashLed(false);
+            }
+            
+            virtual void handle_WP_MISSION_BEGIN_Request(uint8_t & flag) override
+            {
+                _state.executingMission = true;
+            }
+            
+            virtual void handle_FIRMWARE_VERSION_Request(uint8_t & version) override
+            {
+                version = _firmwareVersion; 
+            }
+
+            virtual void handle_SET_RC_NORMAL_Request(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6) override
+            {
+                // Match SBUS channel map
+                // received on -> goes to
+                // 0->2,1->0,2->1,3->3,4->5,5->4
+                // And 0->T, 1->R, 2->P, 3->Y, 4->AUX1, 5->AUX2
+                float _channels[6] = {c2, c3, c1, c4, c6, c5};
+                memset(_receiver->rawvals, 0, _receiver->MAXCHAN*sizeof(float));
+                memcpy(_receiver->rawvals, _channels, _receiver->MAXCHAN*sizeof(float));
+                _receiver->_gotNewFrame = true;
+                _receiver->_bypassReceiver = true;
+                _receiver->_lostSignal = false;
+            }
+            
+            virtual void handle_LOST_SIGNAL_Request(uint8_t  flag) override
+            {
+                _receiver->_lostSignal = flag;
+            }
+
+            virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t version) override
+            {
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                if (version)
+                {
+                  EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                } else {
+                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                }
+            }
+            
+            virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t hasBoard) override
+            {
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                if (hasBoard)
+                {
+                  EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                } else {
+                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                }
+            }
+            
+            virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollPitchP,
+                float gyroRollPitchI, float gyroRollPitchD, float gyroYawP,
+                float gyroYawI, float demandsToRate, float levelP,
+                float altHoldP, float altHoldVelP, float altHoldVelI, float altHoldVelD,
+                float minAltitude, float param6, float param7,
+                float param8, float param9) override
+            {
+                EEPROM.put(PID_CONSTANTS, gyroRollPitchP);
+                EEPROM.put(PID_CONSTANTS + 1 * sizeof(float), gyroRollPitchI);
+                EEPROM.put(PID_CONSTANTS + 2 * sizeof(float), gyroRollPitchD);
+                EEPROM.put(PID_CONSTANTS + 3 * sizeof(float), gyroYawP);
+                EEPROM.put(PID_CONSTANTS + 4 * sizeof(float), gyroYawI);
+                EEPROM.put(PID_CONSTANTS + 5 * sizeof(float), demandsToRate);
+                EEPROM.put(PID_CONSTANTS + 6 * sizeof(float), levelP);
+                EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), altHoldP);
+                EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), altHoldVelP);
+                EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), altHoldVelI);
+                EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), altHoldVelD);
+                EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
+                
+            }
 
         public:
 
@@ -284,6 +418,7 @@ namespace hf {
                 _receiver = receiver;
                 _mixer    = mixer;
                 _ratePid  = ratePid;
+                
 
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
@@ -300,12 +435,20 @@ namespace hf {
 
                 // Support safety override by simulator
                 _state.armed = armed;
+                // Will be set to true when start mission message is received
+                _state.executingMission = false;
 
                 // Initialize MPS parser for serial comms
                 MspParser::init();
 
                 // Initialize the receiver
                 _receiver->begin();
+                
+                // Initialize the planner
+                planner.init(PARAMETER_SLOTS);
+                // XXX Only for debuging purposes.
+                //planner.printMission();
+
 
                 // Tell the mixer which board to use
                 _mixer->board = board; 
@@ -336,6 +479,8 @@ namespace hf {
 
             void update(void)
             {
+                // Check planner
+                checkPlanner();
                 // Grab control signal if available
                 checkReceiver();
 
@@ -345,6 +490,9 @@ namespace hf {
 
                 // Check optional sensors
                 checkOptionalSensors();
+                
+                // XXX Only for debuging purposes
+                // readEEPROM();
             } 
 
     }; // class Hackflight

@@ -36,6 +36,14 @@ namespace hf {
         friend class MspParser;
 
         private: 
+        // Receiving via Wifi should set this boolean to true so that RC values
+        // are updated
+        bool _gotNewFrame = false;
+        // Allow bypassing the receiver method that updates RC values. Receiving
+        // via wifi should set it to true to avoid overwritting RC values
+        bool _bypassReceiver = false;
+        // Allow to trigger lost signal from Hackflight via this flag 
+        bool _lostSignal = false;
 
         static constexpr uint8_t DEFAULT_CHANNEL_MAP[6] = {0, 1, 2, 3, 4, 5};
 
@@ -103,6 +111,14 @@ namespace hf {
         // These must be overridden for each receiver
         virtual bool gotNewFrame(void) = 0;
         virtual void readRawvals(void) = 0;
+        // Enable readRawvals bypass 
+        void readRawvals(bool bypass)
+        {
+          if (!bypass)
+          {
+            readRawvals();
+          }
+        }
 
         // This can be overridden optionally
         virtual void begin(void) { }
@@ -127,6 +143,17 @@ namespace hf {
 
         // Override this if your receiver provides RSSI or other weak-signal detection
         virtual bool lostSignal(void) { return false; }
+        
+        bool lostSignal(bool bypassing)
+        {
+            if (bypassing)
+            {
+              return (lostSignal() || _lostSignal);
+            }
+            else {
+              return lostSignal();
+            }
+        }
 
         Receiver(const uint8_t channelMap[6]) // throttle, roll, pitch, yaw, aux, arm
         { 
@@ -145,10 +172,10 @@ namespace hf {
         bool getDemands(float yawAngle)
         {
             // Wait till there's a new frame
-            if (!gotNewFrame()) return false;
+            if (!gotNewFrame() && !_gotNewFrame) return false;
 
             // Read raw channel values
-            readRawvals();
+            readRawvals(_bypassReceiver);
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);

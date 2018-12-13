@@ -37,7 +37,7 @@ namespace hf {
             static constexpr float UPDATE_PERIOD = .01f;
 
             // Use digital pin 10 for chip select
-            PMW3901 _flowSensor = PMW3901(10);
+            PMW3901 _flowSensor = PMW3901(A4, &SPI1);
 
             // Track elapsed time for periodic readiness
             bool _previousTime = 0;

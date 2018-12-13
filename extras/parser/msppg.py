@@ -233,6 +233,9 @@ class HPP_Emitter(CodeEmitter):
 
         self.output.write(3*self.indent + 'void dispatchRequestMessage(void)\n')
         self.output.write(3*self.indent + '{\n')
+        # If mission flag is set tot true the call to the method listed below 
+        # will process the MSP command and see if it is a mission instruction
+        self.output.write(4*self.indent + 'processMissionCommand(_command);\n')
         self.output.write(4*self.indent + 'switch (_command) {\n\n')
 
         for msgtype in msgdict.keys():
@@ -245,6 +248,10 @@ class HPP_Emitter(CodeEmitter):
 
             self.output.write(5*self.indent + ('case %s:\n' % msgdict[msgtype][0]))
             self.output.write(5*self.indent + '{\n')
+            # Set incomming mission flag to true when dispatching the MSP message
+            # that signals that a mission is about to be received 
+            if int(msgdict[msgtype][0]) == 23:
+                self.output.write(6*self.indent + 'incomingMission = incomingMission ? false : true;\n')
             nargs = len(argnames)
             offset = 0
             for k in range(nargs):
@@ -267,6 +274,8 @@ class HPP_Emitter(CodeEmitter):
                 for argname in argnames:
                     self.output.write(6*self.indent + ('send%s(%s);\n' % (argtype, argname)))
                 self.output.write(6*self.indent + "serialize8(_checksum);\n")
+            else:
+                self.output.write(6*self.indent + "acknowledgeResponse();\n")
             self.output.write(6*self.indent + '} break;\n\n')
 
         self.output.write(4*self.indent + '}\n')
