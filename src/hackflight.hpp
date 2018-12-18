@@ -45,7 +45,7 @@ namespace hf {
         private: 
 
             // XXX use a proper version formating
-            uint8_t _firmwareVersion = 1;
+            uint8_t _firmwareVersion = 0;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;

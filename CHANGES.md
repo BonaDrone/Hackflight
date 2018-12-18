@@ -11,3 +11,6 @@
 ### Removed
 
 ### Fixed
+
+* #39 Firmware version
+
