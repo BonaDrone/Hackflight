@@ -43,11 +43,29 @@ namespace hf {
       }
       
       void update(void) {
-        
+        /*
+        This method should:
+          1. Obtain the nominal state Jacobian and the error-state Jacobian.
+          2. Update the nominal state estimate
+          3. From the error-state Jacobian, the process noise and the past 
+             iteration covariance estimate the current Covariance (and enforce
+             its symmetry?)
+        */
       }
       
       void correct(void) {
-        
+        /* This method should:
+          1. Obtain the Jacobian of the correction measurement model
+          2. Obtain the innovation value:
+             innovation = measurement - measurement prediction for the estimated state
+          3. Obtain the measurement noise
+          4. Compute the gain
+          5. Estimate the error-states 
+          6. Update Covariance
+          7. Inject errors
+          8. Update Covariance if required and enforce symmetry
+          9. Reset errors
+        */
       }
 
   }; // class ESKF
