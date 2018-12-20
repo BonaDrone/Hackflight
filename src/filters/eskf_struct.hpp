@@ -1,9 +1,9 @@
 /*
-   tiny_ekf_struct.h: common data structure for ESKF. This struct stores the 
-   current state of the filter
+    eskf_struct.hpp: common data structure for ESKF. This struct stores the 
+    current state of the filter
 
-   You should #include this file after using #define for N (states) and M
-   (observations)
+    You should #include this file after using #define for NNsta (nominal states),
+    NEsta (error states) and Mobs (observations)
 
     Copyright (c) 2018 Simon D. Levy, Juan Gallostra Acin, Pep Martí Saumell
 

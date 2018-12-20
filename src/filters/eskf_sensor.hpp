@@ -1,5 +1,5 @@
 /*
-  eskf_sensor.h: Sensor abstraction for ESKF
+  eskf_sensor.hpp: Sensor abstraction for ESKF
  
   Copyright (C) 2018 Juan Gallostra, Pep Martí Saumell
   
