@@ -34,9 +34,8 @@ namespace hf {
         uint8_t _observationRows = 0;
         
       protected:
-        // XXX Give this methods a better name? A name that better tells
-        // what they do
-        // XXX After debugging, this methods should become pure virtual
+
+        // XXX After debugging, this methods should become pure virtual methods
         virtual void getJacobianObservation(Matrix * H) { (void)H; }
         
         virtual void getInnovation(Matrix * z) { (void)z; }

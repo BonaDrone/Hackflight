@@ -20,12 +20,24 @@
 
 #pragma once
 
+#define NNsta = 4   // Four nominal states: quaternion 
+#define NEsta = 3   // Three error state values: angle error
+#define Mobs = 3    // Three correction observations: accelerometer
+
+
 #include "linalg.hpp"
+#include "eskf_struct.hpp"
 
 namespace hf {
   
   class ESKF {
     
+    private:
+    
+      eskf_t eskf;
+      
+    protected:
+
   }; // class ESKF
   
 } // namespace hf
