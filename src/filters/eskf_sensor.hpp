@@ -37,11 +37,11 @@ namespace hf {
         // XXX Give this methods a better name? A name that better tells
         // what they do
         // XXX After debugging, this methods should become pure virtual
-        virtual void getH(Matrix * H) { (void)H; }
+        virtual void getJacobianObservation(Matrix * H) { (void)H; }
         
-        virtual void getz(Matrix * z) { (void)z; }
+        virtual void getInnovation(Matrix * z) { (void)z; }
         
-        virtual void getN(Matrix * N) { (void)N; }
+        virtual void getCovarianceCorrection(Matrix * N) { (void)N; }
 
       public:
         
