@@ -21,48 +21,49 @@
     You should have received a copy of the GNU General Public License
     along with Hackflight.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#pragma once
+
+#include "linalg.hpp"
+
 namespace hf {
 
   typedef struct {
 
-      int nn;          /* number of state values */
-      int ne;          /* number of state values */
-      int m;          /* number of observables */
+      Matrix * x;    /*nominal state vector */
+      Matrix * dx;   /*error-state vector*/
+      Matrix * qL; /*Left matrix quaternion*/
 
-      double x[NNsta];    /*nominal state vector */
-      double dx[NEsta];   /*error-state vector*/
-      double qL[NNsta][NNsta]; /*Left matrix quaternion*/
+      Matrix * P;  /* prediction error covariance */
+      Matrix * Q;  /* process noise covariance */
+      Matrix * R;  /* measurement error covariance */
 
-      double P[NEsta][NEsta];  /* prediction error covariance */
-      double Q[NEsta][NEsta];  /* process noise covariance */
-      double R[Mobs][Mobs];  /* measurement error covariance */
+      Matrix * K;  /* Kalman gain; a.k.a. K */
+      Matrix * Kt;  /* transpose Kalman gain; a.k.a. K */
 
-      double K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
-      double Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
+      Matrix * Fx;  /* Jacobian of process model */
+      Matrix * Fdx;  /* Jacobian of process model */
+      Matrix * H;  /* Jacobian of measurement model */
 
-      double Fx[NNsta][NNsta];  /* Jacobian of process model */
-      double Fdx[NEsta][NEsta];  /* Jacobian of process model */
-      double H[Mobs][NEsta];  /* Jacobian of measurement model */
-
-      double Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
-      double Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
-      double Pp[NEsta][NEsta]; /* P, post-prediction, pre-update */
+      Matrix * Ht; /* transpose of measurement Jacobian */
+      Matrix * Fdxt; /* transpose of process Jacobian */
+      Matrix * Pp; /* P, post-prediction, pre-update */
       
-      double G[NEsta][NEsta];  
+      Matrix * G;  
 
-      double fx[NNsta];   /* output of user defined f() state-transition function */
-      double hx[Mobs];   /* output of user defined h() measurement function */
+      Matrix * fx;   /* output of user defined f() state-transition function */
+      Matrix * hx;   /* output of user defined h() measurement function */
 
       /* temporary storage */
-      double tmp0[NEsta][NEsta];
-      double tmp1[NEsta][Mobs];
-      double tmp2[Mobs][NEsta];
-      double tmp3[Mobs][Mobs];
-      double tmp4[Mobs][Mobs];
-      double tmp5[Mobs];
-      double tmp6[NNsta]; 
-      double tmp7[NNsta];
-      double tmp8[Mobs];
+      Matrix * tmp0;
+      Matrix * tmp1;
+      Matrix * tmp2;
+      Matrix * tmp3;
+      Matrix * tmp4;
+      Matrix * tmp5;
+      Matrix * tmp6; 
+      Matrix * tmp7;
+      Matrix * tmp8;
 
   } ekf_t;
   
