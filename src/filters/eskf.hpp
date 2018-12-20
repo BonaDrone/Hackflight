@@ -1,8 +1,8 @@
 /*
-   peripheral.hpp : Abstract class for peripheral sensors (rangefinder, optical flow)
+   eskf.hpp : Implementation of Error-state Kalman Filter for state estimation
 
-   Copyright (c) 2018 Simon D. Levy
-   
+   Copyright (c) 2018 Juan Gallostra Acin, Pep Martí Saumell
+
    This file is part of Hackflight.
 
    Hackflight is free software: you can redistribute it and/or modify
@@ -16,17 +16,16 @@
    GNU General Public License for more details.
    You should have received a copy of the GNU General Public License
    along with Hackflight.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #pragma once
 
-#include "filters/eskf_sensor.hpp"
-#include "board.hpp"
+#include "linalg.hpp"
 
 namespace hf {
-
-    class PeripheralSensor : public ESKF_Sensor {
-
-    };  // class PeripheralSensor
-
-} // namespace
+  
+  class ESKF {
+    
+  }; // class ESKF
+  
+} // namespace hf
