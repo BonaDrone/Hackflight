@@ -20,13 +20,9 @@
 
 #pragma once
 
-#define NNsta = 4   // Four nominal states: quaternion 
-#define NEsta = 3   // Three error state values: angle error
-#define Mobs = 3    // Three correction observations: accelerometer
-
-
 #include "linalg.hpp"
 #include "eskf_struct.hpp"
+#include "eskf_sensor.hpp"
 
 namespace hf {
   
@@ -35,8 +31,24 @@ namespace hf {
     private:
     
       eskf_t eskf;
+
+      ESKF_Sensor * _sensors[256];
+      _sensor_count = 0;
       
-    protected:
+    public:
+      
+      void addSensorESKF(ESKF_Sensor * sensor)
+      {
+          _sensors[_sensor_count++] = sensor;
+      }
+      
+      void update(void) {
+        
+      }
+      
+      void correct(void) {
+        
+      }
 
   }; // class ESKF
   
