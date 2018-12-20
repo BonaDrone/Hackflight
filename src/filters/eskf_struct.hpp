@@ -30,24 +30,24 @@ namespace hf {
 
   typedef struct {
 
-      Matrix * x;    /*nominal state vector */
-      Matrix * dx;   /*error-state vector*/
-      Matrix * qL; /*Left matrix quaternion*/
+      Matrix * x;     /*nominal state vector */
+      Matrix * dx;    /*error-state vector*/
+      Matrix * qL;    /*Left matrix quaternion*/
 
-      Matrix * P;  /* prediction error covariance */
-      Matrix * Q;  /* process noise covariance */
-      Matrix * R;  /* measurement error covariance */
+      Matrix * P;     /* prediction error covariance */
+      Matrix * Q;     /* process noise covariance */
+      Matrix * R;     /* measurement error covariance */
 
-      Matrix * K;  /* Kalman gain; a.k.a. K */
-      Matrix * Kt;  /* transpose Kalman gain; a.k.a. K */
+      Matrix * K;     /* Kalman gain; a.k.a. K */
+      Matrix * Kt;    /* transpose Kalman gain; a.k.a. K */
 
-      Matrix * Fx;  /* Jacobian of process model */
-      Matrix * Fdx;  /* Jacobian of process model */
-      Matrix * H;  /* Jacobian of measurement model */
+      Matrix * Fx;    /* Jacobian of process model */
+      Matrix * Fdx;   /* Jacobian of process model */
+      Matrix * H;     /* Jacobian of measurement model */
 
-      Matrix * Ht; /* transpose of measurement Jacobian */
-      Matrix * Fdxt; /* transpose of process Jacobian */
-      Matrix * Pp; /* P, post-prediction, pre-update */
+      Matrix * Ht;    /* transpose of measurement Jacobian */
+      Matrix * Fdxt;  /* transpose of process Jacobian */
+      Matrix * Pp;    /* P, post-prediction, pre-update */
       
       Matrix * G;  
 
