@@ -41,7 +41,34 @@ namespace hf {
       ESKF_Sensor * _sensors[256];
       _sensor_count = 0;
       
+      
+      void computeqL(void)
+      {
+          ekf.qL.setDimensions(4, 4);
+          
+          ekf.qL.set(0, 0, ekf.x.get(0, 0));
+          ekf.qL.set(1, 0, ekf.x.get(1, 0));
+          ekf.qL.set(2, 0, ekf.x.get(2, 0));
+          ekf.qL.set(3, 0, ekf.x.get(3, 0));
+          
+          ekf.qL.set(0, 1, -ekf.x.get(1, 0));
+          ekf.qL.set(1, 1, ekf.x.get(0, 0));
+          ekf.qL.set(2, 1, ekf.x.get(3, 0));
+          ekf.qL.set(3, 1, -ekf.x.get(2, 0));
+          
+          ekf.qL.set(0, 2, -ekf.x.get(2, 0));
+          ekf.qL.set(1, 2, -ekf.x.get(3, 0));
+          ekf.qL.set(2, 2, ekf.x.get(0, 0));
+          ekf.qL.set(3, 2, ekf.x.get(1, 0));
+          
+          ekf.qL.set(0, 3, -ekf.x.get(3, 0));
+          ekf.qL.set(1, 3, ekf.x.get(2, 0));
+          ekf.qL.set(2, 3, -ekf.x.get(1, 0));
+          ekf.qL.set(3, 3, ekf.x.get(0, 0));
+      }
+      
     public:
+
       void init(void)
       {
           eskf.P.setDimensions(errorStates, errorStates);
@@ -149,6 +176,7 @@ namespace hf {
         ekf->tmp6[1] = ekf->dx[0]/2.0;
         ekf->tmp6[2] = ekf->dx[1]/2.0;
         ekf->tmp6[3] = ekf->dx[2]/2.0;
+        computeqL();
         Matrix::mult(ekf->qL, ekf->tmp6, ekf->tmp7);
         if (Matrix::norvec(ekf->tmp7, ekf->x)) return 1;
 
