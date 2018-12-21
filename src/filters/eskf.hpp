@@ -32,17 +32,24 @@ namespace hf {
     
       eskf_t eskf;
 
+      double t_lastCall;
+      double dt;
+
       ESKF_Sensor * _sensors[256];
       _sensor_count = 0;
       
     public:
-      
+      void init(void)
+      {
+
+      }
+
       void addSensorESKF(ESKF_Sensor * sensor)
       {
           _sensors[_sensor_count++] = sensor;
       }
       
-      void update(void) {
+      int update(void) {
         /*
         This method should:
           1. Obtain the nominal state Jacobian and the error-state Jacobian.
@@ -51,6 +58,30 @@ namespace hf {
              iteration covariance estimate the current Covariance (and enforce
              its symmetry?)
         */
+        
+        // Compute deltat
+        double t_now = micros();
+        dt = (t_now - t_lastCall)/1000000.0;
+        t_lastCall = t_now;
+        
+        _sensors[sensorIndex].getJacobianModel(ekf->Fx, dt);
+        _sensors[sensorIndex].getJacobianErrors(ekf->Fdx, dt);
+        _sensors[sensorIndex].getCovarianceEstimation(ekf->Q);
+        
+        /* f(x) = F*ekf.x; */
+        Matrix::mult(ekf->Fx, ekf->x, ekf->tmp6);
+        Matrix::norvec(ekf->tmp6, ekf->fx);
+
+        /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
+        Matrix::mult(ekf->Fdx, ekf->P, ekf->tmp0);
+        Matrix::trans(ekf->Fdx, ekf->Fdxt);
+        Matrix::mult(ekf->tmp0, ekf->Fdxt, ekf->tmp1);
+        Matrix::accum(ekf->tmp1, ekf->Q);
+        Matrix::makesym(ekf->tmp1, ekf->Pp);
+
+        /* success */
+        return 0;
+        
       }
       
       int correct(void) {
