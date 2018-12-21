@@ -84,6 +84,17 @@ namespace hf {
                 return false;
             }
 
+            bool getAccelerometer(float accel[3])
+            {
+                // Store output
+                accel[0] = _ax;
+                accel[1] = _ay;
+                accel[2] = _az;
+
+                return true;
+            }
+
+
             bool getQuaternion(float quat[4], float time)
             {
                 // Update quaternion after some number of IMU readings

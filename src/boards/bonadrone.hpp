@@ -83,6 +83,12 @@ namespace hf {
                 return SoftwareQuaternionBoard::getGyrometer(gyroRates);
             }
 
+            virtual bool  getAccelerometer(float accelGs[3]) override
+            {
+                return SoftwareQuaternionBoard::getAccelerometer(accelGs);
+            }
+
+
             bool imuRead(void)
             {
                 if (_lsm6dsm.checkNewData()) {
