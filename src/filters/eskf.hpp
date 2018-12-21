@@ -98,7 +98,7 @@ namespace hf {
       }
       
       int update(void) {
-        uint8_t sensorIndex = 1; 
+        uint8_t sensorIndex = 0; 
         /*
         This method should:
           1. Obtain the nominal state Jacobian and the error-state Jacobian.
