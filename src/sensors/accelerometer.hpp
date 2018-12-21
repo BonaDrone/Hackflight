@@ -66,57 +66,57 @@ namespace hf {
             virtual void getJacobianObservation(Matrix * H, matrix * x, int errorStates) override
             {
                 // Set Jacobian Dimensions
-                H.setDimensions(getObservationRows(), errorStates);
+                H->setDimensions(getObservationRows(), errorStates);
                 // First Column
-                H._vals[0][0]  =  0.0;
-                H._vals[1][0]  =  x._vals[0][0]*x._vals[0][0] - 
-                                  x._vals[1][0]*x._vals[1][0] - 
-                                  x._vals[2][0]*x._vals[2][0] +
-                                  x._vals[3][0]*x._vals[3][0];
-                H._vals[2][0]  = - 2*x._vals[0][0]*x._vals[1][0] - 
-                                   2*x._vals[2][0]*x._vals[3][0];
+                H->set(0, 0, 0.0);
+                H->set(1, 0, x->get(0, 0)*x->get(0, 0) - 
+                             x->get(1, 0)*x->get(1, 0) - 
+                             x->get(2, 0)*x->get(2, 0) +
+                             x->get(3, 0)*x->get(3, 0));
+                H->set(2, 0, - 2*x->get(0, 0)*x->get(1, 0) - 
+                               2*x->get(2, 0)*x->get(3, 0));
                 // Second Column
-                H._vals[0][1]  = -x._vals[0][0]*x._vals[0][0] + 
-                                  x._vals[1][0]*x._vals[1][0] +
-                                  x._vals[2][0]*x._vals[2][0] - 
-                                  x._vals[3][0]*x._vals[3][0];
-                H._vals[1][1]  =  0.0;
-                H._vals[2][1]  = 2*x._vals[1][0]*x._vals[3][0] -
-                                 2*x._vals[0][0]*x._vals[2][0];
+                H->set(0, 1, -x->get(0, 0)*x->get(0, 0) + 
+                              x->get(1, 0)*x->get(1, 0) +
+                              x->get(2, 0)*x->get(2, 0) - 
+                              x->get(3, 0)*x->get(3, 0));
+                H->set(1, 1, 0.0);
+                H->set(2, 1, 2*x->get(1, 0)*x->get(3, 0) -
+                             2*x->get(0, 0)*x->get(2, 0));
                 // Third Column
-                H._vals[0][2]  = 2*x._vals[0][0]*x._vals[1][0] + 
-                                 2*x._vals[2][0]*x._vals[3][0];
-                H._vals[1][2]  = 2*x._vals[0][0]*x._vals[2][0] -
-                                 2*x._vals[1][0]*x._vals[3][0];
-                H._vals[2][2]  = 0.0;              
+                H->set(0, 2, 2*x->get(0, 0)*x->get(1, 0) + 
+                             2*x->get(2, 0)*x->get(3, 0));
+                H->set(1, 2, 2*x->get(0, 0)*x->get(2, 0) -
+                             2*x->get(1, 0)*x->get(3, 0));
+                H->set(2, 2, 0.0);              
             }
 
             virtual void getInnovation(Matrix * z, Matrix * x) override
             {
                 // We might have to normalize these two vectors (y and h)
-                z.setDimensions(getObservationRows(), 1);
+                z->setDimensions(getObservationRows(), 1);
                 // Predicted Observations
-                _predictedObservation[0] = (2*x._vals[0][0]*x._vals[2][0] - 
-                                            2*x._vals[1][0]*x._vals[3][0])*-9.80665;
-                _predictedObservation[1] = (-2*x._vals[0][0]*x._vals[1][0] - 
-                                             2*x._vals[2][0]*x._vals[3][0])*-9.80665;
-                _predictedObservation[2] = (-x._vals[0][0]*x._vals[0][0] + 
-                                             x._vals[1][0]*x._vals[1][0] +
-                                             x._vals[2][0]*x._vals[2][0] -
-                                             x._vals[3][0]*x._vals[3][0])*-9.80665;
+                _predictedObservation[0] = (2*x->get(0, 0)*x->get(2, 0) - 
+                                            2*x->get(1, 0)*x->get(3, 0))*-9.80665;
+                _predictedObservation[1] = (-2*x->get(0, 0)*x->get(1, 0) - 
+                                             2*x->get(2, 0)*x->get(3, 0))*-9.80665;
+                _predictedObservation[2] = (-x->get(0, 0)*x->get(0, 0) + 
+                                             x->get(1, 0)*x->get(1, 0) +
+                                             x->get(2, 0)*x->get(2, 0) -
+                                             x->get(3, 0)*x->get(3, 0))*-9.80665;
                 // innovation = measured - predicted
-                z._vals[0][0] = _gs[0]*9.80665 - _predictedObservation[0];
-                z._vals[1][0] = _gs[1]*9.80665 - _predictedObservation[1];
-                z._vals[2][0] = _gs[2]*9.80665 - _predictedObservation[2];
+                z->set(0, 0, _gs[0]*9.80665 - _predictedObservation[0]);
+                z->set(1, 0, _gs[1]*9.80665 - _predictedObservation[1]);
+                z->set(2, 0, _gs[2]*9.80665 - _predictedObservation[2]);
             }
             
             virtual void getCovarianceCorrection(Matrix * R) override
             {
-                R.setDimensions(getObservationRows(), _observationRows);
+                R->setDimensions(getObservationRows(), _observationRows);
                 // Approximate the process noise using a small constant
-                R._vals[0][0] = 0.0001f;
-                R._vals[1][1] = 0.0001f;
-                R._vals[2][2] = 0.0001f;
+                R->set(0, 0, 0.0001f);
+                R->set(1, 1, 0.0001f);
+                R->set(2, 2, 0.0001f);
             }
 
         private:
