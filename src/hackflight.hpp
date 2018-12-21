@@ -425,10 +425,12 @@ namespace hf {
                 _mixer    = mixer;
                 _ratePid  = ratePid;
                 
+                // Error state kalman filter
                 eskf->init();
                 eskf->addSensorESKF(&_gyrometer);
                 _accelerometer.setObservationRows(3);
                 eskf->addSensorESKF(&_accelerometer);
+                
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
                 addSensor(&_gyrometer, board);
@@ -502,6 +504,20 @@ namespace hf {
                 
                 // XXX Only for debuging purposes
                 // readEEPROM();
+                
+                // For debugging
+                eskf->update();
+                eskf->correct();
+                float _q[4];
+                eskf->getState(_q);
+                float euler[3];
+                Quaternion::computeEulerAngles(_q, euler);
+                Serial.print(euler[0]);
+                Serial.print(",");
+                Serial.print(euler[1]);
+                Serial.print(",");
+                Serial.println(euler[2]);
+
             } 
 
     }; // class Hackflight

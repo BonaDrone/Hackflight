@@ -202,6 +202,14 @@ namespace hf {
         /* success */
         return 0;
       }
+      
+      void getState(float q[4])
+      {
+        q[0] = eskf.x->get(0,0);
+        q[1] = eskf.x->get(1,0);
+        q[2] = eskf.x->get(2,0);
+        q[3] = eskf.x->get(3,0);
+      }
 
   }; // class ESKF
   
