@@ -430,7 +430,7 @@ namespace hf {
                 eskf->addSensorESKF(&_gyrometer);
                 _accelerometer.setObservationRows(3);
                 eskf->addSensorESKF(&_accelerometer);
-                
+                Serial.println("ESKF initialized");
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
                 addSensor(&_gyrometer, board);
@@ -466,7 +466,7 @@ namespace hf {
 
                 // Setup failsafe
                 _failsafe = false;
-
+                Serial.println("End init");
             } // init
 
             void addSensor(PeripheralSensor * sensor) 
@@ -504,19 +504,14 @@ namespace hf {
                 
                 // XXX Only for debuging purposes
                 // readEEPROM();
-                
                 // For debugging
+                Serial.println("Update");
                 eskf->update();
-                eskf->correct();
-                float _q[4];
-                eskf->getState(_q);
-                float euler[3];
-                Quaternion::computeEulerAngles(_q, euler);
-                Serial.print(euler[0]);
-                Serial.print(",");
-                Serial.print(euler[1]);
-                Serial.print(",");
-                Serial.println(euler[2]);
+                //eskf->correct();
+                //float _q[4];
+                //eskf->getState(_q);
+                //float euler[3];
+                //Quaternion::computeEulerAngles(_q, euler);
 
             } 
 

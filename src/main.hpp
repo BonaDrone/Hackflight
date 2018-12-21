@@ -152,16 +152,16 @@ namespace hf {
                     h.init(new hf::BonadroneMultiShot(), &rc, &mixer, &ratePid);
                 }
                 // Add additional sensors
-                if (_hasPositioningBoard)
-                {
-                    hf::VL53L1X_Rangefinder rangefinder;
-                    rangefinder.begin();
-                    h.addSensor(&rangefinder);
+                //if (_hasPositioningBoard)
+                //{
+                    //hf::VL53L1X_Rangefinder rangefinder;
+                    //rangefinder.begin();
+                    //h.addSensor(&rangefinder);
                     
-                    hf::OpticalFlow opticalflow;
-                    opticalflow.begin();
-                    h.addSensor(&opticalflow);                    
-                }
+                    //hf::OpticalFlow opticalflow;
+                    //opticalflow.begin();
+                    //h.addSensor(&opticalflow);                    
+                //}
                 
             } // init
 

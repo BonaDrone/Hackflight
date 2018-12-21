@@ -67,13 +67,82 @@ namespace hf {
           eskf.qL->set(3, 3, eskf.x->get(0, 0));
       }
       
+      void initMatrices(void)
+      {
+        Serial.println("Creating matrices");
+        Matrix *x = new Matrix();     /*nominal state vector */
+        eskf.x = x;
+        Matrix *dx = new Matrix();    /*error-state vector*/
+        eskf.dx = dx;
+        Matrix *qL = new Matrix();    /*Left Matrix *quaternion*/
+        eskf.qL = qL;
+
+        Matrix *P = new Matrix();     /* prediction error covariance */
+        eskf.P = P;
+        Matrix *Q = new Matrix();     /* process noise covariance */
+        eskf.Q = Q;
+        Matrix *R = new Matrix();     /* measurement error covariance */
+        eskf.R = R;
+
+        Matrix *K = new Matrix();     /* Kalman gain; a.k.a. K */
+        eskf.K = K;
+        Matrix *Kt = new Matrix();    /* transpose Kalman gain; a.k.a. K */
+        eskf.Kt = Kt;
+
+        Matrix *Fx = new Matrix();    /* Jacobian of process model */
+        eskf.Fx = Fx;
+        Matrix *Fdx = new Matrix();   /* Jacobian of process model */
+        eskf.Fdx = Fdx;
+        Matrix *H = new Matrix();     /* Jacobian of measurement model */
+        eskf.H = H;
+
+        Matrix *Ht = new Matrix();    /* transpose of measurement Jacobian */
+        eskf.Ht = Ht;
+        Matrix *Fdxt = new Matrix();  /* transpose of process Jacobian */
+        eskf.Fdxt = Fdxt;
+        Matrix *Pp = new Matrix();    /* P, post-prediction, pre-update */
+        eskf.Pp = Pp;
+        
+        Matrix *G = new Matrix();  
+        eskf.G = G;
+
+        Matrix *fx = new Matrix();   /* output of user defined f() state-transition function */
+        eskf.fx = fx;
+        Matrix *hx = new Matrix();   /* output of user defined h() measurement function */
+        eskf.hx = hx;
+
+        /* temporary storage */
+        Matrix *tmp0 = new Matrix();
+        eskf.tmp0 = tmp0;
+        Matrix *tmp1 = new Matrix();
+        eskf.tmp1 = tmp1;
+        Matrix *tmp2 = new Matrix();
+        eskf.tmp2 = tmp2;
+        Matrix *tmp3 = new Matrix();
+        eskf.tmp3 = tmp3;
+        Matrix *tmp4 = new Matrix();
+        eskf.tmp4 = tmp4;
+        Matrix *tmp5 = new Matrix();
+        eskf.tmp5 = tmp5;
+        Matrix *tmp6 = new Matrix(); 
+        eskf.tmp6 = tmp6;
+        Matrix *tmp7 = new Matrix();
+        eskf.tmp7 = tmp7;
+        Matrix *tmp8 = new Matrix();
+        eskf.tmp8 = tmp8;
+        Serial.println("Done");
+      }
+      
     public:
 
       void init(void)
       {
+          Serial.println("ESKF init");
+          initMatrices();
+
           eskf.P->setDimensions(errorStates, errorStates);
           eskf.x->setDimensions(states, 1);
-          
+
           eskf.x->set(0, 0, 1.0);
           eskf.x->set(1, 0, 0.0);
           eskf.x->set(2, 0, 0.0);
@@ -90,6 +159,7 @@ namespace hf {
           eskf.P->set(0, 2, 0.0);
           eskf.P->set(1, 2, 0.0);
           eskf.P->set(2, 2, 1.0);
+          Serial.println("ESKF end init");
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -107,7 +177,7 @@ namespace hf {
              iteration covariance estimate the current Covariance (and enforce
              its symmetry?)
         */
-        
+        Serial.println("Called");
         // Compute deltat
         double t_now = micros();
         dt = (t_now - t_lastCall)/1000000.0;
