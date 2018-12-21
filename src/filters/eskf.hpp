@@ -53,7 +53,7 @@ namespace hf {
         */
       }
       
-      void correct(void) {
+      int correct(void) {
         /* This method should:
           1. Obtain the Jacobian of the correction measurement model
           2. Obtain the innovation value:
@@ -66,6 +66,57 @@ namespace hf {
           8. Update Covariance if required and enforce symmetry
           9. Reset errors
         */
+        _sensors[sensorIndex].getJacobianObservation(eskf->H, eskf->x, eskf->dx->_rows);
+        _sensors[sensorIndex].getInnovation(eskf->hx, eskf->x);
+        _sensors[sensorIndex].getCovarianceCorrection(eskf->R);
+        // Compute gain:
+        /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
+        Matrix::trans(eskf->H, eskf->Ht);
+        Matrix::mult(eskf->Pp, eskf->Ht, eskf->tmp1);             // P*H'
+        Matrix::mult(eskf->H, eskf->Pp, eskf->tmp2);              // H*P
+        Matrix::mult(eskf->tmp2, eskf->Ht, eskf->tmp3);           // H*P*H'
+        accum(eskf->tmp3, eskf->R);                               // Z = H*P*H' + R
+        if (cholsl(eskf->tmp3, eskf->tmp4, eskf->tmp5)) return 1; // tmp4 = Z^-1
+        Matrix::mult(eskf->tmp1, eskf->tmp4, eskf->K);            // K = P*H'*Z^-1
+        
+        // Estimate errors:
+        /* dx = K * hx */
+        Matrix::mult(ekf->K, ekf->hx, ekf->dx);
+
+        // Update covariance
+        /* P_k = P_k - K_k Z_k K^T_k  */
+        Matrix::trans(ekf->K, ekf->Kt);
+        Matrix::mult(ekf->K, ekf->tmp3, ekf->tmp0);
+        Matrix::mult(ekf->tmp0, ekf->Kt, ekf->tmp3);
+        Matrix::sub(ekf->Pp, ekf->tmp3, ekf->tmp0);
+        Matrix::makesym(ekf->tmp0, ekf->P);
+
+        /* Error injection */
+        // XXX This is sensor dependent
+        ekf->tmp6[0] = 1.0;
+        ekf->tmp6[1] = ekf->dx[0]/2.0;
+        ekf->tmp6[2] = ekf->dx[1]/2.0;
+        ekf->tmp6[3] = ekf->dx[2]/2.0;
+        Matrix::mult(ekf->qL, ekf->tmp6, ekf->tmp7);
+        if (Matrix::norvec(ekf->tmp7, ekf->x)) return 1;
+
+        /* Update covariance*/
+        // XXX Only when correcting estimation
+        ekf->tmp5[0] = ekf->dx[0]/2.0;
+        ekf->tmp5[1] = ekf->dx[1]/2.0;
+        ekf->tmp5[2] = ekf->dx[2]/2.0;
+        if (Matrix::skew(ekf->tmp5, ekf->G)) return 1;
+        Matrix::negate(ekf->G);
+        Matrix::addeye(ekf->G);
+        Matrix::trans(ekf->G, ekf->tmp0);
+        Matrix::mult(ekf->P, ekf->tmp0, ekf->Pp);
+        Matrix::mult(ekf->G, ekf->Pp, ekf->P);
+
+        /* reset error state */
+        Matrix::zeros(ekf->dx);
+
+        /* success */
+        return 0;
       }
 
   }; // class ESKF

@@ -65,6 +65,40 @@ namespace hf {
                 }
             }
 
+            static int norvec(Matrix & v, Matrix & r)
+            {
+                double norm;
+                if (v._cols != 1) return 1;
+                r.setDimensions(v._rows, v._cols);
+                for (int ii=0; ii<v._rows; ++ii)
+                  norm += v._vals[ii][0]*v._vals[ii][0];
+                
+                norm = 1/sqrt(norm);
+                
+                for (int ii=0; ii<v._rows; ++ii)
+                  r._vals[ii][0] = v._vals[ii][0]*norm;
+                return 0;
+            }
+
+            // skew matrix from a vector of dimension 3
+            static int skew(Matrix & x, Matrix & c)
+            {
+                if (x._rows != 3 or x._cols != 1) return 1;
+                c.setDimensions(x._rows, x._rows);
+                c._vals[0][0] =  0.0;
+                c._vals[1][0] =  x._vals[2][0];
+                c._vals[2][0] = -x._vals[1][0];
+                
+                c._vals[1][0] = -x._vals[2][0];
+                c._vals[1][1] =  0.0;
+                c._vals[1][2] =  x._vals[0][0];
+                
+                c._vals[2][0] =  x._vals[1][0];
+                c._vals[2][1] = -x._vals[0][0];
+                c._vals[2][2] =  0.0;
+                return 0;
+            }
+
             // AT <- A'
             static void trans(Matrix & a, Matrix & at)
             {
@@ -121,6 +155,39 @@ namespace hf {
                       }
                   }
             }              
+            
+            // B <- (A + A') / 2
+            static void makesym(Matrix & a, Matrix & b)
+            {
+                b.setDimensions(a._rows, a._cols);
+                for (int ii=0; ii<a._rows; ++ii)
+                {
+                  for (int jj=0; jj<a._cols; ++jj)
+                  {
+                    b._vals[ii][jj] = (a._vals[jj][ii] + a._vals[ii][jj])/2.0;
+                  }
+                }
+            }
+            
+            static void zeros(Matrix & a)
+            {
+                a.setDimensions(a._rows, a._cols);
+            }
+            
+            static void negate(Matrix & a)
+            {        
+                int i, j;
+                for(i=0; i<a._rows; ++i)
+                    for(j=0; j<a._cols; ++j)
+                        a._vals[i][j] = -a._vals[i][j];
+            }
+
+            static void mat_addeye(Matrix & a)
+            {
+                int i;
+                for (i=0; i<a._rows; ++i)
+                    a._vals[i][i] += 1;
+            }
             
             /* Cholesky-decomposition matrix-inversion code, adapated from
             http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/choles_cpp.txt */

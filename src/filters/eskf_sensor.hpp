@@ -36,17 +36,22 @@ namespace hf {
       protected:
 
         // XXX After debugging, this methods should become pure virtual methods
-        virtual void getJacobianObservation(Matrix * H) { (void)H; }
+        virtual void getJacobianObservation(Matrix * H, Matrix * x, int errorStates) { (void)H; (void)x; }
         
-        virtual void getInnovation(Matrix * z) { (void)z; }
+        virtual void getInnovation(Matrix * z, Matrix * x) { (void)z; }
         
         virtual void getCovarianceCorrection(Matrix * N) { (void)N; }
 
       public:
         
-        void setObservationRows(uint8_t rows)
+        uint8_t setObservationRows(uint8_t rows)
         {
-          _observationRows = rows;
+            _observationRows = rows;
+        }
+        
+        uint8_t getObservationRows(void)
+        {
+            return _observationRows;
         }
 
     }; // class ESKF_Sensor
