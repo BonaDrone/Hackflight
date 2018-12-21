@@ -33,7 +33,7 @@ namespace hf {
 
         uint8_t _observationRows = 0;
         
-      protected:
+      public:
 
         // This methods should be overriden by sensors that estimate
         virtual void getJacobianModel(Matrix * Fx, double dt) { (void)Fx; }
@@ -48,8 +48,6 @@ namespace hf {
         virtual void getInnovation(Matrix * z, Matrix * x) { (void)z; }
         
         virtual void getCovarianceCorrection(Matrix * N) { (void)N; }
-
-      public:
         
         uint8_t setObservationRows(uint8_t rows)
         {

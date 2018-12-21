@@ -39,57 +39,57 @@ namespace hf {
       double dt;
 
       ESKF_Sensor * _sensors[256];
-      _sensor_count = 0;
+      int _sensor_count = 0;
       
       
       void computeqL(void)
       {
-          ekf.qL.setDimensions(4, 4);
+          eskf.qL->setDimensions(4, 4);
           
-          ekf.qL.set(0, 0, ekf.x.get(0, 0));
-          ekf.qL.set(1, 0, ekf.x.get(1, 0));
-          ekf.qL.set(2, 0, ekf.x.get(2, 0));
-          ekf.qL.set(3, 0, ekf.x.get(3, 0));
+          eskf.qL->set(0, 0, eskf.x->get(0, 0));
+          eskf.qL->set(1, 0, eskf.x->get(1, 0));
+          eskf.qL->set(2, 0, eskf.x->get(2, 0));
+          eskf.qL->set(3, 0, eskf.x->get(3, 0));
           
-          ekf.qL.set(0, 1, -ekf.x.get(1, 0));
-          ekf.qL.set(1, 1, ekf.x.get(0, 0));
-          ekf.qL.set(2, 1, ekf.x.get(3, 0));
-          ekf.qL.set(3, 1, -ekf.x.get(2, 0));
+          eskf.qL->set(0, 1, -eskf.x->get(1, 0));
+          eskf.qL->set(1, 1, eskf.x->get(0, 0));
+          eskf.qL->set(2, 1, eskf.x->get(3, 0));
+          eskf.qL->set(3, 1, -eskf.x->get(2, 0));
           
-          ekf.qL.set(0, 2, -ekf.x.get(2, 0));
-          ekf.qL.set(1, 2, -ekf.x.get(3, 0));
-          ekf.qL.set(2, 2, ekf.x.get(0, 0));
-          ekf.qL.set(3, 2, ekf.x.get(1, 0));
+          eskf.qL->set(0, 2, -eskf.x->get(2, 0));
+          eskf.qL->set(1, 2, -eskf.x->get(3, 0));
+          eskf.qL->set(2, 2, eskf.x->get(0, 0));
+          eskf.qL->set(3, 2, eskf.x->get(1, 0));
           
-          ekf.qL.set(0, 3, -ekf.x.get(3, 0));
-          ekf.qL.set(1, 3, ekf.x.get(2, 0));
-          ekf.qL.set(2, 3, -ekf.x.get(1, 0));
-          ekf.qL.set(3, 3, ekf.x.get(0, 0));
+          eskf.qL->set(0, 3, -eskf.x->get(3, 0));
+          eskf.qL->set(1, 3, eskf.x->get(2, 0));
+          eskf.qL->set(2, 3, -eskf.x->get(1, 0));
+          eskf.qL->set(3, 3, eskf.x->get(0, 0));
       }
       
     public:
 
       void init(void)
       {
-          eskf.P.setDimensions(errorStates, errorStates);
-          eskf.x.setDimensions(states, 1);
+          eskf.P->setDimensions(errorStates, errorStates);
+          eskf.x->setDimensions(states, 1);
           
-          ekf.x.set(0, 0, 1.0);
-          ekf.x.set(1, 0, 0.0);
-          ekf.x.set(2, 0, 0.0);
-          ekf.x.set(3, 0, 0.0);
+          eskf.x->set(0, 0, 1.0);
+          eskf.x->set(1, 0, 0.0);
+          eskf.x->set(2, 0, 0.0);
+          eskf.x->set(3, 0, 0.0);
           
-          ekf.P.set(0, 0, 1.0);
-          ekf.P.set(1, 0, 0.0);
-          ekf.P.set(2, 0, 0.0);
+          eskf.P->set(0, 0, 1.0);
+          eskf.P->set(1, 0, 0.0);
+          eskf.P->set(2, 0, 0.0);
           
-          ekf.P.set(0, 1, 0.0);
-          ekf.P.set(1, 1, 1.0);
-          ekf.P.set(2, 1, 0.0);
+          eskf.P->set(0, 1, 0.0);
+          eskf.P->set(1, 1, 1.0);
+          eskf.P->set(2, 1, 0.0);
 
-          ekf.P.set(0, 2, 0.0);
-          ekf.P.set(1, 2, 0.0);
-          ekf.P.set(2, 2, 1.0);
+          eskf.P->set(0, 2, 0.0);
+          eskf.P->set(1, 2, 0.0);
+          eskf.P->set(2, 2, 1.0);
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -98,6 +98,7 @@ namespace hf {
       }
       
       int update(void) {
+        uint8_t sensorIndex = 1; 
         /*
         This method should:
           1. Obtain the nominal state Jacobian and the error-state Jacobian.
@@ -112,20 +113,20 @@ namespace hf {
         dt = (t_now - t_lastCall)/1000000.0;
         t_lastCall = t_now;
         
-        _sensors[sensorIndex].getJacobianModel(ekf->Fx, dt);
-        _sensors[sensorIndex].getJacobianErrors(ekf->Fdx, dt);
-        _sensors[sensorIndex].getCovarianceEstimation(ekf->Q);
+        _sensors[sensorIndex]->getJacobianModel(eskf.Fx, dt);
+        _sensors[sensorIndex]->getJacobianErrors(eskf.Fdx, dt);
+        _sensors[sensorIndex]->getCovarianceEstimation(eskf.Q, errorStates);
         
-        /* f(x) = F*ekf.x; */
-        Matrix::mult(ekf->Fx, ekf->x, ekf->tmp6);
-        Matrix::norvec(ekf->tmp6, ekf->fx);
+        /* f(x) = F*eskf.x; */
+        Matrix::mult(eskf.Fx, eskf.x, eskf.tmp6);
+        Matrix::norvec(eskf.tmp6, eskf.fx);
 
         /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
-        Matrix::mult(ekf->Fdx, ekf->P, ekf->tmp0);
-        Matrix::trans(ekf->Fdx, ekf->Fdxt);
-        Matrix::mult(ekf->tmp0, ekf->Fdxt, ekf->tmp1);
-        Matrix::accum(ekf->tmp1, ekf->Q);
-        Matrix::makesym(ekf->tmp1, ekf->Pp);
+        Matrix::mult(eskf.Fdx, eskf.P, eskf.tmp0);
+        Matrix::trans(eskf.Fdx, eskf.Fdxt);
+        Matrix::mult(eskf.tmp0, eskf.Fdxt, eskf.tmp1);
+        Matrix::accum(eskf.tmp1, eskf.Q);
+        Matrix::makesym(eskf.tmp1, eskf.Pp);
 
         /* success */
         return 0;
@@ -133,6 +134,7 @@ namespace hf {
       }
       
       int correct(void) {
+        uint8_t sensorIndex = 1; 
         /* This method should:
           1. Obtain the Jacobian of the correction measurement model
           2. Obtain the innovation value:
@@ -145,55 +147,57 @@ namespace hf {
           8. Update Covariance if required and enforce symmetry
           9. Reset errors
         */
-        _sensors[sensorIndex].getJacobianObservation(eskf->H, eskf->x, eskf->dx->_rows);
-        _sensors[sensorIndex].getInnovation(eskf->hx, eskf->x);
-        _sensors[sensorIndex].getCovarianceCorrection(eskf->R);
+        _sensors[sensorIndex]->getJacobianObservation(eskf.H, eskf.x, errorStates);
+        _sensors[sensorIndex]->getInnovation(eskf.hx, eskf.x);
+        _sensors[sensorIndex]->getCovarianceCorrection(eskf.R);
         // Compute gain:
         /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
-        Matrix::trans(eskf->H, eskf->Ht);
-        Matrix::mult(eskf->Pp, eskf->Ht, eskf->tmp1);             // P*H'
-        Matrix::mult(eskf->H, eskf->Pp, eskf->tmp2);              // H*P
-        Matrix::mult(eskf->tmp2, eskf->Ht, eskf->tmp3);           // H*P*H'
-        accum(eskf->tmp3, eskf->R);                               // Z = H*P*H' + R
-        if (cholsl(eskf->tmp3, eskf->tmp4, eskf->tmp5)) return 1; // tmp4 = Z^-1
-        Matrix::mult(eskf->tmp1, eskf->tmp4, eskf->K);            // K = P*H'*Z^-1
+        Matrix::trans(eskf.H, eskf.Ht);
+        Matrix::mult(eskf.Pp, eskf.Ht, eskf.tmp1);             // P*H'
+        Matrix::mult(eskf.H, eskf.Pp, eskf.tmp2);              // H*P
+        Matrix::mult(eskf.tmp2, eskf.Ht, eskf.tmp3);           // H*P*H'
+        Matrix::accum(eskf.tmp3, eskf.R);                               // Z = H*P*H' + R
+        if (Matrix::cholsl(eskf.tmp3, eskf.tmp4, eskf.tmp5)) return 1; // tmp4 = Z^-1
+        Matrix::mult(eskf.tmp1, eskf.tmp4, eskf.K);            // K = P*H'*Z^-1
         
         // Estimate errors:
         /* dx = K * hx */
-        Matrix::mult(ekf->K, ekf->hx, ekf->dx);
+        Matrix::mult(eskf.K, eskf.hx, eskf.dx);
 
         // Update covariance
         /* P_k = P_k - K_k Z_k K^T_k  */
-        Matrix::trans(ekf->K, ekf->Kt);
-        Matrix::mult(ekf->K, ekf->tmp3, ekf->tmp0);
-        Matrix::mult(ekf->tmp0, ekf->Kt, ekf->tmp3);
-        Matrix::sub(ekf->Pp, ekf->tmp3, ekf->tmp0);
-        Matrix::makesym(ekf->tmp0, ekf->P);
+        Matrix::trans(eskf.K, eskf.Kt);
+        Matrix::mult(eskf.K, eskf.tmp3, eskf.tmp0);
+        Matrix::mult(eskf.tmp0, eskf.Kt, eskf.tmp3);
+        Matrix::sub(eskf.Pp, eskf.tmp3, eskf.tmp0);
+        Matrix::makesym(eskf.tmp0, eskf.P);
 
         /* Error injection */
         // XXX This is sensor dependent
-        ekf->tmp6[0] = 1.0;
-        ekf->tmp6[1] = ekf->dx[0]/2.0;
-        ekf->tmp6[2] = ekf->dx[1]/2.0;
-        ekf->tmp6[3] = ekf->dx[2]/2.0;
+        eskf.tmp6->setDimensions(4,1);
+        eskf.tmp6->set(0, 0, 1.0);
+        eskf.tmp6->set(1, 0, eskf.dx->get(0, 0)/2.0);
+        eskf.tmp6->set(2, 0, eskf.dx->get(1, 0)/2.0);
+        eskf.tmp6->set(3, 0, eskf.dx->get(2, 0)/2.0);
         computeqL();
-        Matrix::mult(ekf->qL, ekf->tmp6, ekf->tmp7);
-        if (Matrix::norvec(ekf->tmp7, ekf->x)) return 1;
+        Matrix::mult(eskf.qL, eskf.tmp6, eskf.tmp7);
+        if (Matrix::norvec(eskf.tmp7, eskf.x)) return 1;
 
         /* Update covariance*/
         // XXX Only when correcting estimation
-        ekf->tmp5[0] = ekf->dx[0]/2.0;
-        ekf->tmp5[1] = ekf->dx[1]/2.0;
-        ekf->tmp5[2] = ekf->dx[2]/2.0;
-        if (Matrix::skew(ekf->tmp5, ekf->G)) return 1;
-        Matrix::negate(ekf->G);
-        Matrix::addeye(ekf->G);
-        Matrix::trans(ekf->G, ekf->tmp0);
-        Matrix::mult(ekf->P, ekf->tmp0, ekf->Pp);
-        Matrix::mult(ekf->G, ekf->Pp, ekf->P);
+        eskf.tmp5->setDimensions(3, 1);
+        eskf.tmp5->set(0,0, eskf.dx->get(0, 0)/2.0);
+        eskf.tmp5->set(1,0, eskf.dx->get(1, 0)/2.0);
+        eskf.tmp5->set(2,0, eskf.dx->get(2, 0)/2.0);
+        if (Matrix::skew(eskf.tmp5, eskf.G)) return 1;
+        Matrix::negate(eskf.G);
+        Matrix::addeye(eskf.G);
+        Matrix::trans(eskf.G, eskf.tmp0);
+        Matrix::mult(eskf.P, eskf.tmp0, eskf.Pp);
+        Matrix::mult(eskf.G, eskf.Pp, eskf.P);
 
         /* reset error state */
-        Matrix::zeros(ekf->dx);
+        Matrix::zeros(eskf.dx);
 
         /* success */
         return 0;

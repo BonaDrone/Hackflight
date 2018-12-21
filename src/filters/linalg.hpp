@@ -65,151 +65,151 @@ namespace hf {
                 }
             }
 
-            static int norvec(Matrix & v, Matrix & r)
+            static int norvec(Matrix * v, Matrix * r)
             {
                 double norm;
-                if (v._cols != 1) return 1;
-                r.setDimensions(v._rows, v._cols);
-                for (int ii=0; ii<v._rows; ++ii)
-                  norm += v._vals[ii][0]*v._vals[ii][0];
+                if (v->_cols != 1) return 1;
+                r->setDimensions(v->_rows, v->_cols);
+                for (int ii=0; ii<v->_rows; ++ii)
+                  norm += v->_vals[ii][0]*v->_vals[ii][0];
                 
                 norm = 1/sqrt(norm);
                 
-                for (int ii=0; ii<v._rows; ++ii)
-                  r._vals[ii][0] = v._vals[ii][0]*norm;
+                for (int ii=0; ii<v->_rows; ++ii)
+                  r->_vals[ii][0] = v->_vals[ii][0]*norm;
                 return 0;
             }
 
             // skew matrix from a vector of dimension 3
-            static int skew(Matrix & x, Matrix & c)
+            static int skew(Matrix * x, Matrix * c)
             {
-                if (x._rows != 3 or x._cols != 1) return 1;
-                c.setDimensions(x._rows, x._rows);
-                c._vals[0][0] =  0.0;
-                c._vals[1][0] =  x._vals[2][0];
-                c._vals[2][0] = -x._vals[1][0];
+                if (x->_rows != 3 or x->_cols != 1) return 1;
+                c->setDimensions(x->_rows, x->_rows);
+                c->_vals[0][0] =  0.0;
+                c->_vals[1][0] =  x->_vals[2][0];
+                c->_vals[2][0] = -x->_vals[1][0];
                 
-                c._vals[1][0] = -x._vals[2][0];
-                c._vals[1][1] =  0.0;
-                c._vals[1][2] =  x._vals[0][0];
+                c->_vals[1][0] = -x->_vals[2][0];
+                c->_vals[1][1] =  0.0;
+                c->_vals[1][2] =  x->_vals[0][0];
                 
-                c._vals[2][0] =  x._vals[1][0];
-                c._vals[2][1] = -x._vals[0][0];
-                c._vals[2][2] =  0.0;
+                c->_vals[2][0] =  x->_vals[1][0];
+                c->_vals[2][1] = -x->_vals[0][0];
+                c->_vals[2][2] =  0.0;
                 return 0;
             }
 
             // AT <- A'
-            static void trans(Matrix & a, Matrix & at)
+            static void trans(Matrix * a, Matrix * at)
             {
-                at.setDimensions(a._cols, a._rows);
-                for (uint8_t j=0; j<a._rows; ++j) {
-                    for (uint8_t k=0; k<a._cols; ++k) {
-                        at._vals[k][j] = a._vals[j][k];
+                at->setDimensions(a->_cols, a->_rows);
+                for (uint8_t j=0; j<a->_rows; ++j) {
+                    for (uint8_t k=0; k<a->_cols; ++k) {
+                        at->_vals[k][j] = a->_vals[j][k];
                     }
                 }
             }
 
             // C <- A * B
-            static void mult(Matrix & a, Matrix & b, Matrix & c)
+            static void mult(Matrix * a, Matrix * b, Matrix * c)
             {
-                c.setDimensions(a._rows, b._cols);
-                for(uint8_t i=0; i<a._rows; ++i) {
-                    for(uint8_t j=0; j<b._cols; ++j) {
-                        c._vals[i][j] = 0;
-                        for(uint8_t k=0; k<a._cols; ++k) {
-                            c._vals[i][j] += a._vals[i][k] *b._vals[k][j];
+                c->setDimensions(a->_rows, b->_cols);
+                for(uint8_t i=0; i<a->_rows; ++i) {
+                    for(uint8_t j=0; j<b->_cols; ++j) {
+                        c->_vals[i][j] = 0;
+                        for(uint8_t k=0; k<a->_cols; ++k) {
+                            c->_vals[i][j] += a->_vals[i][k] *b->_vals[k][j];
                         }
                     }
                 }
             }
             
             // C <- A + B
-            static void add(Matrix & a, Matrix & b, Matrix & c)
+            static void add(Matrix * a, Matrix * b, Matrix * c)
             {
-              c.setDimensions(a._rows, a._cols);
-              for(uint8_t i=0; i<a._rows; ++i) {
-                  for(uint8_t j=0; j<a._cols; ++j) {
-                      c._vals[i][j] = a._vals[i][j] + b._vals[i][j];
+              c->setDimensions(a->_rows, a->_cols);
+              for(uint8_t i=0; i<a->_rows; ++i) {
+                  for(uint8_t j=0; j<a->_cols; ++j) {
+                      c->_vals[i][j] = a->_vals[i][j] + b->_vals[i][j];
                       }
                   }
             }              
 
             // A <- A + B
-            static void accum(Matrix & a, Matrix & b)
+            static void accum(Matrix * a, Matrix * b)
             {
-              for(uint8_t i=0; i<a._rows; ++i) {
-                  for(uint8_t j=0; j<a._cols; ++j) {
-                      a._vals[i][j] += b._vals[i][j];
+              for(uint8_t i=0; i<a->_rows; ++i) {
+                  for(uint8_t j=0; j<a->_cols; ++j) {
+                      a->_vals[i][j] += b->_vals[i][j];
                       }
                   }
             }              
 
             // C <- A - B
-            static void sub(Matrix & a, Matrix & b, Matrix & c)
+            static void sub(Matrix * a, Matrix * b, Matrix * c)
             {
-              c.setDimensions(a._rows, a._cols);
-              for(uint8_t i=0; i<a._rows; ++i) {
-                  for(uint8_t j=0; j<a._cols; ++j) {
-                      c._vals[i][j] = a._vals[i][j] - b._vals[i][j];
+              c->setDimensions(a->_rows, a->_cols);
+              for(uint8_t i=0; i<a->_rows; ++i) {
+                  for(uint8_t j=0; j<a->_cols; ++j) {
+                      c->_vals[i][j] = a->_vals[i][j] - b->_vals[i][j];
                       }
                   }
             }              
             
             // B <- (A + A') / 2
-            static void makesym(Matrix & a, Matrix & b)
+            static void makesym(Matrix * a, Matrix * b)
             {
-                b.setDimensions(a._rows, a._cols);
-                for (int ii=0; ii<a._rows; ++ii)
+                b->setDimensions(a->_rows, a->_cols);
+                for (int ii=0; ii<a->_rows; ++ii)
                 {
-                  for (int jj=0; jj<a._cols; ++jj)
+                  for (int jj=0; jj<a->_cols; ++jj)
                   {
-                    b._vals[ii][jj] = (a._vals[jj][ii] + a._vals[ii][jj])/2.0;
+                    b->_vals[ii][jj] = (a->_vals[jj][ii] + a->_vals[ii][jj])/2.0;
                   }
                 }
             }
             
-            static void zeros(Matrix & a)
+            static void zeros(Matrix * a)
             {
-                a.setDimensions(a._rows, a._cols);
+                a->setDimensions(a->_rows, a->_cols);
             }
             
-            static void negate(Matrix & a)
+            static void negate(Matrix * a)
             {        
                 int i, j;
-                for(i=0; i<a._rows; ++i)
-                    for(j=0; j<a._cols; ++j)
-                        a._vals[i][j] = -a._vals[i][j];
+                for(i=0; i<a->_rows; ++i)
+                    for(j=0; j<a->_cols; ++j)
+                        a->_vals[i][j] = -a->_vals[i][j];
             }
 
-            static void mat_addeye(Matrix & a)
+            static void addeye(Matrix * a)
             {
                 int i;
-                for (i=0; i<a._rows; ++i)
-                    a._vals[i][i] += 1;
+                for (i=0; i<a->_rows; ++i)
+                    a->_vals[i][i] += 1;
             }
             
             /* Cholesky-decomposition matrix-inversion code, adapated from
             http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/choles_cpp.txt */
 
-            static int choldc1(Matrix & a, Matrix & p) {
+            static int choldc1(Matrix * a, Matrix * p) {
                 int i,j,k;
                 double sum;
 
-                for (i = 0; i < a._rows; i++) {
-                    for (j = i; j < a._cols; j++) {
-                        sum = a._vals[i][j];
+                for (i = 0; i < a->_rows; i++) {
+                    for (j = i; j < a->_cols; j++) {
+                        sum = a->_vals[i][j];
                         for (k = i - 1; k >= 0; k--) {
-                            sum -= a._vals[i][k] * a._vals[j][k];
+                            sum -= a->_vals[i][k] * a->_vals[j][k];
                         }
                         if (i == j) {
                             if (sum <= 0) {
                                 return 1; /* error */
                             }
-                            p._vals[i][0] = sqrt(sum);
+                            p->_vals[i][0] = sqrt(sum);
                         }
                         else {
-                            a._vals[j][i] = sum / p._vals[i][0];
+                            a->_vals[j][i] = sum / p->_vals[i][0];
                         }
                     }
                 }
@@ -217,21 +217,21 @@ namespace hf {
                 return 0; /* success */
             }
 
-            static int choldcsl(Matrix & A, Matrix & a, Matrix & p) 
+            static int choldcsl(Matrix * A, Matrix * a, Matrix * p) 
             {
                 int i,j,k; double sum;
-                for (i = 0; i < A._rows; i++) 
-                    for (j = 0; j < A._cols; j++) 
-                        a._vals[i][j] = A._vals[i][j];
+                for (i = 0; i < A->_rows; i++) 
+                    for (j = 0; j < A->_cols; j++) 
+                        a->_vals[i][j] = A->_vals[i][j];
                 if (choldc1(a, p)) return 1;
-                for (i = 0; i < a._rows; i++) {
-                    a._vals[i][i] = 1 / p._vals[i][0];
-                    for (j = i + 1; j < a._cols; j++) {
+                for (i = 0; i < a->_rows; i++) {
+                    a->_vals[i][i] = 1 / p->_vals[i][0];
+                    for (j = i + 1; j < a->_cols; j++) {
                         sum = 0;
                         for (k = i; k < j; k++) {
-                            sum -= a._vals[j][k] * a._vals[k][i];
+                            sum -= a->_vals[j][k] * a->_vals[k][i];
                         }
-                        a._vals[j][i] = sum / p._vals[j][0];
+                        a->_vals[j][i] = sum / p->_vals[j][0];
                     }
                 }
 
@@ -239,31 +239,31 @@ namespace hf {
             }
 
 
-            static int cholsl(Matrix & A, Matrix & a, Matrix & p) 
+            static int cholsl(Matrix * A, Matrix * a, Matrix * p) 
             {
                 int i,j,k;
-                a.setDimensions(A._rows, A._cols);
-                p.setDimensions(A._rows, 1);
+                a->setDimensions(A->_rows, A->_cols);
+                p->setDimensions(A->_rows, 1);
                 if (choldcsl(A,a,p)) return 1;
-                for (i = 0; i < A._rows; i++) {
-                    for (j = i + 1; j < A._cols; j++) {
-                        a._vals[i][j] = 0.0;
+                for (i = 0; i < A->_rows; i++) {
+                    for (j = i + 1; j < A->_cols; j++) {
+                        a->_vals[i][j] = 0.0;
                     }
                 }
-                for (i = 0; i < A._rows; i++) {
-                    a._vals[i][i] *= a._vals[i][i];
-                    for (k = i + 1; k < A._rows; k++) {
-                        a._vals[i][i] += a._vals[k][i] * a._vals[k][i];
+                for (i = 0; i < A->_rows; i++) {
+                    a->_vals[i][i] *= a->_vals[i][i];
+                    for (k = i + 1; k < A->_rows; k++) {
+                        a->_vals[i][i] += a->_vals[k][i] * a->_vals[k][i];
                     }
-                    for (j = i + 1; j < A._cols; j++) {
-                        for (k = j; k < A._cols; k++) {
-                            a._vals[i][j] += a._vals[k][i] * a._vals[k][j];
+                    for (j = i + 1; j < A->_cols; j++) {
+                        for (k = j; k < A->_cols; k++) {
+                            a->_vals[i][j] += a->_vals[k][i] * a->_vals[k][j];
                         }
                     }
                 }
-                for (i = 0; i < A._rows; i++) {
+                for (i = 0; i < A->_rows; i++) {
                     for (j = 0; j < i; j++) {
-                        a._vals[i][j] = a._vals[j][i];
+                        a->_vals[i][j] = a->_vals[j][i];
                     }
                 }
                 return 0; /* success */

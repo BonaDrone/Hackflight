@@ -36,6 +36,8 @@
 #include "sensors/gyrometer.hpp"
 #include "sensors/quaternion.hpp"
 
+#include "filters/eskf.hpp"
+
 #include "planner.hpp"
 
 namespace hf {
@@ -53,6 +55,8 @@ namespace hf {
             Rate       * _ratePid;
             Mixer      * _mixer;
             Planner      planner;
+
+            ESKF * eskf;
 
             // PID controllers
             PID_Controller * _pid_controllers[256];
