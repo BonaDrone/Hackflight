@@ -32,6 +32,9 @@ namespace hf {
     
       eskf_t eskf;
 
+      uint8_t errorStates = 3;
+      uint8_t states = 4;
+
       double t_lastCall;
       double dt;
 
@@ -41,7 +44,25 @@ namespace hf {
     public:
       void init(void)
       {
+          eskf.P.setDimensions(errorStates, errorStates);
+          eskf.x.setDimensions(states, 1);
+          
+          ekf.x.set(0, 0, 1.0);
+          ekf.x.set(1, 0, 0.0);
+          ekf.x.set(2, 0, 0.0);
+          ekf.x.set(3, 0, 0.0);
+          
+          ekf.P.set(0, 0, 1.0);
+          ekf.P.set(1, 0, 0.0);
+          ekf.P.set(2, 0, 0.0);
+          
+          ekf.P.set(0, 1, 0.0);
+          ekf.P.set(1, 1, 1.0);
+          ekf.P.set(2, 1, 0.0);
 
+          ekf.P.set(0, 2, 0.0);
+          ekf.P.set(1, 2, 0.0);
+          ekf.P.set(2, 2, 1.0);
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
