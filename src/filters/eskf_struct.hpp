@@ -65,6 +65,6 @@ namespace hf {
       Matrix * tmp7;
       Matrix * tmp8;
 
-  } ekf_t;
+  } eskf_t;
   
 } // namespace hf
