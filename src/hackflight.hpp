@@ -34,6 +34,7 @@
 #include "pidcontrollers/rate.hpp"
 #include "sensors/peripheral.hpp"
 #include "sensors/gyrometer.hpp"
+#include "sensors/accelerometer.hpp"
 #include "sensors/quaternion.hpp"
 
 #include "filters/eskf.hpp"
@@ -65,6 +66,7 @@ namespace hf {
             // Mandatory sensors on the board
             Gyrometer _gyrometer;
             Quaternion _quaternion; // not really a sensor, but we treat it like one!
+            Accelerometer _accelerometer;
 
             // Additional sensors 
             Sensor * _sensors[256];
@@ -423,7 +425,10 @@ namespace hf {
                 _mixer    = mixer;
                 _ratePid  = ratePid;
                 
-
+                eskf->init();
+                eskf->addSensorESKF(&_gyrometer);
+                _accelerometer.setObservationRows(3);
+                eskf->addSensorESKF(&_accelerometer);
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
                 addSensor(&_gyrometer, board);

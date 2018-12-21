@@ -41,10 +41,9 @@ namespace hf {
 
         public:
 
-            Accelerometer(int observationRows)
+            Accelerometer()
             {
                 memset(_gs, 0, 3*sizeof(float));
-                setObservationRows(observationRows);
             }
 
         protected:
@@ -63,7 +62,7 @@ namespace hf {
                 return board->getAccelerometer(_gs);
             }
             
-            virtual void getJacobianObservation(Matrix * H, matrix * x, int errorStates) override
+            virtual void getJacobianObservation(Matrix * H, Matrix * x, uint8_t errorStates) override
             {
                 // Set Jacobian Dimensions
                 H->setDimensions(getObservationRows(), errorStates);
@@ -112,7 +111,7 @@ namespace hf {
             
             virtual void getCovarianceCorrection(Matrix * R) override
             {
-                R->setDimensions(getObservationRows(), _observationRows);
+                R->setDimensions(getObservationRows(), getObservationRows());
                 // Approximate the process noise using a small constant
                 R->set(0, 0, 0.0001f);
                 R->set(1, 1, 0.0001f);
