@@ -36,18 +36,18 @@ namespace hf {
       public:
 
         // This methods should be overriden by sensors that estimate
-        virtual void getJacobianModel(Matrix * Fx, double dt) { (void)Fx; }
+        virtual void getJacobianModel(Matrix Fx, double dt) { (void)Fx; }
         
-        virtual void getJacobianErrors(Matrix * Fdx, double dt) { (void)Fdx; }
+        virtual void getJacobianErrors(Matrix Fdx, double dt) { (void)Fdx; }
         
-        virtual void getCovarianceEstimation(Matrix * Q, uint8_t errorStates) { (void)Q; }
+        virtual void getCovarianceEstimation(Matrix Q, uint8_t errorStates) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
-        virtual void getJacobianObservation(Matrix * H, Matrix * x, uint8_t errorStates) { (void)H; (void)x; }
+        virtual void getJacobianObservation(Matrix H, Matrix x, uint8_t errorStates) { (void)H; (void)x; }
         
-        virtual void getInnovation(Matrix * z, Matrix * x) { (void)z; }
+        virtual void getInnovation(Matrix z, Matrix x) { (void)z; }
         
-        virtual void getCovarianceCorrection(Matrix * N) { (void)N; }
+        virtual void getCovarianceCorrection(Matrix N) { (void)N; }
         
         uint8_t setObservationRows(uint8_t rows)
         {

@@ -29,8 +29,42 @@ namespace hf {
   class ESKF {
     
     private:
-    
-      eskf_t eskf;
+      
+      Matrix x;     /*nominal state vector */
+      Matrix dx;    /*error-state vector*/
+      Matrix qL;    /*Left matrix quaternion*/
+
+      Matrix P;     /* prediction error covariance */
+      Matrix Q;     /* process noise covariance */
+      Matrix R;     /* measurement error covariance */
+
+      Matrix K;     /* Kalman gain; a.k.a. K */
+      Matrix Kt;    /* transpose Kalman gain; a.k.a. K */
+
+      Matrix Fx;    /* Jacobian of process model */
+      Matrix Fdx;   /* Jacobian of process model */
+      Matrix H;     /* Jacobian of measurement model */
+
+      Matrix Ht;    /* transpose of measurement Jacobian */
+      Matrix Fdxt;  /* transpose of process Jacobian */
+      Matrix Pp;    /* P, post-prediction, pre-update */
+      
+      Matrix G;  
+
+      Matrix fx;   /* output of user defined f() state-transition function */
+      Matrix hx;   /* output of user defined h() measurement function */
+
+      /* temporary storage */
+      Matrix tmp0;
+      Matrix tmp1;
+      Matrix tmp2;
+      Matrix tmp3;
+      Matrix tmp4;
+      Matrix tmp5;
+      Matrix tmp6; 
+      Matrix tmp7;
+      Matrix tmp8;
+      //eskf_t eskf;
 
       static const uint8_t errorStates = 3;
       static const uint8_t nominalStates = 4;
@@ -45,118 +79,88 @@ namespace hf {
       
       void computeqL(void)
       {
+          qL.set(0, 0, x.get(0, 0));
+          qL.set(1, 0, x.get(1, 0));
+          qL.set(2, 0, x.get(2, 0));
+          qL.set(3, 0, x.get(3, 0));
           
-          eskf.qL->set(0, 0, eskf.x->get(0, 0));
-          eskf.qL->set(1, 0, eskf.x->get(1, 0));
-          eskf.qL->set(2, 0, eskf.x->get(2, 0));
-          eskf.qL->set(3, 0, eskf.x->get(3, 0));
+          qL.set(0, 1, -x.get(1, 0));
+          qL.set(1, 1, x.get(0, 0));
+          qL.set(2, 1, x.get(3, 0));
+          qL.set(3, 1, -x.get(2, 0));
           
-          eskf.qL->set(0, 1, -eskf.x->get(1, 0));
-          eskf.qL->set(1, 1, eskf.x->get(0, 0));
-          eskf.qL->set(2, 1, eskf.x->get(3, 0));
-          eskf.qL->set(3, 1, -eskf.x->get(2, 0));
+          qL.set(0, 2, -x.get(2, 0));
+          qL.set(1, 2, -x.get(3, 0));
+          qL.set(2, 2, x.get(0, 0));
+          qL.set(3, 2, x.get(1, 0));
           
-          eskf.qL->set(0, 2, -eskf.x->get(2, 0));
-          eskf.qL->set(1, 2, -eskf.x->get(3, 0));
-          eskf.qL->set(2, 2, eskf.x->get(0, 0));
-          eskf.qL->set(3, 2, eskf.x->get(1, 0));
-          
-          eskf.qL->set(0, 3, -eskf.x->get(3, 0));
-          eskf.qL->set(1, 3, eskf.x->get(2, 0));
-          eskf.qL->set(2, 3, -eskf.x->get(1, 0));
-          eskf.qL->set(3, 3, eskf.x->get(0, 0));
+          qL.set(0, 3, -x.get(3, 0));
+          qL.set(1, 3, x.get(2, 0));
+          qL.set(2, 3, -x.get(1, 0));
+          qL.set(3, 3, x.get(0, 0));
       }
       
       void initMatrices(void)
       {
-        Serial.println("Creating matrices");
-        Matrix *x = new Matrix(nominalStates, 1);     /*nominal state vector */
-        eskf.x = x;
-        Matrix *dx = new Matrix(errorStates, 1);    /*error-state vector*/
-        eskf.dx = dx;
-        Matrix *qL = new Matrix(nominalStates, nominalStates);    /*Left Matrix *quaternion*/
-        eskf.qL = qL;
+        x =  Matrix(nominalStates, 1);     /*nominal state vector */
+        dx =  Matrix(errorStates, 1);    /*error-state vector*/
+        qL =  Matrix(nominalStates, nominalStates);    /*Left quaternion*/
 
-        Matrix *P = new Matrix(errorStates, errorStates);     /* prediction error covariance */
-        eskf.P = P;
-        Matrix *Q = new Matrix(errorStates, errorStates);     /* process noise covariance */
-        eskf.Q = Q;
-        Matrix *R = new Matrix(observations, observations);     /* measurement error covariance */
-        eskf.R = R;
+        P =  Matrix(errorStates, errorStates);     /* prediction error covariance */
+        Q =  Matrix(errorStates, errorStates);     /* process noise covariance */
+        R =  Matrix(observations, observations);     /* measurement error covariance */
 
-        Matrix *K = new Matrix(errorStates, observations);     /* Kalman gain; a.k.a. K */
-        eskf.K = K;
-        Matrix *Kt = new Matrix(observations, errorStates);    /* transpose Kalman gain; a.k.a. K */
-        eskf.Kt = Kt;
+        K =  Matrix(errorStates, observations);     /* Kalman gain; a.k.a. K */
+        Kt =  Matrix(observations, errorStates);    /* transpose Kalman gain; a.k.a. K */
 
-        Matrix *Fx = new Matrix(nominalStates, nominalStates);    /* Jacobian of process model */
-        eskf.Fx = Fx;
-        Matrix *Fdx = new Matrix(errorStates, errorStates);   /* Jacobian of process model */
-        eskf.Fdx = Fdx;
-        Matrix *H = new Matrix(observations, errorStates);     /* Jacobian of measurement model */
-        eskf.H = H;
+        Fx =  Matrix(nominalStates, nominalStates);    /* Jacobian of process model */
+        Fdx =  Matrix(errorStates, errorStates);   /* Jacobian of process model */
+        H =  Matrix(observations, errorStates);     /* Jacobian of measurement model */
 
-        Matrix *Ht = new Matrix(errorStates, observations);    /* transpose of measurement Jacobian */
-        eskf.Ht = Ht;
-        Matrix *Fdxt = new Matrix(errorStates, errorStates);  /* transpose of process Jacobian */
-        eskf.Fdxt = Fdxt;
-        Matrix *Pp = new Matrix(errorStates, errorStates);    /* P, post-prediction, pre-update */
-        eskf.Pp = Pp;
+        Ht =  Matrix(errorStates, observations);    /* transpose of measurement Jacobian */
+        Fdxt =  Matrix(errorStates, errorStates);  /* transpose of process Jacobian */
+        Pp =  Matrix(errorStates, errorStates);    /* P, post-prediction, pre-update */
         
-        Matrix *G = new Matrix(errorStates, errorStates);  
-        eskf.G = G;
+        G =  Matrix(errorStates, errorStates);  
 
-        Matrix *fx = new Matrix(nominalStates, 1);   /* output of user defined f() state-transition function */
-        eskf.fx = fx;
-        Matrix *hx = new Matrix(observations, 1);   /* output of user defined h() measurement function */
-        eskf.hx = hx;
+        fx =  Matrix(nominalStates, 1);   /* output of user defined f() state-transition function */
+        hx =  Matrix(observations, 1);   /* output of user defined h() measurement function */
 
         /* temporary storage */
-        Matrix *tmp0 = new Matrix(errorStates, errorStates);
-        eskf.tmp0 = tmp0;
-        Matrix *tmp1 = new Matrix(errorStates, observations);
-        eskf.tmp1 = tmp1;
-        Matrix *tmp2 = new Matrix(observations, errorStates);
-        eskf.tmp2 = tmp2;
-        Matrix *tmp3 = new Matrix(observations, observations);
-        eskf.tmp3 = tmp3;
-        Matrix *tmp4 = new Matrix(observations, observations);
-        eskf.tmp4 = tmp4;
-        Matrix *tmp5 = new Matrix(observations, 1);
-        eskf.tmp5 = tmp5;
-        Matrix *tmp6 = new Matrix(nominalStates, 1); 
-        eskf.tmp6 = tmp6;
-        Matrix *tmp7 = new Matrix(nominalStates, 1);
-        eskf.tmp7 = tmp7;
-        Matrix *tmp8 = new Matrix(observations, 1);
-        eskf.tmp8 = tmp8;
-        Serial.println("Done");
+        tmp0 =  Matrix(errorStates, errorStates);
+        tmp1 =  Matrix(errorStates, observations);
+        tmp2 =  Matrix(observations, errorStates);
+        tmp3 =  Matrix(observations, observations);
+        tmp4 =  Matrix(observations, observations);
+        tmp5 =  Matrix(observations, 1);
+        tmp6 =  Matrix(nominalStates, 1); 
+        tmp7 =  Matrix(nominalStates, 1);
+        tmp8 =  Matrix(observations, 1);
       }
       
     public:
 
+      ESKF(){}
+
       void init(void)
       {
-          Serial.println("ESKF init");
           initMatrices();
-
-          eskf.x->set(0, 0, 1.0);
-          eskf.x->set(1, 0, 0.0);
-          eskf.x->set(2, 0, 0.0);
-          eskf.x->set(3, 0, 0.0);
+          x.set(0, 0, 1.0);
+          x.set(1, 0, 0.0);
+          x.set(2, 0, 0.0);
+          x.set(3, 0, 0.0);
           
-          eskf.P->set(0, 0, 1.0);
-          eskf.P->set(1, 0, 0.0);
-          eskf.P->set(2, 0, 0.0);
+          P.set(0, 0, 1.0);
+          P.set(1, 0, 0.0);
+          P.set(2, 0, 0.0);
           
-          eskf.P->set(0, 1, 0.0);
-          eskf.P->set(1, 1, 1.0);
-          eskf.P->set(2, 1, 0.0);
+          P.set(0, 1, 0.0);
+          P.set(1, 1, 1.0);
+          P.set(2, 1, 0.0);
 
-          eskf.P->set(0, 2, 0.0);
-          eskf.P->set(1, 2, 0.0);
-          eskf.P->set(2, 2, 1.0);
-          Serial.println("ESKF end init");
+          P.set(0, 2, 0.0);
+          P.set(1, 2, 0.0);
+          P.set(2, 2, 1.0);
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -180,24 +184,23 @@ namespace hf {
         dt = (t_now - t_lastCall)/1000000.0;
         t_lastCall = t_now;
         
-        _sensors[sensorIndex]->getJacobianModel(eskf.Fx, dt);
-        _sensors[sensorIndex]->getJacobianErrors(eskf.Fdx, dt);
-        _sensors[sensorIndex]->getCovarianceEstimation(eskf.Q, errorStates);
+        _sensors[sensorIndex]->getJacobianModel(Fx, dt);
+        _sensors[sensorIndex]->getJacobianErrors(Fdx, dt);
+        _sensors[sensorIndex]->getCovarianceEstimation(Q, errorStates);
         
-        /* f(x) = F*eskf.x; */
-        Matrix::mult(eskf.Fx, eskf.x, eskf.tmp6);
-        Matrix::norvec(eskf.tmp6, eskf.fx);
+        /* f(x) = F*x; */
+        Matrix::mult(Fx, x, tmp6);
+        Matrix::norvec(tmp6, fx);
 
         /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
-        Matrix::mult(eskf.Fdx, eskf.P, eskf.tmp0);
-        Matrix::trans(eskf.Fdx, eskf.Fdxt);
-        Matrix::mult(eskf.tmp0, eskf.Fdxt, eskf.tmp1);
-        Matrix::accum(eskf.tmp1, eskf.Q);
-        Matrix::makesym(eskf.tmp1, eskf.Pp);
+        Matrix::mult(Fdx, P, tmp0);
+        Matrix::trans(Fdx, Fdxt);
+        Matrix::mult(tmp0, Fdxt, tmp1);
+        Matrix::accum(tmp1, Q);
+        Matrix::makesym(tmp1, Pp);
 
         /* success */
         return 0;
-        
       }
       
       int correct(void) {
@@ -214,55 +217,55 @@ namespace hf {
           8. Update Covariance if required and enforce symmetry
           9. Reset errors
         */
-        _sensors[sensorIndex]->getJacobianObservation(eskf.H, eskf.x, errorStates);
-        _sensors[sensorIndex]->getInnovation(eskf.hx, eskf.x);
-        _sensors[sensorIndex]->getCovarianceCorrection(eskf.R);
+        _sensors[sensorIndex]->getJacobianObservation(H, x, errorStates);
+        _sensors[sensorIndex]->getInnovation(hx, x);
+        _sensors[sensorIndex]->getCovarianceCorrection(R);
         // Compute gain:
         /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
-        Matrix::trans(eskf.H, eskf.Ht);
-        Matrix::mult(eskf.Pp, eskf.Ht, eskf.tmp1);             // P*H'
-        Matrix::mult(eskf.H, eskf.Pp, eskf.tmp2);              // H*P
-        Matrix::mult(eskf.tmp2, eskf.Ht, eskf.tmp3);           // H*P*H'
-        Matrix::accum(eskf.tmp3, eskf.R);                               // Z = H*P*H' + R
-        if (Matrix::cholsl(eskf.tmp3, eskf.tmp4, eskf.tmp5)) return 1; // tmp4 = Z^-1
-        Matrix::mult(eskf.tmp1, eskf.tmp4, eskf.K);            // K = P*H'*Z^-1
+        Matrix::trans(H, Ht);
+        Matrix::mult(Pp, Ht, tmp1);             // P*H'
+        Matrix::mult(H, Pp, tmp2);              // H*P
+        Matrix::mult(tmp2, Ht, tmp3);           // H*P*H'
+        Matrix::accum(tmp3, R);                               // Z = H*P*H' + R
+        if (Matrix::cholsl(tmp3, tmp4, tmp5)) return 1; // tmp4 = Z^-1
+        Matrix::mult(tmp1, tmp4, K);            // K = P*H'*Z^-1
         
         // Estimate errors:
         /* dx = K * hx */
-        Matrix::mult(eskf.K, eskf.hx, eskf.dx);
+        Matrix::mult(K, hx, dx);
 
         // Update covariance
         /* P_k = P_k - K_k Z_k K^T_k  */
-        Matrix::trans(eskf.K, eskf.Kt);
-        Matrix::mult(eskf.K, eskf.tmp3, eskf.tmp0);
-        Matrix::mult(eskf.tmp0, eskf.Kt, eskf.tmp3);
-        Matrix::sub(eskf.Pp, eskf.tmp3, eskf.tmp0);
-        Matrix::makesym(eskf.tmp0, eskf.P);
+        Matrix::trans(K, Kt);
+        Matrix::mult(K, tmp3, tmp0);
+        Matrix::mult(tmp0, Kt, tmp3);
+        Matrix::sub(Pp, tmp3, tmp0);
+        Matrix::makesym(tmp0, P);
 
         /* Error injection */
         // XXX This is sensor dependent
-        eskf.tmp6->set(0, 0, 1.0);
-        eskf.tmp6->set(1, 0, eskf.dx->get(0, 0)/2.0);
-        eskf.tmp6->set(2, 0, eskf.dx->get(1, 0)/2.0);
-        eskf.tmp6->set(3, 0, eskf.dx->get(2, 0)/2.0);
+        tmp6.set(0, 0, 1.0);
+        tmp6.set(1, 0, dx.get(0, 0)/2.0);
+        tmp6.set(2, 0, dx.get(1, 0)/2.0);
+        tmp6.set(3, 0, dx.get(2, 0)/2.0);
         computeqL();
-        Matrix::mult(eskf.qL, eskf.tmp6, eskf.tmp7);
-        if (Matrix::norvec(eskf.tmp7, eskf.x)) return 1;
+        Matrix::mult(qL, tmp6, tmp7);
+        if (Matrix::norvec(tmp7, x)) return 1;
 
         /* Update covariance*/
         // XXX Only when correcting estimation
-        eskf.tmp5->set(0,0, eskf.dx->get(0, 0)/2.0);
-        eskf.tmp5->set(1,0, eskf.dx->get(1, 0)/2.0);
-        eskf.tmp5->set(2,0, eskf.dx->get(2, 0)/2.0);
-        if (Matrix::skew(eskf.tmp5, eskf.G)) return 1;
-        Matrix::negate(eskf.G);
-        Matrix::addeye(eskf.G);
-        Matrix::trans(eskf.G, eskf.tmp0);
-        Matrix::mult(eskf.P, eskf.tmp0, eskf.Pp);
-        Matrix::mult(eskf.G, eskf.Pp, eskf.P);
+        tmp5.set(0,0, dx.get(0, 0)/2.0);
+        tmp5.set(1,0, dx.get(1, 0)/2.0);
+        tmp5.set(2,0, dx.get(2, 0)/2.0);
+        if (Matrix::skew(tmp5, G)) return 1;
+        Matrix::negate(G);
+        Matrix::addeye(G);
+        Matrix::trans(G, tmp0);
+        Matrix::mult(P, tmp0, Pp);
+        Matrix::mult(G, Pp, P);
 
         /* reset error state */
-        Matrix::zeros(eskf.dx);
+        Matrix::zeros(dx);
 
         /* success */
         return 0;
@@ -270,10 +273,10 @@ namespace hf {
       
       void getState(float q[4])
       {
-        q[0] = eskf.x->get(0,0);
-        q[1] = eskf.x->get(1,0);
-        q[2] = eskf.x->get(2,0);
-        q[3] = eskf.x->get(3,0);
+        q[0] = x.get(0,0);
+        q[1] = x.get(1,0);
+        q[2] = x.get(2,0);
+        q[3] = x.get(3,0);
       }
 
   }; // class ESKF

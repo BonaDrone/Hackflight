@@ -47,6 +47,8 @@ namespace hf {
 
         private: 
 
+            int counter = 0;
+
             // XXX use a proper version formating
             uint8_t _firmwareVersion = 0;
 
@@ -57,7 +59,7 @@ namespace hf {
             Mixer      * _mixer;
             Planner      planner;
 
-            ESKF * eskf;
+            ESKF eskf = ESKF();
 
             // PID controllers
             PID_Controller * _pid_controllers[256];
@@ -426,10 +428,11 @@ namespace hf {
                 _ratePid  = ratePid;
                 
                 // Error state kalman filter
-                eskf->init();
-                eskf->addSensorESKF(&_gyrometer);
+                eskf.init();
+                Serial.println("initialized");
+                eskf.addSensorESKF(&_gyrometer);
                 _accelerometer.setObservationRows(3);
-                eskf->addSensorESKF(&_accelerometer);
+                eskf.addSensorESKF(&_accelerometer);
                 Serial.println("ESKF initialized");
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
@@ -505,13 +508,14 @@ namespace hf {
                 // XXX Only for debuging purposes
                 // readEEPROM();
                 // For debugging
-                Serial.println("Update");
-                eskf->update();
-                //eskf->correct();
+                eskf.update();
+                //eskf.correct();
                 //float _q[4];
-                //eskf->getState(_q);
+                //eskf.getState(_q);
                 //float euler[3];
                 //Quaternion::computeEulerAngles(_q, euler);
+                Serial.println(counter);
+                counter = counter + 1;
 
             } 
 
