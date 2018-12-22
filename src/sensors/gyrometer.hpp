@@ -85,7 +85,6 @@ namespace hf {
             
             virtual void getCovarianceEstimation(Matrix * Q, uint8_t errorStates) override
             {
-                Q->setDimensions(errorStates, errorStates);
                 Q->set(0, 0, 0.0001);
                 Q->set(1, 1, 0.0001);
             }

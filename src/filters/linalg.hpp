@@ -31,14 +31,14 @@ namespace hf {
             // avoid dynamic memory allocation
             static const uint8_t MAXSIZE = 16;
 
-            uint8_t _rows = 0;
-            uint8_t _cols = 0;
+            uint8_t _rows;
+            uint8_t _cols;
 
             float _vals[MAXSIZE][MAXSIZE];
 
         public:
 
-            void setDimensions(uint8_t rows, uint8_t cols)
+            Matrix(uint8_t rows, uint8_t cols)
             {
                 _rows = rows;
                 _cols = cols;
@@ -69,7 +69,6 @@ namespace hf {
             {
                 double norm;
                 if (v->_cols != 1) return 1;
-                r->setDimensions(v->_rows, v->_cols);
                 for (int ii=0; ii<v->_rows; ++ii)
                   norm += v->_vals[ii][0]*v->_vals[ii][0];
                 
@@ -84,7 +83,6 @@ namespace hf {
             static int skew(Matrix * x, Matrix * c)
             {
                 if (x->_rows != 3 or x->_cols != 1) return 1;
-                c->setDimensions(x->_rows, x->_rows);
                 c->_vals[0][0] =  0.0;
                 c->_vals[1][0] =  x->_vals[2][0];
                 c->_vals[2][0] = -x->_vals[1][0];
@@ -102,7 +100,6 @@ namespace hf {
             // AT <- A'
             static void trans(Matrix * a, Matrix * at)
             {
-                at->setDimensions(a->_cols, a->_rows);
                 for (uint8_t j=0; j<a->_rows; ++j) {
                     for (uint8_t k=0; k<a->_cols; ++k) {
                         at->_vals[k][j] = a->_vals[j][k];
@@ -113,7 +110,6 @@ namespace hf {
             // C <- A * B
             static void mult(Matrix * a, Matrix * b, Matrix * c)
             {
-                c->setDimensions(a->_rows, b->_cols);
                 for(uint8_t i=0; i<a->_rows; ++i) {
                     for(uint8_t j=0; j<b->_cols; ++j) {
                         c->_vals[i][j] = 0;
@@ -127,7 +123,6 @@ namespace hf {
             // C <- A + B
             static void add(Matrix * a, Matrix * b, Matrix * c)
             {
-              c->setDimensions(a->_rows, a->_cols);
               for(uint8_t i=0; i<a->_rows; ++i) {
                   for(uint8_t j=0; j<a->_cols; ++j) {
                       c->_vals[i][j] = a->_vals[i][j] + b->_vals[i][j];
@@ -148,7 +143,6 @@ namespace hf {
             // C <- A - B
             static void sub(Matrix * a, Matrix * b, Matrix * c)
             {
-              c->setDimensions(a->_rows, a->_cols);
               for(uint8_t i=0; i<a->_rows; ++i) {
                   for(uint8_t j=0; j<a->_cols; ++j) {
                       c->_vals[i][j] = a->_vals[i][j] - b->_vals[i][j];
@@ -159,7 +153,6 @@ namespace hf {
             // B <- (A + A') / 2
             static void makesym(Matrix * a, Matrix * b)
             {
-                b->setDimensions(a->_rows, a->_cols);
                 for (int ii=0; ii<a->_rows; ++ii)
                 {
                   for (int jj=0; jj<a->_cols; ++jj)
@@ -171,7 +164,7 @@ namespace hf {
             
             static void zeros(Matrix * a)
             {
-                a->setDimensions(a->_rows, a->_cols);
+                memset(a->_vals, 0, a->_rows*a->_cols*sizeof(float));                
             }
             
             static void negate(Matrix * a)
@@ -242,8 +235,6 @@ namespace hf {
             static int cholsl(Matrix * A, Matrix * a, Matrix * p) 
             {
                 int i,j,k;
-                a->setDimensions(A->_rows, A->_cols);
-                p->setDimensions(A->_rows, 1);
                 if (choldcsl(A,a,p)) return 1;
                 for (i = 0; i < A->_rows; i++) {
                     for (j = i + 1; j < A->_cols; j++) {

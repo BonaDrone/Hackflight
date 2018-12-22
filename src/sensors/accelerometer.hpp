@@ -65,7 +65,6 @@ namespace hf {
             virtual void getJacobianObservation(Matrix * H, Matrix * x, uint8_t errorStates) override
             {
                 // Set Jacobian Dimensions
-                H->setDimensions(getObservationRows(), errorStates);
                 // First Column
                 H->set(0, 0, 0.0);
                 H->set(1, 0, x->get(0, 0)*x->get(0, 0) - 
@@ -93,7 +92,6 @@ namespace hf {
             virtual void getInnovation(Matrix * z, Matrix * x) override
             {
                 // We might have to normalize these two vectors (y and h)
-                z->setDimensions(getObservationRows(), 1);
                 // Predicted Observations
                 _predictedObservation[0] = (2*x->get(0, 0)*x->get(2, 0) - 
                                             2*x->get(1, 0)*x->get(3, 0))*-9.80665;
@@ -111,7 +109,6 @@ namespace hf {
             
             virtual void getCovarianceCorrection(Matrix * R) override
             {
-                R->setDimensions(getObservationRows(), getObservationRows());
                 // Approximate the process noise using a small constant
                 R->set(0, 0, 0.0001f);
                 R->set(1, 1, 0.0001f);

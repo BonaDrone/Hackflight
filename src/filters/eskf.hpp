@@ -32,8 +32,9 @@ namespace hf {
     
       eskf_t eskf;
 
-      uint8_t errorStates = 3;
-      uint8_t states = 4;
+      static const uint8_t errorStates = 3;
+      static const uint8_t nominalStates = 4;
+      static const uint8_t observations = 3;
 
       double t_lastCall;
       double dt;
@@ -44,7 +45,6 @@ namespace hf {
       
       void computeqL(void)
       {
-          eskf.qL->setDimensions(4, 4);
           
           eskf.qL->set(0, 0, eskf.x->get(0, 0));
           eskf.qL->set(1, 0, eskf.x->get(1, 0));
@@ -70,65 +70,65 @@ namespace hf {
       void initMatrices(void)
       {
         Serial.println("Creating matrices");
-        Matrix *x = new Matrix();     /*nominal state vector */
+        Matrix *x = new Matrix(nominalStates, 1);     /*nominal state vector */
         eskf.x = x;
-        Matrix *dx = new Matrix();    /*error-state vector*/
+        Matrix *dx = new Matrix(errorStates, 1);    /*error-state vector*/
         eskf.dx = dx;
-        Matrix *qL = new Matrix();    /*Left Matrix *quaternion*/
+        Matrix *qL = new Matrix(nominalStates, nominalStates);    /*Left Matrix *quaternion*/
         eskf.qL = qL;
 
-        Matrix *P = new Matrix();     /* prediction error covariance */
+        Matrix *P = new Matrix(errorStates, errorStates);     /* prediction error covariance */
         eskf.P = P;
-        Matrix *Q = new Matrix();     /* process noise covariance */
+        Matrix *Q = new Matrix(errorStates, errorStates);     /* process noise covariance */
         eskf.Q = Q;
-        Matrix *R = new Matrix();     /* measurement error covariance */
+        Matrix *R = new Matrix(observations, observations);     /* measurement error covariance */
         eskf.R = R;
 
-        Matrix *K = new Matrix();     /* Kalman gain; a.k.a. K */
+        Matrix *K = new Matrix(errorStates, observations);     /* Kalman gain; a.k.a. K */
         eskf.K = K;
-        Matrix *Kt = new Matrix();    /* transpose Kalman gain; a.k.a. K */
+        Matrix *Kt = new Matrix(observations, errorStates);    /* transpose Kalman gain; a.k.a. K */
         eskf.Kt = Kt;
 
-        Matrix *Fx = new Matrix();    /* Jacobian of process model */
+        Matrix *Fx = new Matrix(nominalStates, nominalStates);    /* Jacobian of process model */
         eskf.Fx = Fx;
-        Matrix *Fdx = new Matrix();   /* Jacobian of process model */
+        Matrix *Fdx = new Matrix(errorStates, errorStates);   /* Jacobian of process model */
         eskf.Fdx = Fdx;
-        Matrix *H = new Matrix();     /* Jacobian of measurement model */
+        Matrix *H = new Matrix(observations, errorStates);     /* Jacobian of measurement model */
         eskf.H = H;
 
-        Matrix *Ht = new Matrix();    /* transpose of measurement Jacobian */
+        Matrix *Ht = new Matrix(errorStates, observations);    /* transpose of measurement Jacobian */
         eskf.Ht = Ht;
-        Matrix *Fdxt = new Matrix();  /* transpose of process Jacobian */
+        Matrix *Fdxt = new Matrix(errorStates, errorStates);  /* transpose of process Jacobian */
         eskf.Fdxt = Fdxt;
-        Matrix *Pp = new Matrix();    /* P, post-prediction, pre-update */
+        Matrix *Pp = new Matrix(errorStates, errorStates);    /* P, post-prediction, pre-update */
         eskf.Pp = Pp;
         
-        Matrix *G = new Matrix();  
+        Matrix *G = new Matrix(errorStates, errorStates);  
         eskf.G = G;
 
-        Matrix *fx = new Matrix();   /* output of user defined f() state-transition function */
+        Matrix *fx = new Matrix(nominalStates, 1);   /* output of user defined f() state-transition function */
         eskf.fx = fx;
-        Matrix *hx = new Matrix();   /* output of user defined h() measurement function */
+        Matrix *hx = new Matrix(observations, 1);   /* output of user defined h() measurement function */
         eskf.hx = hx;
 
         /* temporary storage */
-        Matrix *tmp0 = new Matrix();
+        Matrix *tmp0 = new Matrix(errorStates, errorStates);
         eskf.tmp0 = tmp0;
-        Matrix *tmp1 = new Matrix();
+        Matrix *tmp1 = new Matrix(errorStates, observations);
         eskf.tmp1 = tmp1;
-        Matrix *tmp2 = new Matrix();
+        Matrix *tmp2 = new Matrix(observations, errorStates);
         eskf.tmp2 = tmp2;
-        Matrix *tmp3 = new Matrix();
+        Matrix *tmp3 = new Matrix(observations, observations);
         eskf.tmp3 = tmp3;
-        Matrix *tmp4 = new Matrix();
+        Matrix *tmp4 = new Matrix(observations, observations);
         eskf.tmp4 = tmp4;
-        Matrix *tmp5 = new Matrix();
+        Matrix *tmp5 = new Matrix(observations, 1);
         eskf.tmp5 = tmp5;
-        Matrix *tmp6 = new Matrix(); 
+        Matrix *tmp6 = new Matrix(nominalStates, 1); 
         eskf.tmp6 = tmp6;
-        Matrix *tmp7 = new Matrix();
+        Matrix *tmp7 = new Matrix(nominalStates, 1);
         eskf.tmp7 = tmp7;
-        Matrix *tmp8 = new Matrix();
+        Matrix *tmp8 = new Matrix(observations, 1);
         eskf.tmp8 = tmp8;
         Serial.println("Done");
       }
@@ -139,9 +139,6 @@ namespace hf {
       {
           Serial.println("ESKF init");
           initMatrices();
-
-          eskf.P->setDimensions(errorStates, errorStates);
-          eskf.x->setDimensions(states, 1);
 
           eskf.x->set(0, 0, 1.0);
           eskf.x->set(1, 0, 0.0);
@@ -244,7 +241,6 @@ namespace hf {
 
         /* Error injection */
         // XXX This is sensor dependent
-        eskf.tmp6->setDimensions(4,1);
         eskf.tmp6->set(0, 0, 1.0);
         eskf.tmp6->set(1, 0, eskf.dx->get(0, 0)/2.0);
         eskf.tmp6->set(2, 0, eskf.dx->get(1, 0)/2.0);
@@ -255,7 +251,6 @@ namespace hf {
 
         /* Update covariance*/
         // XXX Only when correcting estimation
-        eskf.tmp5->setDimensions(3, 1);
         eskf.tmp5->set(0,0, eskf.dx->get(0, 0)/2.0);
         eskf.tmp5->set(1,0, eskf.dx->get(1, 0)/2.0);
         eskf.tmp5->set(2,0, eskf.dx->get(2, 0)/2.0);
