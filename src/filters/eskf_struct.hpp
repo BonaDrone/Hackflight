@@ -24,47 +24,84 @@
 
 #pragma once
 
-#include "linalg.hpp"
-
 namespace hf {
 
   typedef struct {
 
-      Matrix * x;     /*nominal state vector */
-      Matrix * dx;    /*error-state vector*/
-      Matrix * qL;    /*Left matrix quaternion*/
+      double x[NNsta];    /*nominal state vector */
+      double dx[NEsta];   /*error-state vector*/
+      double qL[NNsta][NNsta]; /*Left matrix quaternion*/
 
-      Matrix * P;     /* prediction error covariance */
-      Matrix * Q;     /* process noise covariance */
-      Matrix * R;     /* measurement error covariance */
+      double P[NEsta][NEsta];  /* prediction error covariance */
+      double Q[NEsta][NEsta];  /* process noise covariance */
+      double R[Mobs][Mobs];  /* measurement error covariance */
 
-      Matrix * K;     /* Kalman gain; a.k.a. K */
-      Matrix * Kt;    /* transpose Kalman gain; a.k.a. K */
+      double K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
+      double Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
 
-      Matrix * Fx;    /* Jacobian of process model */
-      Matrix * Fdx;   /* Jacobian of process model */
-      Matrix * H;     /* Jacobian of measurement model */
+      double Fx[NNsta][NNsta];  /* Jacobian of process model */
+      double Fdx[NEsta][NEsta];  /* Jacobian of process model */
+      double H[Mobs][NEsta];  /* Jacobian of measurement model */
 
-      Matrix * Ht;    /* transpose of measurement Jacobian */
-      Matrix * Fdxt;  /* transpose of process Jacobian */
-      Matrix * Pp;    /* P, post-prediction, pre-update */
+      double Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
+      double Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
+      double Pp[NEsta][NEsta]; /* P, post-prediction, pre-update */
       
-      Matrix * G;  
+      double G[NEsta][NEsta];  
 
-      Matrix * fx;   /* output of user defined f() state-transition function */
-      Matrix * hx;   /* output of user defined h() measurement function */
+      double fx[NNsta];   /* output of user defined f() state-transition function */
+      double hx[Mobs];   /* output of user defined h() measurement function */
 
       /* temporary storage */
-      Matrix * tmp0;
-      Matrix * tmp1;
-      Matrix * tmp2;
-      Matrix * tmp3;
-      Matrix * tmp4;
-      Matrix * tmp5;
-      Matrix * tmp6; 
-      Matrix * tmp7;
-      Matrix * tmp8;
+      double tmp0[NEsta][NEsta];
+      double tmp1[NEsta][Mobs];
+      double tmp2[Mobs][NEsta];
+      double tmp3[Mobs][Mobs];
+      double tmp4[Mobs][Mobs];
+      double tmp5[Mobs];
+      double tmp6[NNsta]; 
+      double tmp7[NNsta];
+      double tmp8[Mobs];
 
   } eskf_t;
+  
+  typedef struct {
+
+      double * x;    /*nominal state vector */
+      double * dx;   /*error-state vector*/
+      double * qL; /*Left matrix quaternion*/
+
+      double * P;  /* prediction error covariance */
+      double * Q;  /* process noise covariance */
+      double * R;  /* measurement error covariance */
+
+      double * K;  /* Kalman gain; a.k.a. K */
+      double * Kt;  /* transpose Kalman gain; a.k.a. K */
+
+      double * Fx;  /* Jacobian of process model */
+      double * Fdx;  /* Jacobian of process model */
+      double * H;  /* Jacobian of measurement model */
+
+      double * Ht; /* transpose of measurement Jacobian */
+      double * Fdxt; /* transpose of process Jacobian */
+      double * Pp; /* P, post-prediction, pre-update */
+      
+      double * G;  
+
+      double * fx;   /* output of user defined f() state-transition function */
+      double * hx;   /* output of user defined h() measurement function */
+
+      /* temporary storage */
+      double * tmp0;
+      double * tmp1;
+      double * tmp2;
+      double * tmp3;
+      double * tmp4;
+      double * tmp5;
+      double * tmp6; 
+      double * tmp7;
+      double * tmp8;
+
+  } eskf_p_t;
   
 } // namespace hf

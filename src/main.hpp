@@ -120,7 +120,7 @@ namespace hf {
                 rc.setTrimYaw(-0.0384381f);
 
                 // Instantiate controllers after loading parameters
-                hf::Rate ratePid = hf::Rate(
+                hf::Rate * ratePid = new hf::Rate(
                   _gyroRollPitchP,
                   _gyroRollPitchI,
                   _gyroRollPitchD,
@@ -128,28 +128,28 @@ namespace hf {
                   _gyroYawI,
                   _demandsToRate);
 
-                hf::Level level = hf::Level(_levelP);  // Pitch Level P
+                hf::Level * level = new hf::Level(_levelP);  // Pitch Level P
 
                 // Add additional sensors
                 if (_hasPositioningBoard)
                 {
-                    hf::AltitudeHold althold = hf::AltitudeHold(
+                    hf::AltitudeHold * althold = new hf::AltitudeHold(
                         _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
                         _altHoldVelP,   // Altitude Hold Velocity P
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
-                    h.addPidController(&althold, 2);
+                    h.addPidController(althold, 2);
                 }
 
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
-                h.addPidController(&level, 0);
+                h.addPidController(level, 0);
                 
                 if (_isMosquito90) {
-                    h.init(new hf::BonadroneBrushed(), &rc, &mixer, &ratePid);
+                    h.init(new hf::BonadroneBrushed(), &rc, &mixer, ratePid);
                 } else {
-                    h.init(new hf::BonadroneMultiShot(), &rc, &mixer, &ratePid);
+                    h.init(new hf::BonadroneMultiShot(), &rc, &mixer, ratePid);
                 }
                 // Add additional sensors
                 //if (_hasPositioningBoard)

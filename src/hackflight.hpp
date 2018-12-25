@@ -47,8 +47,6 @@ namespace hf {
 
         private: 
 
-            int counter = 0;
-
             // XXX use a proper version formating
             uint8_t _firmwareVersion = 0;
 
@@ -133,6 +131,20 @@ namespace hf {
                     if (_state.armed && !_failsafe && !_receiver->throttleIsDown()) {
                         _mixer->runArmed(_demands);
                     }
+                    
+                }
+            }
+
+            void checkAccelerometer(void)
+            {
+                // Some gyrometers may need to know the current time
+                float time = _board->getTime();
+
+                // If gyrometer data ready
+                if (_accelerometer.ready(time)) {
+
+                    // Update state with gyro rates
+                    _accelerometer.modifyState(_state, time);                    
                 }
             }
 
@@ -152,7 +164,6 @@ namespace hf {
 
                     // XXX we should allow associating PID controllers with particular aux states
                     if (pidController->auxState <= auxState) {  
-
                         if (pidController->modifyDemands(_state, _demands, currentTime) && pidController->shouldFlashLed()) {
                             shouldFlash = true;
                         }
@@ -429,20 +440,18 @@ namespace hf {
                 
                 // Error state kalman filter
                 eskf.init();
-                Serial.println("initialized");
                 eskf.addSensorESKF(&_gyrometer);
-                _accelerometer.setObservationRows(3);
                 eskf.addSensorESKF(&_accelerometer);
-                Serial.println("ESKF initialized");
                 // Support for mandatory sensors
                 addSensor(&_quaternion, board);
                 addSensor(&_gyrometer, board);
+                addSensor(&_accelerometer, board);
 
                 // Support adding new sensors and PID controllers
                 _sensor_count = 0;
 
                 // Last PID controller is always ratePid (rate), aux state = 0
-                addPidController(ratePid, 0);
+                addPidController(_ratePid, 0);
 
                 // Initialize state
                 memset(&_state, 0, sizeof(state_t));
@@ -463,13 +472,11 @@ namespace hf {
                 // XXX Only for debuging purposes.
                 //planner.printMission();
 
-
                 // Tell the mixer which board to use
                 _mixer->board = board; 
 
                 // Setup failsafe
                 _failsafe = false;
-                Serial.println("End init");
             } // init
 
             void addSensor(PeripheralSensor * sensor) 
@@ -487,7 +494,6 @@ namespace hf {
             void addPidController(PID_Controller * pidController, uint8_t auxState) 
             {
                 pidController->auxState = auxState;
-
                 _pid_controllers[_pid_controller_count++] = pidController;
             }
 
@@ -501,6 +507,7 @@ namespace hf {
                 // Check mandatory sensors
                 checkGyrometer();
                 checkQuaternion();
+                checkAccelerometer();
 
                 // Check optional sensors
                 checkOptionalSensors();
@@ -509,14 +516,16 @@ namespace hf {
                 // readEEPROM();
                 // For debugging
                 eskf.update();
-                //eskf.correct();
-                //float _q[4];
-                //eskf.getState(_q);
-                //float euler[3];
-                //Quaternion::computeEulerAngles(_q, euler);
-                Serial.println(counter);
-                counter = counter + 1;
-
+                eskf.correct();
+                float _q[4];
+                eskf.getState(_q);
+                float euler[3];
+                Quaternion::computeEulerAngles(_q, euler);
+                Serial.print(euler[0]);
+                Serial.print(",");
+                Serial.print(euler[1]);
+                Serial.print(",");
+                Serial.println(euler[2]);
             } 
 
     }; // class Hackflight

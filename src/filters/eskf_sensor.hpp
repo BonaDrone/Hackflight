@@ -28,36 +28,22 @@
 namespace hf {
 
     class ESKF_Sensor : public Sensor {
-      
-      private:
-
-        uint8_t _observationRows = 0;
         
       public:
 
         // This methods should be overriden by sensors that estimate
-        virtual void getJacobianModel(Matrix Fx, double dt) { (void)Fx; }
+        virtual void getJacobianModel(double * Fx, double dt) { (void)Fx; }
         
-        virtual void getJacobianErrors(Matrix Fdx, double dt) { (void)Fdx; }
+        virtual void getJacobianErrors(double * Fdx, double dt) { (void)Fdx; }
         
-        virtual void getCovarianceEstimation(Matrix Q, uint8_t errorStates) { (void)Q; }
+        virtual void getCovarianceEstimation(double * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
-        virtual void getJacobianObservation(Matrix H, Matrix x, uint8_t errorStates) { (void)H; (void)x; }
+        virtual void getJacobianObservation(double * H, double * x) { (void)H; (void)x; }
         
-        virtual void getInnovation(Matrix z, Matrix x) { (void)z; }
+        virtual void getInnovation(double * z, double * x) { (void)z; }
         
-        virtual void getCovarianceCorrection(Matrix N) { (void)N; }
-        
-        uint8_t setObservationRows(uint8_t rows)
-        {
-            _observationRows = rows;
-        }
-        
-        uint8_t getObservationRows(void)
-        {
-            return _observationRows;
-        }
+        virtual void getCovarianceCorrection(double * N) { (void)N; }
 
     }; // class ESKF_Sensor
 

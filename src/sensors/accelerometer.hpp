@@ -58,67 +58,64 @@ namespace hf {
             virtual bool ready(float time) override
             {
                 (void)time;
-
                 return board->getAccelerometer(_gs);
             }
             
-            virtual void getJacobianObservation(Matrix H, Matrix x, uint8_t errorStates) override
+            virtual void getJacobianObservation(double * H, double * x) override
             {
-                // Set Jacobian Dimensions
-                // First Column
-                H.set(0, 0, 0.0);
-                H.set(1, 0, x.get(0, 0)*x.get(0, 0) - 
-                             x.get(1, 0)*x.get(1, 0) - 
-                             x.get(2, 0)*x.get(2, 0) +
-                             x.get(3, 0)*x.get(3, 0));
-                H.set(2, 0, - 2*x.get(0, 0)*x.get(1, 0) - 
-                               2*x.get(2, 0)*x.get(3, 0));
-                // Second Column
-                H.set(0, 1, -x.get(0, 0)*x.get(0, 0) + 
-                              x.get(1, 0)*x.get(1, 0) +
-                              x.get(2, 0)*x.get(2, 0) - 
-                              x.get(3, 0)*x.get(3, 0));
-                H.set(1, 1, 0.0);
-                H.set(2, 1, 2*x.get(1, 0)*x.get(3, 0) -
-                             2*x.get(0, 0)*x.get(2, 0));
-                // Third Column
-                H.set(0, 2, 2*x.get(0, 0)*x.get(1, 0) + 
-                             2*x.get(2, 0)*x.get(3, 0));
-                H.set(1, 2, 2*x.get(0, 0)*x.get(2, 0) -
-                             2*x.get(1, 0)*x.get(3, 0));
-                H.set(2, 2, 0.0);              
+              // First Column
+              H[0]  =  0.0;
+              H[3]  =  x[0]*x[0] - x[1]*x[1] - x[2]*x[2] + x[3]*x[3];
+              H[6]  = - 2*x[0]*x[1] - 2*x[2]*x[3];
+              // Second Column
+              H[1]  = -x[0]*x[0] + x[1]*x[1] + x[2]*x[2] - x[3]*x[3];
+              H[4]  =  0.0;
+              H[7]  = 2*x[1]*x[3] - 2*x[0]*x[2];
+              // Third Column
+              H[2]  = 2*x[0]*x[1] + 2*x[2]*x[3];
+              H[5]  = 2*x[0]*x[2] - 2*x[1]*x[3];
+              H[8]  = 0.0;
             }
 
-            virtual void getInnovation(Matrix z, Matrix x) override
+            virtual void getInnovation(double * z, double * x) override
             {
+                double meas[3];
+                double tmp1[3];
+                double tmp2[3];
+                meas[0] = (double)_gs[0]*9.80665;
+                meas[1] = (double)_gs[1]*9.80665;
+                meas[2] = (double)_gs[2]*9.80665;
                 // We might have to normalize these two vectors (y and h)
                 // Predicted Observations
-                _predictedObservation[0] = (2*x.get(0, 0)*x.get(2, 0) - 
-                                            2*x.get(1, 0)*x.get(3, 0))*-9.80665;
-                _predictedObservation[1] = (-2*x.get(0, 0)*x.get(1, 0) - 
-                                             2*x.get(2, 0)*x.get(3, 0))*-9.80665;
-                _predictedObservation[2] = (-x.get(0, 0)*x.get(0, 0) + 
-                                             x.get(1, 0)*x.get(1, 0) +
-                                             x.get(2, 0)*x.get(2, 0) -
-                                             x.get(3, 0)*x.get(3, 0))*-9.80665;
+                _predictedObservation[0] = (double)((2*x[0]*x[2] - 
+                                            2*x[1]*x[3])*-9.80665);
+                _predictedObservation[1] = (double)((-2*x[0]*x[1] - 
+                                             2*x[2]*x[3])*-9.80665);
+                _predictedObservation[2] = (double)((-x[0]*x[0] + 
+                                             x[1]*x[1] +
+                                             x[2]*x[2] -
+                                             x[3]*x[3])*-9.80665);
+                                             
+                norvec(_predictedObservation, tmp1, 3);
+                norvec(meas, tmp2, 3);
                 // innovation = measured - predicted
-                z.set(0, 0, _gs[0]*9.80665 - _predictedObservation[0]);
-                z.set(1, 0, _gs[1]*9.80665 - _predictedObservation[1]);
-                z.set(2, 0, _gs[2]*9.80665 - _predictedObservation[2]);
+                z[0] = tmp2[0] - tmp1[0];
+                z[1] = tmp2[1] - tmp1[1];
+                z[2] = tmp2[2] - tmp1[2];
             }
             
-            virtual void getCovarianceCorrection(Matrix R) override
+            virtual void getCovarianceCorrection(double * R) override
             {
                 // Approximate the process noise using a small constant
-                R.set(0, 0, 0.0001f);
-                R.set(1, 1, 0.0001f);
-                R.set(2, 2, 0.0001f);
+                R[0] = 0.0001f;
+                R[4] = 0.0001f;
+                R[8] = 0.0001f;
             }
 
         private:
 
             float _gs[3];
-            float _predictedObservation[3];
+            double _predictedObservation[3];
 
     };  // class Accelerometer
 

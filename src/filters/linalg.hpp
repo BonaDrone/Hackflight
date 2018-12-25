@@ -19,249 +19,216 @@
 
 #pragma once
 
-#include <string.h>
-#include <debug.hpp>
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 namespace hf {
 
-    class Matrix {
+  /* Cholesky-decomposition matrix-inversion code, adapated from
+     http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/choles_cpp.txt */
 
-        private:
+  static int choldc1(double * a, double * p, int n) {
+      int i,j,k;
+      double sum;
 
-            // avoid dynamic memory allocation
-            static const uint8_t MAXSIZE = 16;
-
-            uint8_t _rows;
-            uint8_t _cols;
-
-            float _vals[MAXSIZE][MAXSIZE];
-
-        public:
-            
-            Matrix(){}
-
-            Matrix(uint8_t rows, uint8_t cols)
-            {
-                _rows = rows;
-                _cols = cols;
-                memset(_vals, 0, rows*cols*sizeof(float));
-            }
-
-            float get(uint8_t j, uint8_t k)
-            {
-                return _vals[j][k];
-            }
-
-            float set(uint8_t j, uint8_t k, float val)
-            {
-                _vals[j][k] = val;
-            }
-
-            void dump(void)
-            {
-                for (uint8_t j=0; j<_rows; ++j) {
-                    for (uint8_t k=0; k<_cols; ++k) {
-                        Debug::printf("%+2.2f ", _vals[j][k]);
-                    }
-                    Debug::printf("\n");
-                }
-            }
-
-            static int norvec(Matrix v, Matrix r)
-            {
-                double norm;
-                if (v._cols != 1) return 1;
-                for (int ii=0; ii<v._rows; ++ii)
-                  norm += v._vals[ii][0]*v._vals[ii][0];
-                
-                norm = 1/sqrt(norm);
-                
-                for (int ii=0; ii<v._rows; ++ii)
-                  r._vals[ii][0] = v._vals[ii][0]*norm;
-                return 0;
-            }
-
-            // skew matrix from a vector of dimension 3
-            static int skew(Matrix x, Matrix c)
-            {
-                if (x._rows != 3 or x._cols != 1) return 1;
-                c._vals[0][0] =  0.0;
-                c._vals[1][0] =  x._vals[2][0];
-                c._vals[2][0] = -x._vals[1][0];
-                
-                c._vals[1][0] = -x._vals[2][0];
-                c._vals[1][1] =  0.0;
-                c._vals[1][2] =  x._vals[0][0];
-                
-                c._vals[2][0] =  x._vals[1][0];
-                c._vals[2][1] = -x._vals[0][0];
-                c._vals[2][2] =  0.0;
-                return 0;
-            }
-
-            // AT <- A'
-            static void trans(Matrix a, Matrix at)
-            {
-                for (uint8_t j=0; j<a._rows; ++j) {
-                    for (uint8_t k=0; k<a._cols; ++k) {
-                        at._vals[k][j] = a._vals[j][k];
-                    }
-                }
-            }
-
-            // C <- A * B
-            static void mult(Matrix a, Matrix b, Matrix c)
-            {
-                for(uint8_t i=0; i<a._rows; ++i) {
-                    for(uint8_t j=0; j<b._cols; ++j) {
-                        c._vals[i][j] = 0;
-                        for(uint8_t k=0; k<a._cols; ++k) {
-                            c._vals[i][j] += a._vals[i][k] *b._vals[k][j];
-                        }
-                    }
-                }
-            }
-            
-            // C <- A + B
-            static void add(Matrix a, Matrix b, Matrix c)
-            {
-              for(uint8_t i=0; i<a._rows; ++i) {
-                  for(uint8_t j=0; j<a._cols; ++j) {
-                      c._vals[i][j] = a._vals[i][j] + b._vals[i][j];
-                      }
+      for (i = 0; i < n; i++) {
+          for (j = i; j < n; j++) {
+              sum = a[i*n+j];
+              for (k = i - 1; k >= 0; k--) {
+                  sum -= a[i*n+k] * a[j*n+k];
+              }
+              if (i == j) {
+                  if (sum <= 0) {
+                      return 1; /* error */
                   }
-            }              
+                  p[i] = sqrt(sum);
+              }
+              else {
+                  a[j*n+i] = sum / p[i];
+              }
+          }
+      }
 
-            // A <- A + B
-            static void accum(Matrix a, Matrix b)
-            {
-              for(uint8_t i=0; i<a._rows; ++i) {
-                  for(uint8_t j=0; j<a._cols; ++j) {
-                      a._vals[i][j] += b._vals[i][j];
-                      }
-                  }
-            }              
+      return 0; /* success */
+  }
 
-            // C <- A - B
-            static void sub(Matrix a, Matrix b, Matrix c)
-            {
-              for(uint8_t i=0; i<a._rows; ++i) {
-                  for(uint8_t j=0; j<a._cols; ++j) {
-                      c._vals[i][j] = a._vals[i][j] - b._vals[i][j];
-                      }
-                  }
-            }              
-            
-            // B <- (A + A') / 2
-            static void makesym(Matrix a, Matrix b)
-            {
-                for (int ii=0; ii<a._rows; ++ii)
-                {
-                  for (int jj=0; jj<a._cols; ++jj)
-                  {
-                    b._vals[ii][jj] = (a._vals[jj][ii] + a._vals[ii][jj])/2.0;
-                  }
-                }
-            }
-            
-            static void zeros(Matrix a)
-            {
-                memset(a._vals, 0, a._rows*a._cols*sizeof(float));                
-            }
-            
-            static void negate(Matrix a)
-            {        
-                int i, j;
-                for(i=0; i<a._rows; ++i)
-                    for(j=0; j<a._cols; ++j)
-                        a._vals[i][j] = -a._vals[i][j];
-            }
+  static int choldcsl(double * A, double * a, double * p, int n) 
+  {
+      int i,j,k; double sum;
+      for (i = 0; i < n; i++) 
+          for (j = 0; j < n; j++) 
+              a[i*n+j] = A[i*n+j];
+      if (choldc1(a, p, n)) return 1;
+      for (i = 0; i < n; i++) {
+          a[i*n+i] = 1 / p[i];
+          for (j = i + 1; j < n; j++) {
+              sum = 0;
+              for (k = i; k < j; k++) {
+                  sum -= a[j*n+k] * a[k*n+i];
+              }
+              a[j*n+i] = sum / p[j];
+          }
+      }
 
-            static void addeye(Matrix a)
-            {
-                int i;
-                for (i=0; i<a._rows; ++i)
-                    a._vals[i][i] += 1;
-            }
-            
-            /* Cholesky-decomposition matrix-inversion code, adapated from
-            http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/choles_cpp.txt */
-
-            static int choldc1(Matrix a, Matrix p) {
-                int i,j,k;
-                double sum;
-
-                for (i = 0; i < a._rows; i++) {
-                    for (j = i; j < a._cols; j++) {
-                        sum = a._vals[i][j];
-                        for (k = i - 1; k >= 0; k--) {
-                            sum -= a._vals[i][k] * a._vals[j][k];
-                        }
-                        if (i == j) {
-                            if (sum <= 0) {
-                                return 1; /* error */
-                            }
-                            p._vals[i][0] = sqrt(sum);
-                        }
-                        else {
-                            a._vals[j][i] = sum / p._vals[i][0];
-                        }
-                    }
-                }
-
-                return 0; /* success */
-            }
-
-            static int choldcsl(Matrix A, Matrix a, Matrix p) 
-            {
-                int i,j,k; double sum;
-                for (i = 0; i < A._rows; i++) 
-                    for (j = 0; j < A._cols; j++) 
-                        a._vals[i][j] = A._vals[i][j];
-                if (choldc1(a, p)) return 1;
-                for (i = 0; i < a._rows; i++) {
-                    a._vals[i][i] = 1 / p._vals[i][0];
-                    for (j = i + 1; j < a._cols; j++) {
-                        sum = 0;
-                        for (k = i; k < j; k++) {
-                            sum -= a._vals[j][k] * a._vals[k][i];
-                        }
-                        a._vals[j][i] = sum / p._vals[j][0];
-                    }
-                }
-
-                return 0; /* success */
-            }
+      return 0; /* success */
+  }
 
 
-            static int cholsl(Matrix A, Matrix a, Matrix p) 
-            {
-                int i,j,k;
-                if (choldcsl(A,a,p)) return 1;
-                for (i = 0; i < A._rows; i++) {
-                    for (j = i + 1; j < A._cols; j++) {
-                        a._vals[i][j] = 0.0;
-                    }
-                }
-                for (i = 0; i < A._rows; i++) {
-                    a._vals[i][i] *= a._vals[i][i];
-                    for (k = i + 1; k < A._rows; k++) {
-                        a._vals[i][i] += a._vals[k][i] * a._vals[k][i];
-                    }
-                    for (j = i + 1; j < A._cols; j++) {
-                        for (k = j; k < A._cols; k++) {
-                            a._vals[i][j] += a._vals[k][i] * a._vals[k][j];
-                        }
-                    }
-                }
-                for (i = 0; i < A._rows; i++) {
-                    for (j = 0; j < i; j++) {
-                        a._vals[i][j] = a._vals[j][i];
-                    }
-                }
-                return 0; /* success */
-            }
+  static int cholsl(double * A, double * a, double * p, int n) 
+  {
+      int i,j,k;
+      if (choldcsl(A,a,p,n)) return 1;
+      for (i = 0; i < n; i++) {
+          for (j = i + 1; j < n; j++) {
+              a[i*n+j] = 0.0;
+          }
+      }
+      for (i = 0; i < n; i++) {
+          a[i*n+i] *= a[i*n+i];
+          for (k = i + 1; k < n; k++) {
+              a[i*n+i] += a[k*n+i] * a[k*n+i];
+          }
+          for (j = i + 1; j < n; j++) {
+              for (k = j; k < n; k++) {
+                  a[i*n+j] += a[k*n+i] * a[k*n+j];
+              }
+          }
+      }
+      for (i = 0; i < n; i++) {
+          for (j = 0; j < i; j++) {
+              a[i*n+j] = a[j*n+i];
+          }
+      }
 
-    };  // class Matrix
+      return 0; /* success */
+  }
+
+  static void zeros(double * a, int m, int n)
+  {
+      int j;
+      for (j=0; j<m*n; ++j)
+          a[j] = 0;
+  }
+
+  /* C <- A * B */
+  static void mulmat(double * a, double * b, double * c, int arows, int acols, int bcols)
+  {
+      int i, j,l;
+
+      for(i=0; i<arows; ++i)
+          for(j=0; j<bcols; ++j) {
+              c[i*bcols+j] = 0;
+              for(l=0; l<acols; ++l)
+                  c[i*bcols+j] += a[i*acols+l] * b[l*bcols+j];
+          }
+  }
+
+  static void mulvec(double * a, double * x, double * y, int m, int n)
+  {
+      int i, j;
+
+      for(i=0; i<m; ++i) {
+          y[i] = 0;
+          for(j=0; j<n; ++j)
+              y[i] += x[j] * a[i*n+j];
+      }
+  }
+
+  static void transpose(double * a, double * at, int m, int n)
+  {
+      int i,j;
+
+      for(i=0; i<m; ++i)
+          for(j=0; j<n; ++j) {
+              at[j*m+i] = a[i*n+j];
+          }
+  }
+
+  /* A <- A + B */
+  static void accum(double * a, double * b, int m, int n)
+  {        
+      int i,j;
+
+      for(i=0; i<m; ++i)
+          for(j=0; j<n; ++j)
+              a[i*n+j] += b[i*n+j];
+  }
+
+  /* C <- A + B */
+  static void add(double * a, double * b, double * c, int n)
+  {
+      int j;
+
+      for(j=0; j<n; ++j)
+          c[j] = a[j] + b[j];
+  }
+
+
+  /* C <- A - B */
+  static void sub(double * a, double * b, double * c, int n)
+  {
+      int j;
+
+      for(j=0; j<n; ++j)
+          c[j] = a[j] - b[j];
+  }
+
+  static void negate(double * a, int m, int n)
+  {        
+      int i, j;
+
+      for(i=0; i<m; ++i)
+          for(j=0; j<n; ++j)
+              a[i*n+j] = -a[i*n+j];
+  }
+
+  static void mat_addeye(double * a, int n)
+  {
+      int i;
+      for (i=0; i<n; ++i)
+          a[i*n+i] += 1;
+  }
+
+  // skew matrix from a vector of dimension 3
+  static void skew(double * x, double * c)
+  {
+      c[0] =  0.0;
+      c[1] =  x[2];
+      c[2] = -x[1];
+      
+      c[3] = -x[2];
+      c[4] =  0.0;
+      c[5] =  x[0];
+      
+      c[6] =  x[1];
+      c[7] = -x[0];
+      c[8] =  0.0;
+  }
+
+  static void norvec(double * x, double * y, int n)
+  {
+      double norm = 0;
+      
+      for (int ii=0; ii<n; ++ii)
+        norm += x[ii]*x[ii];
+      norm = 1/sqrt(norm);
+      
+      for (int ii=0; ii<n; ++ii)
+        y[ii] = x[ii]*norm;
+        
+  }
+
+  static void makesym(double *a, double *b, int n)
+  {
+      for (int ii=0; ii<n; ++ii)
+      {
+        for (int jj=0; jj<n; ++jj)
+        {
+          b[ii*n+jj] = (a[ii+jj*n] + a[jj+ii*n])/2.0;
+        }
+      }
+  }
+
 
 } // namespace hf

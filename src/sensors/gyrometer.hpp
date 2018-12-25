@@ -27,7 +27,6 @@
 #include "sensor.hpp"
 #include "surfacemount.hpp"
 #include "board.hpp"
-#include "filters/linalg.hpp"
 
 namespace hf {
 
@@ -43,50 +42,50 @@ namespace hf {
             }
 
 
-            virtual void getJacobianModel(Matrix Fx, double dt) override
+            virtual void getJacobianModel(double * Fx, double dt) override
             {
-                // First Column
-                Fx.set(0, 0, 1.0);
-                Fx.set(1, 0, _rates[0]*dt/2.0);
-                Fx.set(2, 0, _rates[1]*dt/2.0);
-                Fx.set(3, 0, _rates[2]*dt/2.0);
-                // Second Column
-                Fx.set(0, 1, -_rates[0]*dt/2.0);
-                Fx.set(1, 1, 1.0);
-                Fx.set(2, 1, -_rates[2]*dt/2.0);
-                Fx.set(3, 1, _rates[1]*dt/2.0);
-                // Third Column
-                Fx.set(0, 2, -_rates[1]*dt/2.0);
-                Fx.set(1, 2, _rates[2]*dt/2.0);
-                Fx.set(2, 2, 1.0);
-                Fx.set(3, 2, -_rates[0]*dt/2.0);
-                // Fourth Column
-                Fx.set(0, 3, -_rates[2]*dt/2.0);
-                Fx.set(1, 3, -_rates[1]*dt/2.0);
-                Fx.set(2, 3, _rates[0]*dt/2.0);
-                Fx.set(3, 3, 1.0);
+              // First Column
+              Fx[0]  = 1.0;
+              Fx[4]  = (double)_rates[0]*dt/2.0;
+              Fx[8]  = (double)_rates[1]*dt/2.0;
+              Fx[12]  = (double)_rates[2]*dt/2.0;
+              // Second Column
+              Fx[1]  = -(double)_rates[0]*dt/2.0;
+              Fx[5]  =  1.0;
+              Fx[9]  = -(double)_rates[2]*dt/2.0;
+              Fx[13]  =  (double)_rates[1]*dt/2.0;
+              // Third Column
+              Fx[2]  = -(double)_rates[1]*dt/2.0;
+              Fx[6]  =  (double)_rates[2]*dt/2.0;
+              Fx[10] =  1.0;
+              Fx[14] = -(double)_rates[0]*dt/2.0;
+              // Fourth Column
+              Fx[3] = -(double)_rates[2]*dt/2.0;
+              Fx[7] = -(double)_rates[1]*dt/2.0;
+              Fx[11] =  (double)_rates[0]*dt/2.0;
+              Fx[15] =  1.0;
             }
             
-            virtual void getJacobianErrors(Matrix Fdx, double dt) override
+            virtual void getJacobianErrors(double * Fdx, double dt) override
             {
-                // First Column
-                Fdx.set(0, 0, 1.0);
-                Fdx.set(1, 0, _rates[2]*dt);
-                Fdx.set(2, 0, -_rates[1]*dt);
-                // Second Column
-                Fdx.set(0, 1, -_rates[2]*dt);
-                Fdx.set(1, 1, 1.0);
-                Fdx.set(2, 1, _rates[0]*dt);
-                // Third Column
-                Fdx.set(0, 2, _rates[1]*dt);
-                Fdx.set(1, 2, -_rates[0]*dt);
-                Fdx.set(2, 2, 1.0);
+              // First Column
+              Fdx[0] =  1.0;
+              Fdx[3] =  (double)_rates[2]*dt;
+              Fdx[6] = -(double)_rates[1]*dt;
+              // Second Column
+              Fdx[1] = -(double)_rates[2]*dt;
+              Fdx[4] =  1.0;
+              Fdx[7] =  (double)_rates[0]*dt;
+              // Third Column
+              Fdx[2] =  (double)_rates[1]*dt;
+              Fdx[5] = -(double)_rates[0]*dt;
+              Fdx[8] = 1.0;
             }
             
-            virtual void getCovarianceEstimation(Matrix Q, uint8_t errorStates) override
+            virtual void getCovarianceEstimation(double * Q) override
             {
-                Q.set(0, 0, 0.0001);
-                Q.set(1, 1, 0.0001);
+              Q[0] = (double)0.0001;
+              Q[4] = (double)0.0001;
             }
 
         protected:
