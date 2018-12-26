@@ -212,6 +212,15 @@ namespace hf {
       
       for (int ii=0; ii<n; ++ii)
         norm += x[ii]*x[ii];
+
+      if (norm == 0)
+      {
+        for (int ii=0; ii<n; ++ii)
+        {
+          y[ii] = x[ii];  
+        }
+        return;
+      }
       norm = 1/sqrt(norm);
       
       for (int ii=0; ii<n; ++ii)

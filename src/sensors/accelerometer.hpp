@@ -107,9 +107,9 @@ namespace hf {
             virtual void getCovarianceCorrection(double * R) override
             {
                 // Approximate the process noise using a small constant
-                R[0] = 0.0001f;
-                R[4] = 0.0001f;
-                R[8] = 0.0001f;
+                R[0] = (double)1.00f;
+                R[4] = (double)1.00f;
+                R[8] = (double)1.00f;
             }
 
         private:

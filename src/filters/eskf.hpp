@@ -110,27 +110,27 @@ namespace hf {
         eskfp.tmp8 = dptr;        
       }
       
-      void computeqL(void)
-      {
-          eskf.qL[0][0] =  eskf.fx[0];
-          eskf.qL[1][0] =  eskf.fx[1];
-          eskf.qL[2][0] =  eskf.fx[2];
-          eskf.qL[3][0] =  eskf.fx[3];
+      void computeqL(double * qL, double * x)
+      {        
+          qL[0] =  x[0];
+          qL[4] =  x[1];
+          qL[8] =  x[2];
+          qL[12] =  x[3];
           
-          eskf.qL[0][1] = -eskf.fx[1];
-          eskf.qL[1][1] =  eskf.fx[0];
-          eskf.qL[2][1] =  eskf.fx[3];
-          eskf.qL[3][1] = -eskf.fx[2];
+          qL[1] = -x[1];
+          qL[5] =  x[0];
+          qL[9] =  x[3];
+          qL[13] = -x[2];
           
-          eskf.qL[0][2]  = -eskf.fx[2];
-          eskf.qL[1][2]  = -eskf.fx[3];
-          eskf.qL[2][2] =  eskf.fx[0];
-          eskf.qL[3][2] =  eskf.fx[1];
+          qL[2]  = -x[2];
+          qL[6]  = -x[3];
+          qL[10] =  x[0];
+          qL[14] =  x[1];
           
-          eskf.qL[0][3] = -eskf.fx[3];
-          eskf.qL[1][3] =  eskf.fx[2];
-          eskf.qL[2][3] = -eskf.fx[1];
-          eskf.qL[3][3] =  eskf.fx[0];
+          qL[3] = -x[3];
+          qL[7] =  x[2];
+          qL[11] = -x[1];
+          qL[15] =  x[0];
       }
       
     public:
@@ -196,7 +196,6 @@ namespace hf {
         mulvec(eskfp.Fx, eskfp.x, eskfp.tmp6, nominalStates, nominalStates);
         norvec(eskfp.tmp6, eskfp.fx, nominalStates);
         
-        
         /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
         mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
         transpose(eskfp.Fdx, eskfp.Fdxt, errorStates, errorStates);
@@ -213,8 +212,8 @@ namespace hf {
         uint8_t sensorIndex = 1; 
         /* This method should:
           1. Obtain the Jacobian of the correction measurement model
-          2. Obtain the inominalStatesovation value:
-             inominalStatesovation = measurement - measurement prediction for the estimated state
+          2. Obtain the innovation value:
+             innovation = measurement - measurement prediction for the estimated state
           3. Obtain the measurement noise
           4. Compute the gain
           5. Estimate the error-states 
@@ -222,7 +221,7 @@ namespace hf {
           7. Inject errors
           8. Update Covariance if required and enforce symmetry
           9. Reset errors
-        */
+        */        
         // Comming from eskf.update the state is stored in fx
         _sensors[sensorIndex]->getJacobianObservation(eskfp.H, eskfp.fx);
         _sensors[sensorIndex]->getInnovation(eskfp.hx, eskfp.fx);
@@ -256,8 +255,7 @@ namespace hf {
         eskfp.tmp6[1] = eskfp.dx[0]/2.0;
         eskfp.tmp6[2] = eskfp.dx[1]/2.0;
         eskfp.tmp6[3] = eskfp.dx[2]/2.0;
-        computeqL();
-        printMatrix4(eskf.qL, 4, 4);
+        computeqL(eskfp.qL, eskfp.fx);
         mulvec(eskfp.qL, eskfp.tmp6, eskfp.tmp7, nominalStates, nominalStates);
         norvec(eskfp.tmp7, eskfp.x, nominalStates);
 
@@ -286,7 +284,7 @@ namespace hf {
         q[3] = (float)eskf.x[3];
       }
 
-      // XXX DEbug
+      // XXX Debug
       void printMatrix3(double M[3][3], int r, int c)
       {
           for (int ii=0; ii<r; ++ii)
