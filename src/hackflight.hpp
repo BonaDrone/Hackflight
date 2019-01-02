@@ -143,9 +143,9 @@ namespace hf {
 
             void updateStateEstimate(void)
             {
+                float _q[4];
                 checkGyrometer();
                 eskf.update();
-                float _q[4];
                 eskf.getState(_q);
                 Quaternion::computeEulerAngles(_q, _state.eulerAngles);
                 // Convert heading from [-pi,+pi] to [0,2*pi]
@@ -156,10 +156,10 @@ namespace hf {
             
             void correctStateEstimate(void)
             {
+              float _q[4];
               checkAccelerometer();
               checkOptionalSensors();
               eskf.correct();
-              float _q[4];
               eskf.getState(_q);
               Quaternion::computeEulerAngles(_q, _state.eulerAngles);
               // Convert heading from [-pi,+pi] to [0,2*pi]
