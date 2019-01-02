@@ -49,7 +49,7 @@ namespace hf {
       
       void eskfp_init(void * eskf, int nn, int ne, int m)
       {
-        double * dptr = (double *)eskf;
+        float * dptr = (float *)eskf;
         eskfp.x = dptr;
         dptr += nn;
         eskfp.dx = dptr;
@@ -110,7 +110,7 @@ namespace hf {
         eskfp.tmp8 = dptr;        
       }
       
-      void computeqL(double * qL, double * x)
+      void computeqL(float * qL, float * x)
       {        
           qL[0] =  x[0];
           qL[4] =  x[1];
@@ -285,7 +285,7 @@ namespace hf {
       }
 
       // XXX Debug
-      void printMatrix3(double M[3][3], int r, int c)
+      void printMatrix3(float M[3][3], int r, int c)
       {
           for (int ii=0; ii<r; ++ii)
           {
@@ -305,7 +305,7 @@ namespace hf {
           }
       }
       
-      void printMatrix4(double M[4][4], int r, int c)
+      void printMatrix4(float M[4][4], int r, int c)
       {
           for (int ii=0; ii<r; ++ii)
           {

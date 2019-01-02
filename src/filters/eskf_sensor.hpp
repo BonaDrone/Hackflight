@@ -32,18 +32,18 @@ namespace hf {
       public:
 
         // This methods should be overriden by sensors that estimate
-        virtual void getJacobianModel(double * Fx, double dt) { (void)Fx; }
+        virtual void getJacobianModel(float * Fx, double dt) { (void)Fx; }
         
-        virtual void getJacobianErrors(double * Fdx, double dt) { (void)Fdx; }
+        virtual void getJacobianErrors(float * Fdx, double dt) { (void)Fdx; }
         
-        virtual void getCovarianceEstimation(double * Q) { (void)Q; }
+        virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
-        virtual void getJacobianObservation(double * H, double * x) { (void)H; (void)x; }
+        virtual void getJacobianObservation(float * H, float * x) { (void)H; (void)x; }
         
-        virtual void getInnovation(double * z, double * x) { (void)z; }
+        virtual void getInnovation(float * z, float * x) { (void)z; }
         
-        virtual void getCovarianceCorrection(double * N) { (void)N; }
+        virtual void getCovarianceCorrection(float * N) { (void)N; }
 
     }; // class ESKF_Sensor
 

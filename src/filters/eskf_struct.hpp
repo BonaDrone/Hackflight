@@ -28,79 +28,79 @@ namespace hf {
 
   typedef struct {
 
-      double x[NNsta];    /*nominal state vector */
-      double dx[NEsta];   /*error-state vector*/
-      double qL[NNsta][NNsta]; /*Left matrix quaternion*/
+      float x[NNsta];    /*nominal state vector */
+      float dx[NEsta];   /*error-state vector*/
+      float qL[NNsta][NNsta]; /*Left matrix quaternion*/
 
-      double P[NEsta][NEsta];  /* prediction error covariance */
-      double Q[NEsta][NEsta];  /* process noise covariance */
-      double R[Mobs][Mobs];  /* measurement error covariance */
+      float P[NEsta][NEsta];  /* prediction error covariance */
+      float Q[NEsta][NEsta];  /* process noise covariance */
+      float R[Mobs][Mobs];  /* measurement error covariance */
 
-      double K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
-      double Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
+      float K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
+      float Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
 
-      double Fx[NNsta][NNsta];  /* Jacobian of process model */
-      double Fdx[NEsta][NEsta];  /* Jacobian of process model */
-      double H[Mobs][NEsta];  /* Jacobian of measurement model */
+      float Fx[NNsta][NNsta];  /* Jacobian of process model */
+      float Fdx[NEsta][NEsta];  /* Jacobian of process model */
+      float H[Mobs][NEsta];  /* Jacobian of measurement model */
 
-      double Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
-      double Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
-      double Pp[NEsta][NEsta]; /* P, post-prediction, pre-update */
+      float Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
+      float Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
+      float Pp[NEsta][NEsta]; /* P, post-prediction, pre-update */
       
-      double G[NEsta][NEsta];  
+      float G[NEsta][NEsta];  
 
-      double fx[NNsta];   /* output of user defined f() state-transition function */
-      double hx[Mobs];   /* output of user defined h() measurement function */
+      float fx[NNsta];   /* output of user defined f() state-transition function */
+      float hx[Mobs];   /* output of user defined h() measurement function */
 
       /* temporary storage */
-      double tmp0[NEsta][NEsta];
-      double tmp1[NEsta][Mobs];
-      double tmp2[Mobs][NEsta];
-      double tmp3[Mobs][Mobs];
-      double tmp4[Mobs][Mobs];
-      double tmp5[Mobs];
-      double tmp6[NNsta]; 
-      double tmp7[NNsta];
-      double tmp8[Mobs];
+      float tmp0[NEsta][NEsta];
+      float tmp1[NEsta][Mobs];
+      float tmp2[Mobs][NEsta];
+      float tmp3[Mobs][Mobs];
+      float tmp4[Mobs][Mobs];
+      float tmp5[Mobs];
+      float tmp6[NNsta]; 
+      float tmp7[NNsta];
+      float tmp8[Mobs];
 
   } eskf_t;
   
   typedef struct {
 
-      double * x;    /*nominal state vector */
-      double * dx;   /*error-state vector*/
-      double * qL; /*Left matrix quaternion*/
+      float * x;    /*nominal state vector */
+      float * dx;   /*error-state vector*/
+      float * qL; /*Left matrix quaternion*/
 
-      double * P;  /* prediction error covariance */
-      double * Q;  /* process noise covariance */
-      double * R;  /* measurement error covariance */
+      float * P;  /* prediction error covariance */
+      float * Q;  /* process noise covariance */
+      float * R;  /* measurement error covariance */
 
-      double * K;  /* Kalman gain; a.k.a. K */
-      double * Kt;  /* transpose Kalman gain; a.k.a. K */
+      float * K;  /* Kalman gain; a.k.a. K */
+      float * Kt;  /* transpose Kalman gain; a.k.a. K */
 
-      double * Fx;  /* Jacobian of process model */
-      double * Fdx;  /* Jacobian of process model */
-      double * H;  /* Jacobian of measurement model */
+      float * Fx;  /* Jacobian of process model */
+      float * Fdx;  /* Jacobian of process model */
+      float * H;  /* Jacobian of measurement model */
 
-      double * Ht; /* transpose of measurement Jacobian */
-      double * Fdxt; /* transpose of process Jacobian */
-      double * Pp; /* P, post-prediction, pre-update */
+      float * Ht; /* transpose of measurement Jacobian */
+      float * Fdxt; /* transpose of process Jacobian */
+      float * Pp; /* P, post-prediction, pre-update */
       
-      double * G;  
+      float * G;  
 
-      double * fx;   /* output of user defined f() state-transition function */
-      double * hx;   /* output of user defined h() measurement function */
+      float * fx;   /* output of user defined f() state-transition function */
+      float * hx;   /* output of user defined h() measurement function */
 
       /* temporary storage */
-      double * tmp0;
-      double * tmp1;
-      double * tmp2;
-      double * tmp3;
-      double * tmp4;
-      double * tmp5;
-      double * tmp6; 
-      double * tmp7;
-      double * tmp8;
+      float * tmp0;
+      float * tmp1;
+      float * tmp2;
+      float * tmp3;
+      float * tmp4;
+      float * tmp5;
+      float * tmp6; 
+      float * tmp7;
+      float * tmp8;
 
   } eskf_p_t;
   

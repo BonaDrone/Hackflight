@@ -41,51 +41,50 @@ namespace hf {
                 memset(_rates, 0, 3*sizeof(float));
             }
 
-
-            virtual void getJacobianModel(double * Fx, double dt) override
+            virtual void getJacobianModel(float * Fx, double dt) override
             {
               // First Column
               Fx[0]  = 1.0;
-              Fx[4]  = (double)_rates[0]*dt/2.0;
-              Fx[8]  = (double)_rates[1]*dt/2.0;
-              Fx[12]  = (double)_rates[2]*dt/2.0;
+              Fx[4]  = _rates[0]*dt/2.0;
+              Fx[8]  = _rates[1]*dt/2.0;
+              Fx[12] = _rates[2]*dt/2.0;
               // Second Column
-              Fx[1]  = -(double)_rates[0]*dt/2.0;
+              Fx[1]  = -_rates[0]*dt/2.0;
               Fx[5]  =  1.0;
-              Fx[9]  = -(double)_rates[2]*dt/2.0;
-              Fx[13]  =  (double)_rates[1]*dt/2.0;
+              Fx[9]  = -_rates[2]*dt/2.0;
+              Fx[13] = _rates[1]*dt/2.0;
               // Third Column
-              Fx[2]  = -(double)_rates[1]*dt/2.0;
-              Fx[6]  =  (double)_rates[2]*dt/2.0;
+              Fx[2]  = -_rates[1]*dt/2.0;
+              Fx[6]  =  _rates[2]*dt/2.0;
               Fx[10] =  1.0;
-              Fx[14] = -(double)_rates[0]*dt/2.0;
+              Fx[14] = -_rates[0]*dt/2.0;
               // Fourth Column
-              Fx[3] = -(double)_rates[2]*dt/2.0;
-              Fx[7] = -(double)_rates[1]*dt/2.0;
-              Fx[11] =  (double)_rates[0]*dt/2.0;
+              Fx[3]  = -_rates[2]*dt/2.0;
+              Fx[7]  = -_rates[1]*dt/2.0;
+              Fx[11] = _rates[0]*dt/2.0;
               Fx[15] =  1.0;
             }
             
-            virtual void getJacobianErrors(double * Fdx, double dt) override
+            virtual void getJacobianErrors(float * Fdx, double dt) override
             {
               // First Column
               Fdx[0] =  1.0;
-              Fdx[3] =  (double)_rates[2]*dt;
-              Fdx[6] = -(double)_rates[1]*dt;
+              Fdx[3] =  _rates[2]*dt;
+              Fdx[6] = -_rates[1]*dt;
               // Second Column
-              Fdx[1] = -(double)_rates[2]*dt;
+              Fdx[1] = -_rates[2]*dt;
               Fdx[4] =  1.0;
-              Fdx[7] =  (double)_rates[0]*dt;
+              Fdx[7] =  _rates[0]*dt;
               // Third Column
-              Fdx[2] =  (double)_rates[1]*dt;
-              Fdx[5] = -(double)_rates[0]*dt;
+              Fdx[2] =  _rates[1]*dt;
+              Fdx[5] = -_rates[0]*dt;
               Fdx[8] = 1.0;
             }
             
-            virtual void getCovarianceEstimation(double * Q) override
+            virtual void getCovarianceEstimation(float * Q) override
             {
-              Q[0] = (double)0.0001;
-              Q[4] = (double)0.0001;
+              Q[0] = 0.0001;
+              Q[4] = 0.0001;
             }
 
         protected:

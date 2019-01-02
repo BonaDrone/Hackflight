@@ -61,7 +61,7 @@ namespace hf {
                 return board->getAccelerometer(_gs);
             }
             
-            virtual void getJacobianObservation(double * H, double * x) override
+            virtual void getJacobianObservation(float * H, float * x) override
             {
               // First Column
               H[0]  =  0.0;
@@ -77,21 +77,21 @@ namespace hf {
               H[8]  = 0.0;
             }
 
-            virtual void getInnovation(double * z, double * x) override
+            virtual void getInnovation(float * z, float * x) override
             {
-                double meas[3];
-                double tmp1[3];
-                double tmp2[3];
-                meas[0] = (double)_gs[0]*9.80665;
-                meas[1] = (double)_gs[1]*9.80665;
-                meas[2] = (double)_gs[2]*9.80665;
+                float meas[3];
+                float tmp1[3];
+                float tmp2[3];
+                meas[0] = _gs[0]*9.80665;
+                meas[1] = _gs[1]*9.80665;
+                meas[2] = _gs[2]*9.80665;
                 // We might have to normalize these two vectors (y and h)
                 // Predicted Observations
-                _predictedObservation[0] = (double)((2*x[0]*x[2] - 
+                _predictedObservation[0] = ((2*x[0]*x[2] - 
                                             2*x[1]*x[3])*-9.80665);
-                _predictedObservation[1] = (double)((-2*x[0]*x[1] - 
+                _predictedObservation[1] = ((-2*x[0]*x[1] - 
                                              2*x[2]*x[3])*-9.80665);
-                _predictedObservation[2] = (double)((-x[0]*x[0] + 
+                _predictedObservation[2] = ((-x[0]*x[0] + 
                                              x[1]*x[1] +
                                              x[2]*x[2] -
                                              x[3]*x[3])*-9.80665);
@@ -104,18 +104,18 @@ namespace hf {
                 z[2] = tmp2[2] - tmp1[2];
             }
             
-            virtual void getCovarianceCorrection(double * R) override
+            virtual void getCovarianceCorrection(float * R) override
             {
                 // Approximate the process noise using a small constant
-                R[0] = (double)1.00f;
-                R[4] = (double)1.00f;
-                R[8] = (double)1.00f;
+                R[0] = 1.00f;
+                R[4] = 1.00f;
+                R[8] = 1.00f;
             }
 
         private:
 
             float _gs[3];
-            double _predictedObservation[3];
+            float _predictedObservation[3];
 
     };  // class Accelerometer
 

@@ -28,9 +28,9 @@ namespace hf {
   /* Cholesky-decomposition matrix-inversion code, adapated from
      http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/choles_cpp.txt */
 
-  static int choldc1(double * a, double * p, int n) {
+  static int choldc1(float * a, float * p, int n) {
       int i,j,k;
-      double sum;
+      float sum;
 
       for (i = 0; i < n; i++) {
           for (j = i; j < n; j++) {
@@ -53,9 +53,9 @@ namespace hf {
       return 0; /* success */
   }
 
-  static int choldcsl(double * A, double * a, double * p, int n) 
+  static int choldcsl(float * A, float * a, float * p, int n) 
   {
-      int i,j,k; double sum;
+      int i,j,k; float sum;
       for (i = 0; i < n; i++) 
           for (j = 0; j < n; j++) 
               a[i*n+j] = A[i*n+j];
@@ -75,7 +75,7 @@ namespace hf {
   }
 
 
-  static int cholsl(double * A, double * a, double * p, int n) 
+  static int cholsl(float * A, float * a, float * p, int n) 
   {
       int i,j,k;
       if (choldcsl(A,a,p,n)) return 1;
@@ -104,7 +104,7 @@ namespace hf {
       return 0; /* success */
   }
 
-  static void zeros(double * a, int m, int n)
+  static void zeros(float * a, int m, int n)
   {
       int j;
       for (j=0; j<m*n; ++j)
@@ -112,7 +112,7 @@ namespace hf {
   }
 
   /* C <- A * B */
-  static void mulmat(double * a, double * b, double * c, int arows, int acols, int bcols)
+  static void mulmat(float * a, float * b, float * c, int arows, int acols, int bcols)
   {
       int i, j,l;
 
@@ -124,7 +124,7 @@ namespace hf {
           }
   }
 
-  static void mulvec(double * a, double * x, double * y, int m, int n)
+  static void mulvec(float * a, float * x, float * y, int m, int n)
   {
       int i, j;
 
@@ -135,7 +135,7 @@ namespace hf {
       }
   }
 
-  static void transpose(double * a, double * at, int m, int n)
+  static void transpose(float * a, float * at, int m, int n)
   {
       int i,j;
 
@@ -146,7 +146,7 @@ namespace hf {
   }
 
   /* A <- A + B */
-  static void accum(double * a, double * b, int m, int n)
+  static void accum(float * a, float * b, int m, int n)
   {        
       int i,j;
 
@@ -156,7 +156,7 @@ namespace hf {
   }
 
   /* C <- A + B */
-  static void add(double * a, double * b, double * c, int n)
+  static void add(float * a, float * b, float * c, int n)
   {
       int j;
 
@@ -166,7 +166,7 @@ namespace hf {
 
 
   /* C <- A - B */
-  static void sub(double * a, double * b, double * c, int n)
+  static void sub(float * a, float * b, float * c, int n)
   {
       int j;
 
@@ -174,7 +174,7 @@ namespace hf {
           c[j] = a[j] - b[j];
   }
 
-  static void negate(double * a, int m, int n)
+  static void negate(float * a, int m, int n)
   {        
       int i, j;
 
@@ -183,7 +183,7 @@ namespace hf {
               a[i*n+j] = -a[i*n+j];
   }
 
-  static void mat_addeye(double * a, int n)
+  static void mat_addeye(float * a, int n)
   {
       int i;
       for (i=0; i<n; ++i)
@@ -191,7 +191,7 @@ namespace hf {
   }
 
   // skew matrix from a vector of dimension 3
-  static void skew(double * x, double * c)
+  static void skew(float * x, float * c)
   {
       c[0] =  0.0;
       c[1] =  x[2];
@@ -206,9 +206,9 @@ namespace hf {
       c[8] =  0.0;
   }
 
-  static void norvec(double * x, double * y, int n)
+  static void norvec(float * x, float * y, int n)
   {
-      double norm = 0;
+      float norm = 0;
       
       for (int ii=0; ii<n; ++ii)
         norm += x[ii]*x[ii];
@@ -228,7 +228,7 @@ namespace hf {
         
   }
 
-  static void makesym(double *a, double *b, int n)
+  static void makesym(float *a, float *b, int n)
   {
       for (int ii=0; ii<n; ++ii)
       {
