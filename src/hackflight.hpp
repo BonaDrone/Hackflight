@@ -130,7 +130,7 @@ namespace hf {
                 }
             }
 
-            void updateControlSignal()
+            void updateControlSignal(void)
             { 
                 // For PID control, start with demands from receiver
                 memcpy(&_demands, &_receiver->demands, sizeof(demands_t));
@@ -142,6 +142,33 @@ namespace hf {
                   _mixer->runArmed(_demands);
                 
                 }
+            }
+
+            void updateStateEstimate(void)
+            {
+                checkGyrometer();
+                eskf.update();
+                float _q[4];
+                eskf.getState(_q);
+                Quaternion::computeEulerAngles(_q, _state.eulerAngles);
+                // Convert heading from [-pi,+pi] to [0,2*pi]
+                if (_state.eulerAngles[2] < 0) {
+                    _state.eulerAngles[2] += 2*M_PI;
+                }
+            }
+            
+            void correctStateEstimate(void)
+            {
+              checkAccelerometer();
+              checkOptionalSensors();
+              eskf.correct();
+              float _q[4];
+              eskf.getState(_q);
+              Quaternion::computeEulerAngles(_q, _state.eulerAngles);
+              // Convert heading from [-pi,+pi] to [0,2*pi]
+              if (_state.eulerAngles[2] < 0) {
+                  _state.eulerAngles[2] += 2*M_PI;
+              }
             }
 
             void runPidControllers(void)
@@ -503,12 +530,9 @@ namespace hf {
                 // Check serials for messages
                 doSerialComms();
 
-                // Check mandatory sensors
-                checkGyrometer();
-                checkQuaternion();
-                checkAccelerometer();
-                // Check optional sensors
-                checkOptionalSensors();
+                // Estimate and correct states via the ESKF
+                updateStateEstimate();
+                correctStateEstimate();
                 
                 // Compute control signal
                 checkFailsafe();
@@ -516,18 +540,6 @@ namespace hf {
                 
                 // XXX Only for debuging purposes
                 // readEEPROM();
-                // For debugging
-                eskf.update();
-                eskf.correct();
-                float _q[4];
-                eskf.getState(_q);
-                float euler[3];
-                Quaternion::computeEulerAngles(_q, euler);
-                Serial.print(euler[0]);
-                Serial.print(",");
-                Serial.print(euler[1]);
-                Serial.print(",");
-                Serial.println(euler[2]);
             } 
 
     }; // class Hackflight
