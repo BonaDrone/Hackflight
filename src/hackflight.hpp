@@ -116,22 +116,7 @@ namespace hf {
                 if (_gyrometer.ready(time)) {
 
                     // Update state with gyro rates
-                    _gyrometer.modifyState(_state, time);
-
-                    // For PID control, start with demands from receiver
-                    memcpy(&_demands, &_receiver->demands, sizeof(demands_t));
-
-                    // Synch PID controllers to gyro update
-                    runPidControllers();
-
-                    // Sync failsafe to gyro loop
-                    checkFailsafe();
-
-                    // Use updated demands to run motors
-                    if (_state.armed && !_failsafe && !_receiver->throttleIsDown()) {
-                        _mixer->runArmed(_demands);
-                    }
-                    
+                    _gyrometer.modifyState(_state, time);                    
                 }
             }
 
@@ -145,6 +130,20 @@ namespace hf {
 
                     // Update state with gyro rates
                     _accelerometer.modifyState(_state, time);                    
+                }
+            }
+
+            void updateControlSignal()
+            { 
+                // For PID control, start with demands from receiver
+                memcpy(&_demands, &_receiver->demands, sizeof(demands_t));
+
+                runPidControllers();
+
+                // Use updated demands to run motors
+                if (_state.armed && !_failsafe && !_receiver->throttleIsDown()) {
+                  _mixer->runArmed(_demands);
+                
                 }
             }
 
@@ -508,9 +507,12 @@ namespace hf {
                 checkGyrometer();
                 checkQuaternion();
                 checkAccelerometer();
-
                 // Check optional sensors
                 checkOptionalSensors();
+                
+                // Compute control signal
+                checkFailsafe();
+                updateControlSignal();
                 
                 // XXX Only for debuging purposes
                 // readEEPROM();
