@@ -101,9 +101,6 @@ namespace hf {
                     // Update state with new quaternion to yield Euler angles
                     _quaternion.modifyState(_state, time);
 
-                    // Synch serial comms to quaternion check
-                    _receiver->_gotNewFrame = false;
-                    doSerialComms();
                 }
             }
 
@@ -231,6 +228,7 @@ namespace hf {
 
             void doSerialComms(void)
             {
+                _receiver->_gotNewFrame = false;
                 _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
 
@@ -502,6 +500,8 @@ namespace hf {
                 checkPlanner();
                 // Grab control signal if available
                 checkReceiver();
+                // Check serials for messages
+                doSerialComms();
 
                 // Check mandatory sensors
                 checkGyrometer();
