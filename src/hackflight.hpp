@@ -97,10 +97,7 @@ namespace hf {
 
                 // If quaternion data ready
                 if (_quaternion.ready(time)) {
-
-                    // Update state with new quaternion to yield Euler angles
-                    _quaternion.modifyState(_state, time);
-
+                    doSerialComms();
                 }
             }
 
@@ -528,7 +525,8 @@ namespace hf {
                 // Grab control signal if available
                 checkReceiver();
                 // Check serials for messages
-                doSerialComms();
+                checkQuaternion();
+                //doSerialComms();
 
                 // Estimate and correct states via the ESKF
                 updateStateEstimate();
