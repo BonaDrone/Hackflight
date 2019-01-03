@@ -142,18 +142,34 @@ namespace hf {
             }
 
             void updateStateEstimate(void)
-            {
-                float _q[4];
-                checkGyrometer();
-                eskf.update();
+            {                        
+                // Check all sensors if they need an update estimate
+                for (uint8_t k=0; k<eskf.sensor_count; ++k)
+                {
+                  ESKF_Sensor * sensor = eskf.sensors[k];
+                  
+                  if (sensor->isEstimation)
+                  {
+                    float time = _board->getTime();
+                    eskf.update(sensor, time);
+                  }                  
+                }
+                            
             }
             
             void correctStateEstimate(void)
             {
-              float _q[4];
-              checkAccelerometer();
-              checkOptionalSensors();
-              eskf.correct();
+              // Check all sensors if they need an update estimate
+              for (uint8_t k=0; k<eskf.sensor_count; ++k)
+              {
+                ESKF_Sensor * sensor = eskf.sensors[k];
+                
+                if (sensor->isCorrection)
+                {
+                  float time = _board->getTime();
+                  eskf.correct(sensor, time);
+                }                  
+              }
             }
 
             void runPidControllers(void)
@@ -447,18 +463,22 @@ namespace hf {
                 _mixer    = mixer;
                 _ratePid  = ratePid;
                 
+                // XXX Now, the order of the sensors and the ESKF sensor must be the same.
+                // XXX. Ideal behavior: add sensors and ensure a method (not harcoded) 
+                // XXX that adds ESKF sensors depending on how they have been added in the sensors array.
+                
                 // Error state kalman filter
                 eskf.init();
                 eskf.addSensorESKF(&_gyrometer);
                 eskf.addSensorESKF(&_accelerometer);
+                
                 // Support for mandatory sensors
-                addSensor(&_quaternion, board);
                 addSensor(&_gyrometer, board);
-                addSensor(&_accelerometer, board);
-
-                // Support adding new sensors and PID controllers
-                _sensor_count = 0;
-
+                addSensor(&_accelerometer, board);      
+                
+                // XXX
+                
+                
                 // Last PID controller is always ratePid (rate), aux state = 0
                 addPidController(_ratePid, 0);
 
@@ -513,8 +533,7 @@ namespace hf {
                 // Grab control signal if available
                 checkReceiver();
                 // Check serials for messages
-                checkQuaternion();
-                //doSerialComms();
+                doSerialComms();
 
                 // Estimate and correct states via the ESKF
                 updateStateEstimate();

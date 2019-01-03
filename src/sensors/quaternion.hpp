@@ -54,7 +54,7 @@ namespace hf {
 
         protected:
 
-            Quaternion(void)
+            Quaternion(void):SurfaceMountSensor(false, false)
             {
                 memset(_quat, 0, 4*sizeof(float));
             }

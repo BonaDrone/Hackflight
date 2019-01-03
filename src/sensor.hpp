@@ -27,6 +27,7 @@ namespace hf {
     class Sensor {
 
         friend class Hackflight;
+        friend class ESKF;
 
         protected:
 

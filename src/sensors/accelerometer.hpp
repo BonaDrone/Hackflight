@@ -40,10 +40,13 @@ namespace hf {
         friend class Hackflight;
 
         public:
-
-            Accelerometer()
+            
+          // Accel. will be used to estimate and to correct
+            Accelerometer() : SurfaceMountSensor(true, true)
             {
                 memset(_gs, 0, 3*sizeof(float));
+                
+                // Define which actions does the ESKF should do with this sensor
             }
 
         protected:
