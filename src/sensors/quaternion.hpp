@@ -59,16 +59,9 @@ namespace hf {
                 memset(_quat, 0, 4*sizeof(float));
             }
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
                 (void)time;
-
-                computeEulerAngles(_quat, state.eulerAngles);
-
-                // Convert heading from [-pi,+pi] to [0,2*pi]
-                if (state.eulerAngles[2] < 0) {
-                    state.eulerAngles[2] += 2*M_PI;
-                }
             }
 
             virtual bool ready(float time) override

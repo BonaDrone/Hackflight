@@ -64,7 +64,7 @@ namespace hf {
             {
             }
 
-            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
 

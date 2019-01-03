@@ -87,7 +87,7 @@ namespace hf {
 
             bool safeAngle(uint8_t axis)
             {
-                return fabs(_state.eulerAngles[axis]) < _ratePid->maxArmingAngle;
+                return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
             }
 
             void checkQuaternion(void)
@@ -110,7 +110,7 @@ namespace hf {
                 if (_gyrometer.ready(time)) {
 
                     // Update state with gyro rates
-                    _gyrometer.modifyState(_state, time);                    
+                    _gyrometer.modifyState(*_state.UAVState, time);                    
                 }
             }
 
@@ -123,7 +123,7 @@ namespace hf {
                 if (_accelerometer.ready(time)) {
 
                     // Update state with gyro rates
-                    _accelerometer.modifyState(_state, time);                    
+                    _accelerometer.modifyState(*_state.UAVState, time);                    
                 }
             }
 
@@ -146,12 +146,6 @@ namespace hf {
                 float _q[4];
                 checkGyrometer();
                 eskf.update();
-                eskf.getState(_q);
-                Quaternion::computeEulerAngles(_q, _state.eulerAngles);
-                // Convert heading from [-pi,+pi] to [0,2*pi]
-                if (_state.eulerAngles[2] < 0) {
-                    _state.eulerAngles[2] += 2*M_PI;
-                }
             }
             
             void correctStateEstimate(void)
@@ -160,12 +154,6 @@ namespace hf {
               checkAccelerometer();
               checkOptionalSensors();
               eskf.correct();
-              eskf.getState(_q);
-              Quaternion::computeEulerAngles(_q, _state.eulerAngles);
-              // Convert heading from [-pi,+pi] to [0,2*pi]
-              if (_state.eulerAngles[2] < 0) {
-                  _state.eulerAngles[2] += 2*M_PI;
-              }
             }
 
             void runPidControllers(void)
@@ -184,7 +172,7 @@ namespace hf {
 
                     // XXX we should allow associating PID controllers with particular aux states
                     if (pidController->auxState <= auxState) {  
-                        if (pidController->modifyDemands(_state, _demands, currentTime) && pidController->shouldFlashLed()) {
+                        if (pidController->modifyDemands(*_state.UAVState, _demands, currentTime) && pidController->shouldFlashLed()) {
                             shouldFlash = true;
                         }
                     }
@@ -213,7 +201,7 @@ namespace hf {
             void checkReceiver(void)
             {
                 // Check whether receiver data is available
-                if (!_receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial)) return;
+                if (!_receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial)) return;
 
                 // Update ratePid with cyclic demands
                 _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
@@ -237,7 +225,7 @@ namespace hf {
                         safeAngle(AXIS_ROLL) && 
                         safeAngle(AXIS_PITCH)) {
                     _state.armed = true;
-                    _yawInitial = _state.eulerAngles[AXIS_YAW]; // grab yaw for headless mode
+                    _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
                 }
 
                 // Cut motors on throttle-down
@@ -277,7 +265,7 @@ namespace hf {
                     Sensor * sensor = _sensors[k];
                     float time = _board->getTime();
                     if (sensor->ready(time)) {
-                        sensor->modifyState(_state, time);
+                        sensor->modifyState(*_state.UAVState, time);
                     }
                 }
             }
@@ -348,9 +336,9 @@ namespace hf {
 
             virtual void handle_ATTITUDE_RADIANS_Request(float & roll, float & pitch, float & yaw) override
             {
-                roll  = _state.eulerAngles[0];
-                pitch = _state.eulerAngles[1];
-                yaw   = _state.eulerAngles[2];
+                roll  = _state.UAVState->eulerAngles[0];
+                pitch = _state.UAVState->eulerAngles[1];
+                yaw   = _state.UAVState->eulerAngles[2];
             }
 
             virtual void handle_SET_MOTOR_NORMAL_Request(float  m1, float  m2, float  m3, float  m4) override
@@ -476,7 +464,7 @@ namespace hf {
 
                 // Initialize state
                 memset(&_state, 0, sizeof(state_t));
-
+                _state.UAVState = &eskf.state;
                 // Support safety override by simulator
                 _state.armed = armed;
                 // Will be set to true when start mission message is received
