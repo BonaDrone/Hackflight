@@ -27,8 +27,8 @@ namespace hf {
 
   /* Cholesky-decomposition matrix-inversion code, adapated from
      http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/choles_cpp.txt */
-
-  static int choldc1(float * a, float * p, int n) {
+  static int choldc1(float * a, float * p, int n) 
+  {
       int i,j,k;
       float sum;
 

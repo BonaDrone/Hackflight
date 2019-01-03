@@ -259,7 +259,6 @@ namespace hf {
                 _receiver->_gotNewFrame = false;
                 _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
-
                     if (MspParser::parse(_board->serialReadByte())) {
                         _board->reboot();
                     }

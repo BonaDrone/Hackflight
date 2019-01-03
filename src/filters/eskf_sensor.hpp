@@ -34,8 +34,8 @@ namespace hf {
         
         ESKF_Sensor(bool isestimation, bool iscorrection)
         {
-          isEstimation = isestimation;
-          isCorrection = iscorrection;
+            isEstimation = isestimation;
+            isCorrection = iscorrection;
         }
         
         bool isEstimation;

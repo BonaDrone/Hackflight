@@ -45,7 +45,6 @@ namespace hf {
             Accelerometer() : SurfaceMountSensor(true, true)
             {
                 memset(_gs, 0, 3*sizeof(float));
-                
                 // Define which actions does the ESKF should do with this sensor
             }
 
@@ -66,18 +65,18 @@ namespace hf {
             
             virtual void getJacobianObservation(float * H, float * x) override
             {
-              // First Column
-              H[0]  =  0.0;
-              H[3]  =  x[0]*x[0] - x[1]*x[1] - x[2]*x[2] + x[3]*x[3];
-              H[6]  = - 2*x[0]*x[1] - 2*x[2]*x[3];
-              // Second Column
-              H[1]  = -x[0]*x[0] + x[1]*x[1] + x[2]*x[2] - x[3]*x[3];
-              H[4]  =  0.0;
-              H[7]  = 2*x[1]*x[3] - 2*x[0]*x[2];
-              // Third Column
-              H[2]  = 2*x[0]*x[1] + 2*x[2]*x[3];
-              H[5]  = 2*x[0]*x[2] - 2*x[1]*x[3];
-              H[8]  = 0.0;
+                // First Column
+                H[0]  =  0.0;
+                H[3]  =  x[0]*x[0] - x[1]*x[1] - x[2]*x[2] + x[3]*x[3];
+                H[6]  = - 2*x[0]*x[1] - 2*x[2]*x[3];
+                // Second Column
+                H[1]  = -x[0]*x[0] + x[1]*x[1] + x[2]*x[2] - x[3]*x[3];
+                H[4]  =  0.0;
+                H[7]  = 2*x[1]*x[3] - 2*x[0]*x[2];
+                // Third Column
+                H[2]  = 2*x[0]*x[1] + 2*x[2]*x[3];
+                H[5]  = 2*x[0]*x[2] - 2*x[1]*x[3];
+                H[8]  = 0.0;
             }
 
             virtual void getInnovation(float * z, float * x) override
