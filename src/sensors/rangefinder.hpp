@@ -33,7 +33,7 @@ namespace hf {
 
         public:
 
-            Rangefinder(void) 
+            Rangefinder(void) :  PeripheralSensor(false, true)
             {
                 _lpf.init();
             }

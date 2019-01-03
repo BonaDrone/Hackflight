@@ -88,7 +88,6 @@ namespace hf {
                 return SoftwareQuaternionBoard::getAccelerometer(accelGs);
             }
 
-
             bool imuRead(void)
             {
                 if (_lsm6dsm.checkNewData()) {

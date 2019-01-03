@@ -69,6 +69,8 @@ namespace hf {
 
         public:
 
+            OpticalFlow(void) : PeripheralSensor(false, true) {}
+
             void begin(void)
             {
                 if (!_flowSensor.begin()) {

@@ -27,6 +27,8 @@ namespace hf {
 
     class PeripheralSensor : public ESKF_Sensor {
 
+    public:
+      PeripheralSensor(bool isEstimation, bool isCorrection) : ESKF_Sensor(isEstimation, isCorrection){}
     };  // class PeripheralSensor
 
 } // namespace
