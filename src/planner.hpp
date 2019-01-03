@@ -141,11 +141,11 @@ namespace hf {
 
         protected:
 
-            bool isActionComplete(state_t & state, demands_t & demands)
+            bool isActionComplete(eskf_state_t & state, demands_t & demands)
             {
               // XXX each action with its own validator ?
               bool actionComplete = true;
-              if (abs(demands.altitude - state.altitude) > 0.05)
+              if (abs(demands.altitude - state.position[2]) > 0.05)
               {
                 actionComplete = false;
               }
@@ -166,7 +166,7 @@ namespace hf {
                 _currentAction = _mission[_currentActionIndex];
             }
             
-            void executeAction(state_t & state, demands_t & demands)
+            void executeAction(eskf_state_t & state, demands_t & demands)
             {
                 // XXX Handle arm and disarm actions, also land
                 if (isActionComplete(state, demands))

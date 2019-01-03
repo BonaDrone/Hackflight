@@ -30,7 +30,7 @@ namespace hf {
 
         protected:
 
-        virtual void modifyState(state_t & state, float time) = 0;
+        virtual void modifyState(eskf_state_t & state, float time) = 0;
 
         virtual bool ready(float time) = 0;
 

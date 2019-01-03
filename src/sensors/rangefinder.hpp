@@ -40,21 +40,21 @@ namespace hf {
 
         protected:
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
                 // Previous values to support first-differencing
                 static float _time;
                 static float _altitude;
 
                 // Compensate for effect of pitch, roll on rangefinder reading
-                state.altitude =  _distance * cos(state.eulerAngles[0]) * cos(state.eulerAngles[1]);
+                state.position[2] =  _distance * cos(state.eulerAngles[0]) * cos(state.eulerAngles[1]);
 
                 // Use first-differenced, low-pass-filtered altitude as variometer
-                state.variometer = _lpf.update((state.altitude-_altitude) / (time-_time));
+                state.linearVelocities[2] = _lpf.update((state.position[2]-_altitude) / (time-_time));
 
                 // Update first-difference values
                 _time = time;
-                _altitude = state.altitude;
+                _altitude = state.position[2];
             }
 
             virtual bool ready(float time) override

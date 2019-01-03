@@ -20,10 +20,6 @@
 
 #pragma once
 
-#define NNsta 4
-#define NEsta 3
-#define Mobs 3
-
 #include "linalg.hpp"
 #include "eskf_struct.hpp"
 #include "eskf_sensor.hpp"
@@ -133,9 +129,22 @@ namespace hf {
           qL[15] =  x[0];
       }
       
+      void synchState(void)
+      {
+        // Update euler angles
+        float q[4] = {eskf.x[0], eskf.x[1], eskf.x[2], eskf.x[3]};
+        Quaternion::computeEulerAngles(q, state.eulerAngles);
+        // Convert heading from [-pi,+pi] to [0,2*pi]
+        if (state.eulerAngles[2] < 0) {
+            state.eulerAngles[2] += 2*M_PI;
+        }
+      }
+
     public:
 
       ESKF(){}
+
+      eskf_state_t state;
 
       void init(void)
       {
@@ -205,6 +214,7 @@ namespace hf {
         makesym(eskfp.tmp1, eskfp.Pp, errorStates);
 
         /* success */
+        synchState();
         return 0;
       }
       
@@ -273,15 +283,8 @@ namespace hf {
         /* reset error state */
         zeros(eskfp.dx, errorStates, 1);
         /* success */
+        synchState();
         return 0;
-      }
-      
-      void getState(float q[4])
-      {
-        q[0] = (float)eskf.x[0];
-        q[1] = (float)eskf.x[1];
-        q[2] = (float)eskf.x[2];
-        q[3] = (float)eskf.x[3];
       }
 
       // XXX Debug

@@ -46,13 +46,13 @@ namespace hf {
 
           protected:
             
-              bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
+              bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
               {
                   // Don't do anything till we've reached sufficient altitude
-                  if (state.altitude < _minAltitude) return false;
+                  if (state.position[2] < _minAltitude) return false;
 
                   float correction = 0;
-                  if (setpoint.gotCorrection(demands.throttle, state.altitude, state.variometer, currentTime, correction)) {
+                  if (setpoint.gotCorrection(demands.throttle, state.position[2], state.linearVelocities[2], currentTime, correction)) {
                       demands.throttle = correction + HOVER_THROTTLE;
                       return true;
                   }

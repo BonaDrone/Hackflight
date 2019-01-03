@@ -185,7 +185,7 @@ namespace hf {
                 _DConstants[1] = gyroRollPitchD;
             }
 
-            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
 

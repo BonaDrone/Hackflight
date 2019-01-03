@@ -54,7 +54,7 @@ namespace hf {
 
         protected:
 
-        virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) 
+        virtual bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime) 
         {
             bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.positionX, state.velocityForward,   
                     currentTime);

@@ -24,6 +24,10 @@
 
 #pragma once
 
+#define NNsta 4
+#define NEsta 3
+#define Mobs 3
+
 namespace hf {
 
   typedef struct {
@@ -103,5 +107,14 @@ namespace hf {
       float * tmp8;
 
   } eskf_p_t;
+  
+  typedef struct {
+    
+    float eulerAngles[3];
+    float linearVelocities[3];
+    float angularVelocities[3];
+    float position[3];
+    
+  } eskf_state_t;
   
 } // namespace hf
