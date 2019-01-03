@@ -533,8 +533,7 @@ namespace hf {
                 // Grab control signal if available
                 checkReceiver();
                 // Check serials for messages
-                checkQuaternion();
-                //doSerialComms();
+                doSerialComms();
 
                 // Estimate and correct states via the ESKF
                 updateStateEstimate();
