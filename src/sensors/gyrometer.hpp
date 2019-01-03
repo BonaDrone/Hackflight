@@ -36,7 +36,8 @@ namespace hf {
 
         public:
 
-            Gyrometer(void)
+            // Gyrometer will be used to estimate but not to correct
+            Gyrometer(void) : SurfaceMountSensor(true, false)
             {
                 memset(_rates, 0, 3*sizeof(float));
             }

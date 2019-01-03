@@ -30,7 +30,17 @@ namespace hf {
     class ESKF_Sensor : public Sensor {
         
       public:
-
+        
+        
+        ESKF_Sensor(bool isestimation, bool iscorrection)
+        {
+          isEstimation = isestimation;
+          isCorrection = iscorrection;
+        }
+        
+        bool isEstimation;
+        bool isCorrection;
+        
         // This methods should be overriden by sensors that estimate
         virtual void getJacobianModel(float * Fx, double dt) { (void)Fx; }
         

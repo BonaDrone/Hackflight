@@ -27,7 +27,12 @@
 namespace hf {
   
   class ESKF {
+    friend class Hackflight;
     
+    protected:
+      ESKF_Sensor * sensors[256];
+      int sensor_count = 0;
+
     private:
 
       static const uint8_t errorStates = NEsta;
@@ -39,9 +44,6 @@ namespace hf {
 
       double t_lastCall;
       double dt;
-
-      ESKF_Sensor * _sensors[256];
-      int _sensor_count = 0;
       
       void eskfp_init(void * eskf, int nn, int ne, int m)
       {
@@ -179,11 +181,10 @@ namespace hf {
 
       void addSensorESKF(ESKF_Sensor * sensor)
       {
-          _sensors[_sensor_count++] = sensor;
+          sensors[sensor_count++] = sensor;
       }
       
-      int update(void) {
-        uint8_t sensorIndex = 0; 
+      int update(ESKF_Sensor * sensor, float time) {
         /*
         This method should:
           1. Obtain the nominal state Jacobian and the error-state Jacobian.
@@ -192,14 +193,21 @@ namespace hf {
              iteration covariance estimate the current Covariance (and enforce
              its symmetry?)
         */
+                        
+        // Check sensor
+        if (sensor->ready(time)) {
+            // Update state with gyro rates
+            sensor->modifyState(state, time);                    
+        } 
+        
         // Compute deltat
         double t_now = (double)micros();
         dt = (t_now - t_lastCall)/1000000.0f;
         t_lastCall = t_now;
         
-        _sensors[sensorIndex]->getJacobianModel(eskfp.Fx, dt);
-        _sensors[sensorIndex]->getJacobianErrors(eskfp.Fdx, dt);
-        _sensors[sensorIndex]->getCovarianceEstimation(eskfp.Q);
+        sensor->getJacobianModel(eskfp.Fx, dt);
+        sensor->getJacobianErrors(eskfp.Fdx, dt);
+        sensor->getCovarianceEstimation(eskfp.Q);
         
         /* f(x) = F*eskfp.x; */
         mulvec(eskfp.Fx, eskfp.x, eskfp.tmp6, nominalStates, nominalStates);
@@ -218,8 +226,7 @@ namespace hf {
         return 0;
       }
       
-      int correct(void) {
-        uint8_t sensorIndex = 1; 
+      int correct(ESKF_Sensor * sensor, float time) {
         /* This method should:
           1. Obtain the Jacobian of the correction measurement model
           2. Obtain the innovation value:
@@ -231,11 +238,18 @@ namespace hf {
           7. Inject errors
           8. Update Covariance if required and enforce symmetry
           9. Reset errors
-        */        
+        */
+        
+        // Check sensor
+        if (sensor->ready(time)) {
+            // Update state with gyro rates
+            sensor->modifyState(state, time);                    
+        } 
+        
         // Comming from eskf.update the state is stored in fx
-        _sensors[sensorIndex]->getJacobianObservation(eskfp.H, eskfp.fx);
-        _sensors[sensorIndex]->getInnovation(eskfp.hx, eskfp.fx);
-        _sensors[sensorIndex]->getCovarianceCorrection(eskfp.R);
+        sensor->getJacobianObservation(eskfp.H, eskfp.fx);
+        sensor->getInnovation(eskfp.hx, eskfp.fx);
+        sensor->getCovarianceCorrection(eskfp.R);
 
         // Compute gain:
         /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */

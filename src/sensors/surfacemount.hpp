@@ -26,9 +26,12 @@
 namespace hf {
 
     class SurfaceMountSensor : public ESKF_Sensor {
-
+    
         friend class Hackflight;
-
+        
+        public: 
+          SurfaceMountSensor(bool isEstimation, bool isCorrection) : ESKF_Sensor(isEstimation, isCorrection){}
+          
         protected:
 
             Board * board;
