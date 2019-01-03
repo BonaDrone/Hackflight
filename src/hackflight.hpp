@@ -256,7 +256,7 @@ namespace hf {
 
             void doSerialComms(void)
             {
-                _receiver->_gotNewFrame = false;
+                _receiver->gotFrame = false;
                 _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
                     if (MspParser::parse(_board->serialReadByte())) {
@@ -398,7 +398,7 @@ namespace hf {
                 float _channels[6] = {c2, c3, c1, c4, c6, c5};
                 memset(_receiver->rawvals, 0, _receiver->MAXCHAN*sizeof(float));
                 memcpy(_receiver->rawvals, _channels, _receiver->MAXCHAN*sizeof(float));
-                _receiver->_gotNewFrame = true;
+                _receiver->gotFrame = true;
                 _receiver->_bypassReceiver = true;
                 _receiver->_lostSignal = false;
             }

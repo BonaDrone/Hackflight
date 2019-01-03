@@ -36,9 +36,6 @@ namespace hf {
         friend class MspParser;
 
         private: 
-        // Receiving via Wifi should set this boolean to true so that RC values
-        // are updated
-        bool _gotNewFrame = false;
         // Allow bypassing the receiver method that updates RC values. Receiving
         // via wifi should set it to true to avoid overwritting RC values
         bool _bypassReceiver = false;
@@ -89,6 +86,10 @@ namespace hf {
         }
 
         protected: 
+
+        // Receiving via Wifi should set this boolean to true so that RC values
+        // are updated
+        bool gotFrame = false;
 
         // maximum number of channels that any receiver will send (of which we'll use six)
         static const uint8_t MAXCHAN = 8;
@@ -172,7 +173,7 @@ namespace hf {
         bool getDemands(float yawAngle)
         {
             // Wait till there's a new frame
-            if (!gotNewFrame() && !_gotNewFrame) return false;
+            if (!gotNewFrame() && !gotFrame) return false;
 
             // Read raw channel values
             readRawvals(_bypassReceiver);
