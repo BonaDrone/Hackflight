@@ -90,43 +90,6 @@ namespace hf {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
             }
 
-            void checkQuaternion(void)
-            {
-                // Some quaternion filters may need to know the current time
-                float time = _board->getTime();
-
-                // If quaternion data ready
-                if (_quaternion.ready(time)) {
-                    doSerialComms();
-                }
-            }
-
-            void checkGyrometer(void)
-            {
-                // Some gyrometers may need to know the current time
-                float time = _board->getTime();
-
-                // If gyrometer data ready
-                if (_gyrometer.ready(time)) {
-
-                    // Update state with gyro rates
-                    _gyrometer.modifyState(*_state.UAVState, time);                    
-                }
-            }
-
-            void checkAccelerometer(void)
-            {
-                // Some gyrometers may need to know the current time
-                float time = _board->getTime();
-
-                // If gyrometer data ready
-                if (_accelerometer.ready(time)) {
-
-                    // Update state with gyro rates
-                    _accelerometer.modifyState(*_state.UAVState, time);                    
-                }
-            }
-
             void updateControlSignal(void)
             { 
                 // For PID control, start with demands from receiver
@@ -256,7 +219,7 @@ namespace hf {
 
             void doSerialComms(void)
             {
-                _receiver->gotFrame = false;
+                //_receiver->gotFrame = false;
                 _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
                     if (MspParser::parse(_board->serialReadByte())) {
@@ -274,17 +237,6 @@ namespace hf {
                 }
             }
 
-            void checkOptionalSensors(void)
-            {
-                for (uint8_t k=0; k<_sensor_count; ++k) {
-                    Sensor * sensor = _sensors[k];
-                    float time = _board->getTime();
-                    if (sensor->ready(time)) {
-                        sensor->modifyState(*_state.UAVState, time);
-                    }
-                }
-            }
-
             void add_sensor(Sensor * sensor)
             {
                 _sensors[_sensor_count++] = sensor;
@@ -293,7 +245,6 @@ namespace hf {
             void checkPlanner(void)
             {
               if (_state.executingMission == false) return;
-              
             }
 
             // XXX only for debuging purposes
