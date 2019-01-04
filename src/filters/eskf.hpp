@@ -183,7 +183,7 @@ namespace hf {
           dt = (t_now - t_lastCall)/1000000.0f;
           t_lastCall = t_now;
           
-          sensor->getJacobianModel(eskfp.Fx, dt);
+          sensor->getJacobianModel(eskfp.Fx, eskfp.x, dt);
           sensor->getJacobianErrors(eskfp.Fdx, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
           
