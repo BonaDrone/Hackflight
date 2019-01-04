@@ -142,18 +142,58 @@ namespace hf {
           eskfp.x[1] = 0.0;
           eskfp.x[2] = 0.0;
           eskfp.x[3] = 0.0;
+          eskfp.x[4] = 0.301350;
+          eskfp.x[5] = -0.818594;
+          eskfp.x[6] = -0.701652;
           
-          eskfp.P[0] = 1.0;
-          eskfp.P[1] = 0;
-          eskfp.P[2] = 0;
+          // First Column
+          eskfp.P[0]  =  1.0;
+          eskfp.P[6]  =  0.0;
+          eskfp.P[12] = 0.0;
+          eskfp.P[18] = 0.0;
+          eskfp.P[24] = 0.0;
+          eskfp.P[30] = 0.0;
           
-          eskfp.P[3] = 0.0;
-          eskfp.P[4] = 1.0;
-          eskfp.P[5] = 0.0;
-        
-          eskfp.P[6] = 0.0;
-          eskfp.P[7] = 0.0;
-          eskfp.P[8] = 1.0;
+          // Second Column
+          eskfp.P[1]  = 0.0;
+          eskfp.P[7]  =  1.0;
+          eskfp.P[13] = 0.0;
+          eskfp.P[19] = 0.0;
+          eskfp.P[25] = 0.0;
+          eskfp.P[31] = 0.0;
+
+          // Third Column
+          eskfp.P[2]  = 0.0;
+          eskfp.P[8]  = 0.0;
+          eskfp.P[14] = 1.0;
+          eskfp.P[20] = 0.0;
+          eskfp.P[26] = 0.0;
+          eskfp.P[32] = 0.0;
+
+          // Fourth Column
+          eskfp.P[3]  = 0.0;
+          eskfp.P[9]  = 0.0;
+          eskfp.P[15] = 0.0;
+          eskfp.P[21] = 1.0;
+          eskfp.P[27] = 0.0;
+          eskfp.P[33] = 0.0;
+          
+          // Fifth Column
+          eskfp.P[4]  = 0.0;
+          eskfp.P[10] = 0.0;
+          eskfp.P[16] = 0.0;
+          eskfp.P[22] = 0.0;
+          eskfp.P[28] = 1.0;
+          eskfp.P[34] = 0.0;
+          
+          // Sixth Column
+          eskfp.P[5]  = 0.0;
+          eskfp.P[11] = 0.0;
+          eskfp.P[17] = 0.0;
+          eskfp.P[23] = 0.0;
+          eskfp.P[29] = 0.0;
+          eskfp.P[35] = 1.0;
+
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -254,19 +294,25 @@ namespace hf {
           makesym(eskfp.tmp0, eskfp.P, errorStates);
           
           /* Error injection */
-          eskfp.tmp6[0] = 1.0;
-          eskfp.tmp6[1] = eskfp.dx[0]/2.0;
-          eskfp.tmp6[2] = eskfp.dx[1]/2.0;
-          eskfp.tmp6[3] = eskfp.dx[2]/2.0;
+          // XXX Quaternion injection as a method
+          float tmp[4];
+          tmp[0] = 1.0;
+          tmp[1] = eskfp.dx[0]/2.0;
+          tmp[2] = eskfp.dx[1]/2.0;
+          tmp[3] = eskfp.dx[2]/2.0;
           Quaternion::computeqL(eskfp.qL, eskfp.fx);
-          mulvec(eskfp.qL, eskfp.tmp6, eskfp.tmp7, nominalStates, nominalStates);
-          norvec(eskfp.tmp7, eskfp.x, nominalStates);
+          mulvec(eskfp.qL, tmp, eskfp.tmp7, 4, 4);
+          norvec(eskfp.tmp7, eskf.x, nominalStates); // XXX Be careful when the quat is not the first state
+
+          eskfp.x[4] += eskfp.dx[3];
+          eskfp.x[5] += eskfp.dx[4];
+          eskfp.x[6] += eskfp.dx[5];
 
           /* Update covariance*/
           eskfp.tmp5[0] = eskfp.dx[0]/2.0;
           eskfp.tmp5[1] = eskfp.dx[1]/2.0;
           eskfp.tmp5[2] = eskfp.dx[2]/2.0;
-          skew(eskfp.tmp5, eskfp.G);
+          newSkew(eskfp.tmp5, eskfp.G);
           negate(eskfp.G, errorStates, errorStates);
           mat_addeye(eskfp.G, errorStates);
           transpose(eskfp.G, eskfp.tmp0, errorStates, errorStates);
