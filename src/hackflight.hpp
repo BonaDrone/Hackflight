@@ -165,14 +165,14 @@ namespace hf {
             void checkFailsafe(void)
             {
                 if (_state.armed &&
-                   (_receiver->lostSignal(_receiver->_bypassReceiver) || _board->isBatteryLow())) {
+                   (_receiver->lostSignal(_receiver->getBypassReceiver()) || _board->isBatteryLow())) {
                     _mixer->cutMotors();
                     _state.armed = false;
                     _failsafe = true;
                     _board->showArmedStatus(false);
-                    if (_receiver->_lostSignal)
+                    if (_receiver->getLostSignal())
                     {
-                      _receiver->_bypassReceiver = false;
+                      _receiver->setBypassReceiver(false);
                     }
                 }
             } 
@@ -219,7 +219,7 @@ namespace hf {
 
             void doSerialComms(void)
             {
-                //_receiver->gotFrame = false;
+                _receiver->setGotNewFrame(false);
                 _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
                     if (MspParser::parse(_board->serialReadByte())) {
@@ -349,14 +349,14 @@ namespace hf {
                 float _channels[6] = {c2, c3, c1, c4, c6, c5};
                 memset(_receiver->rawvals, 0, _receiver->MAXCHAN*sizeof(float));
                 memcpy(_receiver->rawvals, _channels, _receiver->MAXCHAN*sizeof(float));
-                _receiver->gotFrame = true;
-                _receiver->_bypassReceiver = true;
-                _receiver->_lostSignal = false;
+                _receiver->setGotNewFrame(true);
+                _receiver->setBypassReceiver(true);
+                _receiver->setLostSignal(false);
             }
             
             virtual void handle_LOST_SIGNAL_Request(uint8_t  flag) override
             {
-                _receiver->_lostSignal = flag;
+                _receiver->setLostSignal(flag);
             }
 
             virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t version) override
