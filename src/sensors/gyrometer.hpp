@@ -112,17 +112,53 @@ namespace hf {
             virtual void getJacobianErrors(float * Fdx, double dt) override
             {
                 // First Column
-                Fdx[0] =  1.0;
-                Fdx[3] =  _rates[2]*dt;
-                Fdx[6] = -_rates[1]*dt;
+                Fdx[0]  =  1.0;
+                Fdx[6]  =  _rates[2]*dt;
+                Fdx[12] = -_rates[1]*dt;
+                Fdx[18] = 0.0;
+                Fdx[24] = 0.0;
+                Fdx[30] = 0.0;
+                
                 // Second Column
-                Fdx[1] = -_rates[2]*dt;
-                Fdx[4] =  1.0;
-                Fdx[7] =  _rates[0]*dt;
+                Fdx[1]  = -_rates[2]*dt;
+                Fdx[7]  =  1.0;
+                Fdx[13] =  _rates[0]*dt;
+                Fdx[19] = 0.0;
+                Fdx[25] = 0.0;
+                Fdx[31] = 0.0;
+
                 // Third Column
-                Fdx[2] =  _rates[1]*dt;
-                Fdx[5] = -_rates[0]*dt;
-                Fdx[8] = 1.0;
+                Fdx[2]  =  _rates[1]*dt;
+                Fdx[8]  = -_rates[0]*dt;
+                Fdx[14] = 1.0;
+                Fdx[20] = 0.0;
+                Fdx[26] = 0.0;
+                Fdx[32] = 0.0;
+
+                // Fourth Column
+                Fdx[3]  = -1.0;
+                Fdx[9]  = 0.0;
+                Fdx[15] = 0.0;
+                Fdx[21] = 0.0;
+                Fdx[27] = 0.0;
+                Fdx[33] = 0.0;
+                
+                // Fifth Column
+                Fdx[4]  = 0.0;
+                Fdx[10] = -1.0;
+                Fdx[16] = 0.0;
+                Fdx[22] = 0.0;
+                Fdx[28] = 0.0;
+                Fdx[34] = 0.0;
+                
+                // Sixth Column
+                Fdx[5]  = 0.0;
+                Fdx[11] = 0.0;
+                Fdx[17] = -1.0;
+                Fdx[23] = 0.0;
+                Fdx[29] = 0.0;
+                Fdx[35] = 0.0;
+
             }
             
             virtual void getCovarianceEstimation(float * Q) override
