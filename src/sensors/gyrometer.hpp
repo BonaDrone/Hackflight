@@ -163,8 +163,12 @@ namespace hf {
             
             virtual void getCovarianceEstimation(float * Q) override
             {
-                Q[0] = 0.0001;
-                Q[4] = 0.0001;
+                Q[0]   = 0.0001;
+                Q[7]   = 0.0001;
+                Q[14]  = 0.0001;
+                Q[21]  = 0.0001;
+                Q[28]  = 0.0001;
+                Q[35]  = 0.0001;
             }
 
         protected:
