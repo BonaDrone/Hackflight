@@ -64,7 +64,7 @@ namespace hf {
       float tmp4[Mobs][Mobs];
       float tmp5[Mobs];
       float tmp6[NNsta]; 
-      float tmp7[4];
+      float tmp7[NNsta];
       float tmp8[Mobs];
 
   } eskf_t;

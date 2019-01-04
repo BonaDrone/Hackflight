@@ -46,35 +46,35 @@ namespace hf {
             {
                 // First Column
                 Fx[0]  = 1.0;
-                Fx[7]  = _rates[0]*dt/2.0;
-                Fx[14] = _rates[1]*dt/2.0;
-                Fx[21] = _rates[2]*dt/2.0;
+                Fx[7]  = (_rates[0]-x[4])*dt/2.0;
+                Fx[14] = (_rates[1]-x[5])*dt/2.0;
+                Fx[21] = (_rates[2]-x[6])*dt/2.0;
                 Fx[28] = 0.0;
                 Fx[35] = 0.0;
                 Fx[42] = 0.0;
 
                 // Second Column
-                Fx[1]  = -_rates[0]*dt/2.0;
+                Fx[1]  = -(_rates[0]-x[4])*dt/2.0;
                 Fx[8]  =  1.0;
-                Fx[15] = -_rates[2]*dt/2.0;
-                Fx[22] = _rates[1]*dt/2.0;
+                Fx[15] = -(_rates[2]-x[6])*dt/2.0;
+                Fx[22] = (_rates[1]-x[5])*dt/2.0;
                 Fx[29] = 0.0;
                 Fx[36] = 0.0;
                 Fx[43] = 0.0;
                 
                 // Third Column
-                Fx[2]  = -_rates[1]*dt/2.0;
-                Fx[9]  =  _rates[2]*dt/2.0;
+                Fx[2]  = -(_rates[1]-x[5])*dt/2.0;
+                Fx[9]  =  (_rates[2]-x[6])*dt/2.0;
                 Fx[16] =  1.0;
-                Fx[23] = -_rates[0]*dt/2.0;
+                Fx[23] = -(_rates[0]-x[4])*dt/2.0;
                 Fx[30] = 0.0;
                 Fx[37] = 0.0;
                 Fx[44] = 0.0;
 
                 // Fourth Column
-                Fx[3]  = -_rates[2]*dt/2.0;
-                Fx[10] = -_rates[1]*dt/2.0;
-                Fx[17] = _rates[0]*dt/2.0;
+                Fx[3]  = -(_rates[2]-x[6])*dt/2.0;
+                Fx[10] = -(_rates[1]-x[5])*dt/2.0;
+                Fx[17] = (_rates[0]-x[4])*dt/2.0;
                 Fx[24] = 1.0;
                 Fx[31] = 0.0;
                 Fx[38] = 0.0;
@@ -166,9 +166,9 @@ namespace hf {
                 Q[0]   = 0.0001;
                 Q[7]   = 0.0001;
                 Q[14]  = 0.0001;
-                Q[21]  = 1.0001;
-                Q[28]  = 1.0001;
-                Q[35]  = 1.0001;
+                Q[21]  = 0.0001;
+                Q[28]  = 0.0001;
+                Q[35]  = 0.0001;
             }
 
         protected:

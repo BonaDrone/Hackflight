@@ -238,7 +238,7 @@ namespace hf {
         }
         return;
       }
-      norm = 1/sqrt(norm);
+      norm = 1.0/sqrt(norm);
       
       for (int ii=0; ii<n; ++ii)
         y[ii] = x[ii]*norm;

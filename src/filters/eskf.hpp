@@ -290,7 +290,7 @@ namespace hf {
           transpose(eskfp.K, eskfp.Kt, observations, errorStates);
           mulmat(eskfp.K, eskfp.tmp3, eskfp.tmp0, errorStates, observations, errorStates);
           mulmat(eskfp.tmp0, eskfp.Kt, eskfp.tmp3, errorStates, errorStates, observations);
-          sub(eskfp.Pp, eskfp.tmp3, eskfp.tmp0, errorStates);
+          sub(eskfp.Pp, eskfp.tmp3, eskfp.tmp0, errorStates*errorStates);
           makesym(eskfp.tmp0, eskfp.P, errorStates);
           
           /* Error injection */
@@ -302,7 +302,7 @@ namespace hf {
           tmp[3] = eskfp.dx[2]/2.0;
           Quaternion::computeqL(eskfp.qL, eskfp.fx);
           mulvec(eskfp.qL, tmp, eskfp.tmp7, 4, 4);
-          norvec(eskfp.tmp7, eskf.x, nominalStates); // XXX Be careful when the quat is not the first state
+          norvec(eskfp.tmp7, eskf.x, 4); // XXX Be careful when the quat is not the first state
 
           eskfp.x[4] += eskfp.dx[3];
           eskfp.x[5] += eskfp.dx[4];
