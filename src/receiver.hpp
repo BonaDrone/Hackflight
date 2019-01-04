@@ -257,7 +257,9 @@ namespace hf {
         }
         
         // Setters and getters of the attributes required to be able to use the
-        // ESP32 and MSP messages as a receiver
+        // ESP32 and MSP messages as a receiver. For now, we offer this possibility
+        // to work with any receiver by implementing this methods in the receiver
+        // class 
         
         void setGotNewFrame(bool gotNewFrame)
         {
