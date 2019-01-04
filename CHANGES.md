@@ -13,4 +13,5 @@
 ### Fixed
 
 * #39 Firmware version
+* #41 Serial communications with the platform
 
