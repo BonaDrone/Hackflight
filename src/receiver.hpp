@@ -41,6 +41,9 @@ namespace hf {
         bool _bypassReceiver = false;
         // Allow to trigger lost signal from Hackflight via this flag 
         bool _lostSignal = false;
+        // Receiving via Wifi should set this boolean to true so that RC values
+        // are updated
+        bool _gotNewFrame = false;
 
         static constexpr uint8_t DEFAULT_CHANNEL_MAP[6] = {0, 1, 2, 3, 4, 5};
 
@@ -87,10 +90,6 @@ namespace hf {
 
         protected: 
 
-        // Receiving via Wifi should set this boolean to true so that RC values
-        // are updated
-        bool gotFrame = false;
-
         // maximum number of channels that any receiver will send (of which we'll use six)
         static const uint8_t MAXCHAN = 8;
 
@@ -112,6 +111,7 @@ namespace hf {
         // These must be overridden for each receiver
         virtual bool gotNewFrame(void) = 0;
         virtual void readRawvals(void) = 0;
+
         // Enable readRawvals bypass 
         void readRawvals(bool bypass)
         {
@@ -173,7 +173,7 @@ namespace hf {
         bool getDemands(float yawAngle)
         {
             // Wait till there's a new frame
-            if (!gotNewFrame() && !gotFrame) return false;
+            if (!gotNewFrame() && !_gotNewFrame) return false;
 
             // Read raw channel values
             readRawvals(_bypassReceiver);
@@ -255,7 +255,39 @@ namespace hf {
         {
             _trimYaw = trim;
         }
-
+        
+        // Setters and getters of the attributes required to be able to use the
+        // ESP32 and MSP messages as a receiver
+        
+        void setGotNewFrame(bool gotNewFrame)
+        {
+            _gotNewFrame = gotNewFrame;
+        }
+        
+        void setBypassReceiver(bool bypass)
+        {
+            _bypassReceiver = bypass;
+        }
+        
+        void setLostSignal(bool lost)
+        {
+            _lostSignal = lost;
+        }
+        
+        bool getGotNewFrame(void)
+        {
+            return _gotNewFrame;
+        }
+        
+        bool getBypassReceiver(void)
+        {
+            return _bypassReceiver;
+        }
+        
+        bool getLostSignal(void)
+        {
+            return _lostSignal;
+        }
 
     }; // class Receiver
 
