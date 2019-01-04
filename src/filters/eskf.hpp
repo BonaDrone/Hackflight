@@ -108,29 +108,6 @@ namespace hf {
           eskfp.tmp8 = dptr;        
       }
       
-      void computeqL(float * qL, float * x)
-      {        
-          qL[0] =  x[0];
-          qL[4] =  x[1];
-          qL[8] =  x[2];
-          qL[12] =  x[3];
-          
-          qL[1] = -x[1];
-          qL[5] =  x[0];
-          qL[9] =  x[3];
-          qL[13] = -x[2];
-          
-          qL[2]  = -x[2];
-          qL[6]  = -x[3];
-          qL[10] =  x[0];
-          qL[14] =  x[1];
-          
-          qL[3] = -x[3];
-          qL[7] =  x[2];
-          qL[11] = -x[1];
-          qL[15] =  x[0];
-      }
-      
       void synchState(void)
       {
           // Update euler angles
@@ -281,7 +258,7 @@ namespace hf {
           eskfp.tmp6[1] = eskfp.dx[0]/2.0;
           eskfp.tmp6[2] = eskfp.dx[1]/2.0;
           eskfp.tmp6[3] = eskfp.dx[2]/2.0;
-          computeqL(eskfp.qL, eskfp.fx);
+          Quaternion::computeqL(eskfp.qL, eskfp.fx);
           mulvec(eskfp.qL, eskfp.tmp6, eskfp.tmp7, nominalStates, nominalStates);
           norvec(eskfp.tmp7, eskfp.x, nominalStates);
 
