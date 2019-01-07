@@ -66,6 +66,9 @@ namespace hf {
       float tmp6[NNsta]; 
       float tmp7[NNsta];
       float tmp8[Mobs];
+      float tmp9[NEsta][NEsta];
+      float tmp10[NEsta][NEsta];
+      float tmp11[NEsta][NEsta];
 
   } eskf_t;
   
@@ -105,6 +108,9 @@ namespace hf {
       float * tmp6; 
       float * tmp7;
       float * tmp8;
+      float * tmp9;
+      float * tmp10;
+      float * tmp11;
 
   } eskf_p_t;
   
