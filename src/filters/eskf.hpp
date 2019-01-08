@@ -305,15 +305,15 @@ namespace hf {
           mat_addeye(eskfp.tmp9, errorStates); // -K*H + I
           transpose(eskfp.tmp9, eskfp.tmp10, errorStates, errorStates); // (-K*H + I)'
           mulmat(eskfp.tmp9, eskfp.Pp, eskfp.tmp11, errorStates, errorStates, errorStates); // (-K*H + I)*P
-          mulmat(eskfp.tmp11, eskfp.tmp10, eskfp.Pp, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
+          mulmat(eskfp.tmp11, eskfp.tmp10, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
           // Z is stored in eskf.tmp3 and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
           mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
-          accum(eskfp.Pp, eskfp.tmp0, errorStates, errorStates); 
+          accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
 
-          //Serial.println("P");
-          //printMatrix3(eskf.Pp, 3, 3);
+          // Serial.println("P before G update");
+          // printMatrix(eskfp.Pp, errorStates, errorStates);
           
           /* Error injection */
           // XXX Quaternion injection as a method
@@ -331,18 +331,22 @@ namespace hf {
           eskfp.x[6] += eskfp.dx[5];
 
           /* Update covariance*/
-          eskfp.tmp5[0] = eskfp.dx[0]/2.0;
+          /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
           eskfp.tmp5[1] = eskfp.dx[1]/2.0;
           eskfp.tmp5[2] = eskfp.dx[2]/2.0;
           newSkew(eskfp.tmp5, eskfp.G);
           negate(eskfp.G, errorStates, errorStates);
           mat_addeye(eskfp.G, errorStates);
           transpose(eskfp.G, eskfp.tmp0, errorStates, errorStates);
-          mulmat(eskfp.P, eskfp.tmp0, eskfp.Pp, errorStates, errorStates, errorStates);
-          mulmat(eskfp.G, eskfp.Pp, eskfp.P, errorStates, errorStates, errorStates);
+          mulmat(eskfp.Pp, eskfp.tmp0, eskfp.tmp9, errorStates, errorStates, errorStates);
+          mulmat(eskfp.G, eskfp.tmp9, eskfp.tmp10, errorStates, errorStates, errorStates);
           
-          //Serial.println("Final P");
-          //printMatrix3(eskf.P, 3, 3);
+          // Force its symmetry: P = (P + P')/2
+          makesym(eskfp.tmp10, eskfp.P, errorStates);*/
+          
+          
+          // Serial.println("P after G update");
+          // printMatrix(eskfp.P, errorStates, errorStates);
           
           /* reset error state */
           zeros(eskfp.dx, errorStates, 1);
@@ -352,7 +356,7 @@ namespace hf {
       }
 
       // XXX Debug
-      void printMatrix3(float M[3][3], int r, int c)
+      void printMatrix(float * M, int r, int c)
       {
           for (int ii=0; ii<r; ++ii)
           {
@@ -360,31 +364,11 @@ namespace hf {
             {
               if (jj == c-1)
               {
-                Serial.println(M[ii][jj],8);
+                Serial.println(M[ii*c+jj],8);
               }
               else
               {
-                Serial.print(M[ii][jj],8);
-                Serial.print(",");
-              }
-              
-            }
-          }
-      }
-      
-      void printMatrix4(float M[4][4], int r, int c)
-      {
-          for (int ii=0; ii<r; ++ii)
-          {
-            for (int jj=0; jj<c; ++jj)
-            {
-              if (jj == c-1)
-              {
-                Serial.println(M[ii][jj],8);
-              }
-              else
-              {
-                Serial.print(M[ii][jj],8);
+                Serial.print(M[ii*c+jj],8);
                 Serial.print(",");
               }
               
