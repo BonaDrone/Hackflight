@@ -328,7 +328,8 @@ namespace hf {
 
           eskfp.x[4] += eskfp.dx[3];
           eskfp.x[5] += eskfp.dx[4];
-          eskfp.x[6] += eskfp.dx[5];
+          //eskfp.x[6] = -3.138039; // Brute force yaw bias
+          eskfp.x[6] = 0.00; // Brute force yaw bias
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
