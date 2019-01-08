@@ -487,7 +487,11 @@ namespace hf {
                 // Estimate and correct states via the ESKF
                 updateStateEstimate();
                 correctStateEstimate();
-                
+                Serial.print(eskf.eskf.x[4], 8);
+                Serial.print(",");
+                Serial.print(eskf.eskf.x[5], 8);
+                Serial.print(",");
+                Serial.println(eskf.eskf.x[6], 8);
                 // Compute control signal
                 checkFailsafe();
                 updateControlSignal();

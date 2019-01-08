@@ -194,16 +194,33 @@ namespace hf {
   static void skew(float * x, float * c)
   {
       c[0] =  0.0;
-      c[1] =  x[2];
-      c[2] = -x[1];
+      c[3] =  x[2];
+      c[6] = -x[1];
       
-      c[3] = -x[2];
+      c[1] = -x[2];
       c[4] =  0.0;
-      c[5] =  x[0];
+      c[7] =  x[0];
       
-      c[6] =  x[1];
-      c[7] = -x[0];
+      c[2] =  x[1];
+      c[5] = -x[0];
       c[8] =  0.0;
+  }
+  
+  // XXX Hardcoded skew matrix from a vector of dimension 3 in to a 6x6 matrix
+  // XXX Do it in a generic way
+  static void newSkew(float * x, float * c)
+  {
+      c[0] =  0.0;
+      c[6] =  x[2];
+      c[12] = -x[1];
+      
+      c[1] = -x[2];
+      c[7] =  0.0;
+      c[13] =  x[0];
+      
+      c[2] =  x[1];
+      c[8] = -x[0];
+      c[14] =  0.0;
   }
 
   static void norvec(float * x, float * y, int n)
@@ -221,7 +238,7 @@ namespace hf {
         }
         return;
       }
-      norm = 1/sqrt(norm);
+      norm = 1.0/sqrt(norm);
       
       for (int ii=0; ii<n; ++ii)
         y[ii] = x[ii]*norm;

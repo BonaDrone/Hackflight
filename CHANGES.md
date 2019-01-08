@@ -5,6 +5,7 @@
 ### Added
 
 * #37 Hackflight Parametrization
+* #42 ESKF estimates gyrometer bias
 
 ### Changed
 
