@@ -40,6 +40,7 @@ namespace hf {
             Gyrometer(void) : SurfaceMountSensor(true, false)
             {
                 memset(_rates, 0, 3*sizeof(float));
+                memset(_accels, 0, 3*sizeof(float));
             }
 
             virtual void getJacobianModel(float * Fx, float * x, double dt) override
@@ -187,7 +188,7 @@ namespace hf {
             {
                 (void)time;
 
-                bool result = board->getGyrometer(_rates);
+                bool result = board->getGyrometer(_rates, _accels);
 
                 return result;
             }
@@ -195,6 +196,8 @@ namespace hf {
         private:
 
             float _rates[3];
+            // XXX We'll keep accel values here in sync for the moment
+            float _accels[3];
 
     };  // class Gyrometer
 

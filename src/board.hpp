@@ -51,7 +51,9 @@ namespace hf {
 
             //------------------------------------ Core functionality ----------------------------------------------------
             virtual bool  getQuaternion(float quat[4]) = 0;
-            virtual bool  getGyrometer(float gyroRates[3]) = 0;
+            // XXX Taking a risk by not making getGyrometer pure virtual 
+            virtual bool  getGyrometer(float gyroRates[3]) { (void)gyroRates; return false; }
+            virtual bool  getGyrometer(float gyroRates[3], float accels[3]) { (void)gyroRates; (void)accels; return false; }
             virtual void  writeMotor(uint8_t index, float value) = 0;
             virtual float getTime(void) = 0;
 

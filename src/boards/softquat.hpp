@@ -63,7 +63,7 @@ namespace hf {
 
         public:
 
-            bool getGyrometer(float gyro[3])
+            bool getGyrometer(float gyro[3], float accel[3])
             {
                 // Read acceleromter Gs, gyrometer degrees/sec
                 if (imuRead()) {
@@ -77,6 +77,9 @@ namespace hf {
                     gyro[0] = int(_gx*100)/100.0;
                     gyro[1] = int(_gy*100)/100.0;
                     gyro[2] = int(_gz*100)/100.0;
+                    accel[0] = _ax*9.80665;
+                    accel[1] = _ay*9.80665;
+                    accel[2] = _az*9.80665;
 
                     return true;
                 }
