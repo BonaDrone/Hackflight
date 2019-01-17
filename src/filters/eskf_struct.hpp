@@ -24,8 +24,8 @@
 
 #pragma once
 
-#define NNsta 7
-#define NEsta 6
+#define NNsta 9
+#define NEsta 8
 #define Mobs 3
 
 namespace hf {

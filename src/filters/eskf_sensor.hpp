@@ -44,7 +44,7 @@ namespace hf {
         // This methods should be overriden by sensors that estimate
         virtual void getJacobianModel(float * Fx, float * x, double dt) { (void)Fx; }
         
-        virtual void getJacobianErrors(float * Fdx, double dt) { (void)Fdx; }
+        virtual void getJacobianErrors(float * Fdx, float * x, double dt) { (void)Fdx; }
         
         virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 

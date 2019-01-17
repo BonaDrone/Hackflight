@@ -144,61 +144,88 @@ namespace hf {
           zeros(eskfp.Fdx, errorStates, errorStates);
           zeros(eskfp.H, observations, errorStates);
           
-          eskfp.x[0] = 1.0;
+          eskfp.x[0] = 0.0;
           eskfp.x[1] = 0.0;
-          eskfp.x[2] = 0.0;
+          eskfp.x[2] = 1.0;
           eskfp.x[3] = 0.0;
-          eskfp.x[4] = 0.301350;
-          eskfp.x[5] = -0.818594;
-          eskfp.x[6] = -0.701652;
+          eskfp.x[4] = 0.0;
+          eskfp.x[5] = 0.0;
+          eskfp.x[6] = 0.301350;
+          eskfp.x[7] = -0.818594;
+          eskfp.x[8] = -0.701652;
           
-          // First Column
-          eskfp.P[0]  =  1.0;
-          eskfp.P[6]  =  0.0;
-          eskfp.P[12] = 0.0;
-          eskfp.P[18] = 0.0;
-          eskfp.P[24] = 0.0;
-          eskfp.P[30] = 0.0;
-          
-          // Second Column
-          eskfp.P[1]  = 0.0;
-          eskfp.P[7]  =  1.0;
-          eskfp.P[13] = 0.0;
-          eskfp.P[19] = 0.0;
-          eskfp.P[25] = 0.0;
-          eskfp.P[31] = 0.0;
-
-          // Third Column
-          eskfp.P[2]  = 0.0;
-          eskfp.P[8]  = 0.0;
-          eskfp.P[14] = 1.0;
-          eskfp.P[20] = 0.0;
-          eskfp.P[26] = 0.0;
-          eskfp.P[32] = 0.0;
-
-          // Fourth Column
-          eskfp.P[3]  = 0.0;
-          eskfp.P[9]  = 0.0;
-          eskfp.P[15] = 0.0;
-          eskfp.P[21] = 1.0;
-          eskfp.P[27] = 0.0;
-          eskfp.P[33] = 0.0;
-          
-          // Fifth Column
-          eskfp.P[4]  = 0.0;
-          eskfp.P[10] = 0.0;
-          eskfp.P[16] = 0.0;
-          eskfp.P[22] = 0.0;
-          eskfp.P[28] = 1.0;
-          eskfp.P[34] = 0.0;
-          
-          // Sixth Column
-          eskfp.P[5]  = 0.0;
-          eskfp.P[11] = 0.0;
-          eskfp.P[17] = 0.0;
-          eskfp.P[23] = 0.0;
-          eskfp.P[29] = 0.0;
-          eskfp.P[35] = 1.0;
+          // 1 column
+          eskfp.P[0] =  1;
+          eskfp.P[8] =  0;
+          eskfp.P[16] =  0;
+          eskfp.P[24] =  0;
+          eskfp.P[32] =  0;
+          eskfp.P[40] =  0;
+          eskfp.P[48] =  0;
+          eskfp.P[56] =  0;
+          // 2 column
+          eskfp.P[1] =  0;
+          eskfp.P[9] =  1;
+          eskfp.P[17] =  0;
+          eskfp.P[25] =  0;
+          eskfp.P[33] =  0;
+          eskfp.P[41] =  0;
+          eskfp.P[49] =  0;
+          eskfp.P[57] =  0;
+          // 3 column
+          eskfp.P[2] = 0;
+          eskfp.P[10] = 0;
+          eskfp.P[18] = 1;
+          eskfp.P[26] = 0;
+          eskfp.P[34] = 0;
+          eskfp.P[42] = 0;
+          eskfp.P[50] = 0;
+          eskfp.P[58] = 0;
+          // 4 column
+          eskfp.P[3] = 0;
+          eskfp.P[11] = 0;
+          eskfp.P[19] = 0;
+          eskfp.P[27] = 1;
+          eskfp.P[35] = 0;
+          eskfp.P[43] = 0;
+          eskfp.P[51] = 0;
+          eskfp.P[59] = 0;
+          // 5 column
+          eskfp.P[4] = 0;
+          eskfp.P[12] = 0;
+          eskfp.P[20] = 0;
+          eskfp.P[28] = 0;
+          eskfp.P[36] = 1;
+          eskfp.P[44] = 0;
+          eskfp.P[52] = 0;
+          eskfp.P[60] = 0;
+          // 6 column
+          eskfp.P[5] =  0;
+          eskfp.P[13] =  0;
+          eskfp.P[21] =  0;
+          eskfp.P[29] =  0;
+          eskfp.P[37] =  0;
+          eskfp.P[45] =  1;
+          eskfp.P[53] =  0;
+          eskfp.P[61] =  0;
+          // 7 column
+          eskfp.P[6] =  0;
+          eskfp.P[14] =  0;
+          eskfp.P[22] =  0;
+          eskfp.P[30] =  0;
+          eskfp.P[38] =  0;
+          eskfp.P[46] =  0;
+          eskfp.P[54] =  1;
+          eskfp.P[62] =  0;
+          // 8 column
+          eskfp.P[7] =  0;
+          eskfp.P[15] =  0;
+          eskfp.P[23] =  0;
+          eskfp.P[31] =  0;
+          eskfp.P[39] =  0;
+          eskfp.P[47] =  0;
+          eskfp.P[55] =  0;
+          eskfp.P[63] =  1;
 
       }
 
@@ -230,7 +257,7 @@ namespace hf {
           t_lastCall = t_now;
           
           sensor->getJacobianModel(eskfp.Fx, eskfp.x, dt);
-          sensor->getJacobianErrors(eskfp.Fdx, dt);
+          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
           
           /* f(x) = F*eskfp.x; */
@@ -319,17 +346,24 @@ namespace hf {
           // XXX Quaternion injection as a method
           float tmp[4];
           tmp[0] = 1.0;
-          tmp[1] = eskfp.dx[0]/2.0;
-          tmp[2] = eskfp.dx[1]/2.0;
-          tmp[3] = eskfp.dx[2]/2.0;
-          Quaternion::computeqL(eskfp.qL, eskfp.fx);
+          tmp[1] = eskfp.dx[2]/2.0;
+          tmp[2] = eskfp.dx[3]/2.0;
+          tmp[3] = eskfp.dx[4]/2.0;
+          float quat_tmp[4] = {eskfp.fx[2], eskfp.fx[3], eskfp.fx[4], eskfp.fx[5]}; 
+          Quaternion::computeqL(eskfp.qL, quat_tmp);
           mulvec(eskfp.qL, tmp, eskfp.tmp7, 4, 4);
-          norvec(eskfp.tmp7, eskf.x, 4); // XXX Be careful when the quat is not the first state
+          norvec(eskfp.tmp7, tmp, 4);
+          eskf.x[2] = tmp[0];
+          eskf.x[3] = tmp[1];
+          eskf.x[4] = tmp[2];
+          eskf.x[5] = tmp[3];
 
-          eskfp.x[4] += eskfp.dx[3];
-          eskfp.x[5] += eskfp.dx[4];
+          eskfp.x[0] += eskfp.dx[0];
+          eskfp.x[1] += eskfp.dx[1];
+          eskfp.x[6] += eskfp.dx[5];
+          eskfp.x[7] += eskfp.dx[6];
           //eskfp.x[6] = -3.138039; // Brute force yaw bias
-          eskfp.x[6] = 0.00; // Brute force yaw bias
+          eskfp.x[8] = 0.00; // Brute force yaw bias
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
