@@ -117,7 +117,7 @@ namespace hf {
       void synchState(void)
       {
           // Update euler angles
-          float q[4] = {eskf.x[0], eskf.x[1], eskf.x[2], eskf.x[3]};
+          float q[4] = {eskf.x[2], eskf.x[3], eskf.x[4], eskf.x[5]};
           Quaternion::computeEulerAngles(q, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
@@ -144,13 +144,13 @@ namespace hf {
           zeros(eskfp.Fdx, errorStates, errorStates);
           zeros(eskfp.H, observations, errorStates);
           
-          eskfp.x[0] = 0.0;
-          eskfp.x[1] = 0.0;
-          eskfp.x[2] = 1.0;
+          eskfp.x[0] = 0.0; // vertical pos
+          eskfp.x[1] = 0.0; // vertical velocity
+          eskfp.x[2] = 1.0; // orientation
           eskfp.x[3] = 0.0;
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
-          eskfp.x[6] = 0.301350;
+          eskfp.x[6] = 0.301350; // gyro bias
           eskfp.x[7] = -0.818594;
           eskfp.x[8] = -0.701652;
           
@@ -261,8 +261,15 @@ namespace hf {
           sensor->getCovarianceEstimation(eskfp.Q);
           
           /* f(x) = F*eskfp.x; */
-          mulvec(eskfp.Fx, eskfp.x, eskfp.tmp6, nominalStates, nominalStates);
-          norvec(eskfp.tmp6, eskfp.fx, nominalStates);
+          mulvec(eskfp.Fx, eskfp.x, eskfp.fx, nominalStates, nominalStates);
+          // normalize quaternion
+          float quat_tmp[4] = { eskf.fx[2], eskf.fx[3], eskf.fx[4], eskf.fx[5] };
+          float norm_quat_tmp[4];
+          norvec(quat_tmp, norm_quat_tmp, 4);
+          eskf.fx[2] = norm_quat_tmp[0];
+          eskf.fx[3] = norm_quat_tmp[1];
+          eskf.fx[4] = norm_quat_tmp[2];
+          eskf.fx[5] = norm_quat_tmp[3];
           
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
           mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
@@ -271,6 +278,13 @@ namespace hf {
           accum(eskfp.tmp1, eskfp.Q, errorStates, errorStates);
           //makesym(eskfp.tmp1, eskfp.P, errorStates);
           makesym(eskfp.tmp1, eskfp.Pp, errorStates);
+          
+          copyvec(eskfp.fx, eskfp.x, nominalStates);
+          
+          // XXX For debugging
+          //eskfp.x[6] = 0.00; // Brute force yaw bias
+          //eskfp.x[7] = 0.00; // Brute force yaw bias
+          //eskfp.x[8] = 0.00; // Brute force yaw bias
 
           /* success */
           synchState();
@@ -362,7 +376,9 @@ namespace hf {
           eskfp.x[1] += eskfp.dx[1];
           eskfp.x[6] += eskfp.dx[5];
           eskfp.x[7] += eskfp.dx[6];
-          //eskfp.x[6] = -3.138039; // Brute force yaw bias
+          //eskfp.x[8] += eskfp.dx[7];
+          //eskfp.x[6] = 0.00; // Brute force roll bias
+          //eskfp.x[7] = 0.00; // Brute force pitch bias
           eskfp.x[8] = 0.00; // Brute force yaw bias
 
           /* Update covariance*/

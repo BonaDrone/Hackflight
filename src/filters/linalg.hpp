@@ -245,6 +245,13 @@ namespace hf {
         
   }
 
+  /* copy vector */
+  static void copyvec(float * a, float * b, int n)
+  {
+      for(int i=0; i<n; ++i)
+              b[i] = a[i];
+  }
+
   static void makesym(float *a, float *b, int n)
   {
       for (int ii=0; ii<n; ++ii)
