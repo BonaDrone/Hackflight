@@ -35,26 +35,14 @@ namespace hf {
 
             Rangefinder(void) : PeripheralSensor(false, true)
             {
-                _lpf.init();
             }
 
         protected:
 
             virtual void modifyState(eskf_state_t & state, float time) override
             {
-                // Previous values to support first-differencing
-                static float _time;
-                static float _altitude;
-
-                // Compensate for effect of pitch, roll on rangefinder reading
-                state.position[2] =  _distance * cos(state.eulerAngles[0]) * cos(state.eulerAngles[1]);
-
-                // Use first-differenced, low-pass-filtered altitude as variometer
-                state.linearVelocities[2] = _lpf.update((state.position[2]-_altitude) / (time-_time));
-
-                // Update first-difference values
-                _time = time;
-                _altitude = state.position[2];
+              (void)state;
+              (void)time;
             }
 
             virtual bool ready(float time) override
@@ -80,6 +68,37 @@ namespace hf {
 
 
             virtual bool distanceAvailable(float & distance) = 0;
+            
+            virtual void getJacobianObservation(float * H, float * x) override
+            {
+                zeros(H, Mobs, NEsta);
+                // auxiliary variable
+                float aux1 = (x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
+
+                H[0] = -1/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
+                H[1] = 0;
+                H[2] = -(2*x[0]*x[2]*x[3])/(aux1*aux1) - (2*x[0]*x[4]*x[5])/(aux1*aux1);
+                H[3] = (2*x[0]*x[3]*x[5])/(aux1*aux1) - (2*x[0]*x[2]*x[4])/(aux1*aux1);
+                H[4] = 0;
+                H[5] = 0;
+                H[6] = 0;
+                H[7] = 0;
+            }
+
+            virtual void getInnovation(float * z, float * x) override
+            {
+              zeros(z, Mobs, 1);
+              // innovation = measured - predicted
+              // predicted is pz/R*R_r_i(3,3), where R = rotation matrix
+              float predicted = 0;
+              z[0] = _distance - predicted;
+            }
+            
+            virtual void getCovarianceCorrection(float * R) override
+            {
+              zeros(R, Mobs, Mobs);
+              R[0] = 1.00f;
+            }
 
         private:
 
@@ -88,8 +107,6 @@ namespace hf {
             static constexpr float UPDATE_PERIOD = 1/UPDATE_HZ;
 
             float _distance;
-
-            LowPassFilter _lpf = LowPassFilter(20);
 
     };  // class Rangefinder
 
