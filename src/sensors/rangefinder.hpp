@@ -37,38 +37,6 @@ namespace hf {
             {
             }
 
-        protected:
-
-            virtual void modifyState(eskf_state_t & state, float time) override
-            {
-              (void)state;
-              (void)time;
-            }
-
-            virtual bool ready(float time) override
-            {
-                float newDistance;
-
-                if (distanceAvailable(newDistance)) {
-
-                    static float _time;
-
-                    if (time-_time > UPDATE_PERIOD) {
-
-                        _distance = newDistance;
-
-                        _time = time; 
-
-                        return true;
-                    }
-                }
-
-                return false; 
-            }
-
-
-            virtual bool distanceAvailable(float & distance) = 0;
-            
             virtual void getJacobianObservation(float * H, float * x) override
             {
                 zeros(H, Mobs, NEsta);
@@ -99,6 +67,42 @@ namespace hf {
               zeros(R, Mobs, Mobs);
               R[0] = 1.00f;
             }
+
+        protected:
+
+            virtual void modifyState(eskf_state_t & state, float time) override
+            {
+              (void)state;
+              (void)time;
+            }
+
+            virtual bool ready(float time) override
+            {
+                float newDistance;
+
+                if (distanceAvailable(newDistance)) {
+
+                    static float _time;
+
+                    if (time-_time > UPDATE_PERIOD) {
+
+                        _distance = newDistance;
+
+                        _time = time; 
+
+                        return true;
+                    }
+                }
+
+                return false; 
+            }
+
+            virtual bool shouldUpdateESKF(float time) override
+            {
+              return true;
+            }
+
+            virtual bool distanceAvailable(float & distance) = 0;
 
         private:
 
