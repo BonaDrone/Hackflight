@@ -31,6 +31,19 @@ namespace hf {
 
     class Rangefinder : public PeripheralSensor {
 
+        private:
+
+            static constexpr float UPDATE_HZ = 25; // XXX should be using interrupt!
+
+            static constexpr float UPDATE_PERIOD = 1/UPDATE_HZ;
+
+            float _distance;
+            
+            // Range finder calibration parameters
+            float rx = 0;
+            float ry = 0;
+            float rz = 0;
+            
         public:
 
             Rangefinder(void) : PeripheralSensor(false, true)
@@ -40,40 +53,56 @@ namespace hf {
             virtual void getJacobianObservation(float * H, float * x) override
             {
                 zeros(H, Mobs, NEsta);
-                // auxiliary variable
-                float aux1 = (x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
+                // auxiliary variables
+                float aux1 = x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
+                float aux2 = 2*x[2]*rz + 2*x[3]*ry - 2*x[4]*rx;
+                float aux3 = 2*x[2]*x[4] - 2*x[3]*x[5];
+                float aux4 = 2*x[2]*x[3] + 2*x[4]*x[5];
+                float aux5 = 2*x[3]*rx + 2*x[4]*ry + 2*x[5]*rz;
+                float aux6 = 2*x[2]*rx + 2*x[4]*rz - 2*x[5]*ry;
+                float aux7 = 2*x[2]*ry - 2*x[3]*rz + 2*x[5]*rx;
 
-                H[0] = -1/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
-                H[1] = 0;
-                H[2] = -(2*x[0]*x[2]*x[3])/(aux1*aux1) - (2*x[0]*x[4]*x[5])/(aux1*aux1);
-                H[3] = (2*x[0]*x[3]*x[5])/(aux1*aux1) - (2*x[0]*x[2]*x[4])/(aux1*aux1);
-                H[4] = 0;
-                H[5] = 0;
-                H[6] = 0;
-                H[7] = 0;
+                // 1 column
+                H[0] =  -1/(aux1);
+                // 2 column
+                H[1] =  0;
+                // 3 column
+                H[2] =  (x[3]*((aux2)/(aux1) - (2*x[2]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[2]*((aux7)/(aux1) + (2*x[3]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[5]*((aux6)/(aux1) - (2*x[4]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[4]*((aux5)/(aux1) - (2*x[5]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2;
+                // 4 column
+                H[3] =  (x[4]*((aux2)/(aux1) - (2*x[2]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[2]*((aux6)/(aux1) - (2*x[4]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[5]*((aux7)/(aux1) + (2*x[3]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[3]*((aux5)/(aux1) - (2*x[5]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2;
+                // 5 column
+                H[4] =  (x[5]*((aux2)/(aux1) - (2*x[2]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[4]*((aux7)/(aux1) + (2*x[3]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[3]*((aux6)/(aux1) - (2*x[4]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[2]*((aux5)/(aux1) - (2*x[5]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2;
+                // 6 column
+                H[5] =  0;
+                // 7 column
+                H[6] =  0;
+                // 8 column
+                H[7] =  0;
             }
 
             virtual void getInnovation(float * z, float * x) override
             {
-              zeros(z, Mobs, 1);
-              // innovation = measured - predicted
-              // predicted is pz/R*R_r_i(3,3), where R = rotation matrix
-              float predicted = 0;
-              z[0] = _distance - predicted;
+                zeros(z, Mobs, 1);
+                // innovation = measured - predicted
+                // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
+                float predicted = -(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) 
+                                         - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) 
+                                         + ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
+                z[0] = _distance - predicted;
             }
             
             virtual void getCovarianceCorrection(float * R) override
             {
-              zeros(R, Mobs, Mobs);
-              R[0] = 1.00f;
+                zeros(R, Mobs, Mobs);
+                R[0] = 1.00f;
             }
 
         protected:
 
             virtual void modifyState(eskf_state_t & state, float time) override
             {
-              (void)state;
-              (void)time;
+                (void)state;
+                (void)time;
             }
 
             virtual bool ready(float time) override
@@ -99,18 +128,10 @@ namespace hf {
 
             virtual bool shouldUpdateESKF(float time) override
             {
-              return true;
+                return true;
             }
 
             virtual bool distanceAvailable(float & distance) = 0;
-
-        private:
-
-            static constexpr float UPDATE_HZ = 25; // XXX should be using interrupt!
-
-            static constexpr float UPDATE_PERIOD = 1/UPDATE_HZ;
-
-            float _distance;
 
     };  // class Rangefinder
 
