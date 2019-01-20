@@ -310,6 +310,11 @@ namespace hf {
 
                 return result;
             }
+            
+            virtual bool shouldUpdateESKF(float time) override
+            {
+                return true;
+            }
 
         private:
 

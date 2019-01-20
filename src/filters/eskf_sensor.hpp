@@ -54,6 +54,10 @@ namespace hf {
         virtual void getInnovation(float * z, float * x) { (void)z; }
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
+        
+        // This method should be overriden by all sensors and return true when
+        // the sensor is ready to update/correct the state and false otherwise
+        virtual bool shouldUpdateESKF(float time) { return true; }
 
     }; // class ESKF_Sensor
 

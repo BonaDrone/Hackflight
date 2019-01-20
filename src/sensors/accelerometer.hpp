@@ -46,21 +46,6 @@ namespace hf {
             {
                 memset(_gs, 0, 3*sizeof(float));
             }
-
-        protected:
-
-            virtual void modifyState(eskf_state_t & state, float time) override
-            {
-                // Here is where you'd do sensor fusion
-                (void)state;
-                (void)time;
-            }
-
-            virtual bool ready(float time) override
-            {
-                (void)time;
-                return board->getAccelerometer(_gs);
-            }
             
             virtual void getJacobianObservation(float * H, float * x) override
             {
@@ -134,6 +119,26 @@ namespace hf {
                 R[0] = 1.00f;
                 R[4] = 1.00f;
                 R[8] = 1.00f;
+            }            
+
+        protected:
+
+            virtual void modifyState(eskf_state_t & state, float time) override
+            {
+                // Here is where you'd do sensor fusion
+                (void)state;
+                (void)time;
+            }
+
+            virtual bool ready(float time) override
+            {
+                (void)time;
+                return board->getAccelerometer(_gs);
+            }
+            
+            virtual bool shouldUpdateESKF(float time) override
+            {
+                return true;
             }
 
         private:

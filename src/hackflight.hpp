@@ -110,10 +110,10 @@ namespace hf {
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
                     ESKF_Sensor * sensor = eskf.sensors[k];
+                    float time = _board->getTime();
 
-                    if (sensor->isEstimation)
+                    if (sensor->isEstimation && sensor->shouldUpdateESKF(time))
                     {
-                        float time = _board->getTime();
                         eskf.update(sensor, time);
                     }
                 }
@@ -125,10 +125,10 @@ namespace hf {
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
                     ESKF_Sensor * sensor = eskf.sensors[k];
+                    float time = _board->getTime();
 
-                    if (sensor->isCorrection)
+                    if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
                     {
-                        float time = _board->getTime();
                         eskf.correct(sensor, time);
                     }
                 }
