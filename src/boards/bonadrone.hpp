@@ -68,8 +68,10 @@ namespace hf {
             }
 
         protected:
-
+            // M 150
             const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
+            // M 90
+            //const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
 
             virtual void writeMotor(uint8_t index, float value) = 0;
 
