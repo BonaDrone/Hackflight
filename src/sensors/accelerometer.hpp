@@ -45,7 +45,6 @@ namespace hf {
             Accelerometer() : SurfaceMountSensor(true, true)
             {
                 memset(_gs, 0, 3*sizeof(float));
-                // Define which actions does the ESKF should do with this sensor
             }
 
         protected:
