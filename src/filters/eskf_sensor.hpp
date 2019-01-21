@@ -58,6 +58,17 @@ namespace hf {
         // This method should be overriden by all sensors and return true when
         // the sensor is ready to update/correct the state and false otherwise
         virtual bool shouldUpdateESKF(float time) { return true; }
+        
+        // This method might be overriden and return the inverse of Z
+        virtual int Zinverse(float * Z, float * invZ)
+        {
+          float tmp[Mobs];
+          if (cholsl(Z, invZ, tmp, Mobs))
+          { 
+            return 1;
+          }
+          return 0;
+        }
 
     }; // class ESKF_Sensor
 
