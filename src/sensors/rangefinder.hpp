@@ -97,6 +97,17 @@ namespace hf {
                 R[0] = 1.00f;
             }
 
+            virtual int Zinverse(float * Z, float * invZ) override
+            {
+
+                if (Z[0] == 0)
+                {
+                  return 1;
+                }
+                invZ[0] = 1.0/Z[0];
+                return 0;
+            }  
+
         protected:
 
             virtual void modifyState(eskf_state_t & state, float time) override
