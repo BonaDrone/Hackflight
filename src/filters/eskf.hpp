@@ -123,6 +123,8 @@ namespace hf {
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
+          state.position[2] = eskf.x[0];
+          state.linearVelocities[2] = eskf.x[1];
       }
 
     public:
@@ -282,8 +284,8 @@ namespace hf {
           copyvec(eskfp.fx, eskfp.x, nominalStates);
           
           // XXX For debugging
-          //eskfp.x[6] = 0.00; // Brute force yaw bias
-          //eskfp.x[7] = 0.00; // Brute force yaw bias
+          //eskfp.x[6] = 0.00; // Brute force roll bias
+          //eskfp.x[7] = 0.00; // Brute force pitch bias
           //eskfp.x[8] = 0.00; // Brute force yaw bias
 
           /* success */
@@ -305,6 +307,14 @@ namespace hf {
             8. Update Covariance if required and enforce symmetry
             9. Reset errors
           */
+          
+          // zero used matrices
+          // This is required because not all sensors have the same number of 
+          // observations but matrices are dimensioned so that they can store the
+          // max number of observations. When correcting states with a sensor that
+          // has less observations we don't want residual values from previous
+          // calculations to affect the current correction.
+          zeroCorrectMatrices();
           
           // Check sensor
           if (sensor->ready(time)) {
@@ -404,6 +414,22 @@ namespace hf {
           /* success */
           synchState();
           return 0;
+      }
+
+      void zeroCorrectMatrices(void)
+      {
+          zeros(eskfp.tmp0, errorStates, errorStates);
+          zeros(eskfp.tmp1, errorStates, observations);
+          zeros(eskfp.tmp2, observations, errorStates);
+          zeros(eskfp.tmp3, observations, observations);
+          zeros(eskfp.tmp4, observations, observations);
+          zeros(eskfp.tmp5, observations, 1);
+          zeros(eskfp.tmp7, nominalStates, 1);
+          zeros(eskfp.tmp9, errorStates, errorStates);
+          zeros(eskfp.tmp10, errorStates, errorStates);
+          zeros(eskfp.tmp11, errorStates, errorStates);
+          zeros(eskfp.K, errorStates, observations);
+          zeros(eskfp.Kt, observations, errorStates);
       }
 
       // XXX Debug
