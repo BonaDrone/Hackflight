@@ -45,6 +45,8 @@ namespace hf {
 
     class Hackflight : public MspParser {
 
+        friend class HackflightWrapper;
+
         private: 
 
             // XXX use a proper version formating
@@ -424,10 +426,7 @@ namespace hf {
                 // Support for mandatory sensors
                 addSensor(&_gyrometer, board);
                 addSensor(&_accelerometer, board);      
-                
-                // XXX
-                
-                
+
                 // Last PID controller is always ratePid (rate), aux state = 0
                 addPidController(_ratePid, 0);
 
