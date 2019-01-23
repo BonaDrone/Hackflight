@@ -49,7 +49,6 @@ namespace hf {
             
             virtual void getJacobianObservation(float * H, float * x) override
             {
-              zeros(H, Mobs, NEsta);
               // 1 column
               H[0] =  0;
               H[8] =  0;
@@ -86,7 +85,6 @@ namespace hf {
 
             virtual void getInnovation(float * z, float * x) override
             {
-                zeros(z, Mobs, 1);
                 float meas[3];
                 float tmp1[3];
                 float tmp2[3];
@@ -114,7 +112,6 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                zeros(R, Mobs, Mobs);
                 // Approximate the process noise using a small constant
                 R[0] = 1.00f;
                 R[4] = 1.00f;
