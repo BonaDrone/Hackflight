@@ -33,9 +33,9 @@ namespace hf {
 
         private:
 
-            static constexpr float UPDATE_HZ = 25; // XXX should be using interrupt!
+            static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
 
-            static constexpr float UPDATE_PERIOD = 1/UPDATE_HZ;
+            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
 
             float _distance;
             
@@ -52,54 +52,39 @@ namespace hf {
 
             virtual void getJacobianObservation(float * H, float * x) override
             {
-                zeros(H, Mobs, NEsta);
-                // auxiliary variables
-                float aux1 = x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
-                float aux2 = 2*x[2]*rz + 2*x[3]*ry - 2*x[4]*rx;
-                float aux3 = 2*x[2]*x[4] - 2*x[3]*x[5];
-                float aux4 = 2*x[2]*x[3] + 2*x[4]*x[5];
-                float aux5 = 2*x[3]*rx + 2*x[4]*ry + 2*x[5]*rz;
-                float aux6 = 2*x[2]*rx + 2*x[4]*rz - 2*x[5]*ry;
-                float aux7 = 2*x[2]*ry - 2*x[3]*rz + 2*x[5]*rx;
-
-                // 1 column
-                H[0] =  -1/(aux1);
-                // 2 column
-                H[1] =  0;
-                // 3 column
-                H[2] =  (x[3]*((aux2)/(aux1) - (2*x[2]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[2]*((aux7)/(aux1) + (2*x[3]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[5]*((aux6)/(aux1) - (2*x[4]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[4]*((aux5)/(aux1) - (2*x[5]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2;
-                // 4 column
-                H[3] =  (x[4]*((aux2)/(aux1) - (2*x[2]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[2]*((aux6)/(aux1) - (2*x[4]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 + (x[5]*((aux7)/(aux1) + (2*x[3]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[3]*((aux5)/(aux1) - (2*x[5]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2;
-                // 5 column
-                H[4] =  (x[5]*((aux2)/(aux1) - (2*x[2]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[4]*((aux7)/(aux1) + (2*x[3]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[3]*((aux6)/(aux1) - (2*x[4]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2 - (x[2]*((aux5)/(aux1) - (2*x[5]*(x[0] + rz*(aux1) - rx*(aux3) + ry*(aux4)))/(aux1*aux1)))/2;
-                // 6 column
-                H[5] =  0;
-                // 7 column
-                H[6] =  0;
-                // 8 column
-                H[7] =  0;
+              // 1 column
+              H[0] =  1/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
+              // 2 column
+              H[1] =  0;
+              // 3 column
+              H[2] =  (x[2]*((2*x[2]*ry - 2*x[3]*rz + 2*x[5]*rx)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) + (2*x[3]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[3]*((2*x[2]*rz + 2*x[3]*ry - 2*x[4]*rx)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[2]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[5]*((2*x[2]*rx + 2*x[4]*rz - 2*x[5]*ry)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[4]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[4]*((2*x[3]*rx + 2*x[4]*ry + 2*x[5]*rz)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[5]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2;
+              // 4 column
+              H[3] =  (x[3]*((2*x[3]*rx + 2*x[4]*ry + 2*x[5]*rz)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[5]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[2]*((2*x[2]*rx + 2*x[4]*rz - 2*x[5]*ry)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[4]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[5]*((2*x[2]*ry - 2*x[3]*rz + 2*x[5]*rx)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) + (2*x[3]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[4]*((2*x[2]*rz + 2*x[3]*ry - 2*x[4]*rx)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[2]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2;
+              // 5 column
+              H[4] =  (x[4]*((2*x[2]*ry - 2*x[3]*rz + 2*x[5]*rx)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) + (2*x[3]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 - (x[5]*((2*x[2]*rz + 2*x[3]*ry - 2*x[4]*rx)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[2]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 + (x[3]*((2*x[2]*rx + 2*x[4]*rz - 2*x[5]*ry)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[4]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2 + (x[2]*((2*x[3]*rx + 2*x[4]*ry + 2*x[5]*rz)/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - (2*x[5]*(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5])))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5])))/2;
+              // 6 column
+              H[5] =  0;
+              // 7 column
+              H[6] =  0;
+              // 8 column
+              H[7] =  0;
             }
 
             virtual void getInnovation(float * z, float * x) override
             {
-                zeros(z, Mobs, 1);
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = -(x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) 
-                                         - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) 
-                                         + ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);
+                float predicted = (x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);;
                 z[0] = _distance - predicted;
             }
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                zeros(R, Mobs, Mobs);
-                R[0] = 1.00f;
+                R[0] = 0.0001f;
             }
 
             virtual int Zinverse(float * Z, float * invZ) override
             {
-
                 if (Z[0] == 0)
                 {
                   return 1;
@@ -121,25 +106,21 @@ namespace hf {
                 float newDistance;
 
                 if (distanceAvailable(newDistance)) {
-
-                    static float _time;
-
-                    if (time-_time > UPDATE_PERIOD) {
-
                         _distance = newDistance;
-
-                        _time = time; 
-
                         return true;
-                    }
                 }
-
                 return false; 
             }
 
             virtual bool shouldUpdateESKF(float time) override
             {
-                return true;
+                static float _time;
+
+                if (time - _time > UPDATE_PERIOD) {
+                    _time = time;
+                    return true; 
+                }
+                return false;
             }
 
             virtual bool distanceAvailable(float & distance) = 0;
