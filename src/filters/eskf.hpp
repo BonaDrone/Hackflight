@@ -258,13 +258,10 @@ namespace hf {
           dt = (t_now - t_lastCall)/1000000.0f;
           t_lastCall = t_now;
           
-          sensor->getJacobianModel(eskfp.Fx, eskfp.x, dt);
+          sensor->integrateNominalState(eskfp.fx, eskfp.x, dt);
           sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
-          
-          // Update state estimate
-          /* f(x) = F*x; */
-          mulvec(eskfp.Fx, eskfp.x, eskfp.fx, nominalStates, nominalStates);
+
           // normalize quaternion
           float quat_tmp[4] = { eskf.fx[2], eskf.fx[3], eskf.fx[4], eskf.fx[5] };
           float norm_quat_tmp[4];

@@ -42,16 +42,16 @@ namespace hf {
         bool isCorrection;
         
         // This methods should be overriden by sensors that estimate
-        virtual void getJacobianModel(float * Fx, float * x, double dt) { (void)Fx; }
+        virtual void integrateNominalState(float * fx, float * x, double dt) { (void)fx; (void)x; }
         
-        virtual void getJacobianErrors(float * Fdx, float * x, double dt) { (void)Fdx; }
+        virtual void getJacobianErrors(float * Fdx, float * x, double dt) { (void)Fdx; (void)x; }
         
         virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
         virtual void getJacobianObservation(float * H, float * x) { (void)H; (void)x; }
         
-        virtual void getInnovation(float * z, float * x) { (void)z; }
+        virtual void getInnovation(float * z, float * x) { (void)z; (void)x; }
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
         
