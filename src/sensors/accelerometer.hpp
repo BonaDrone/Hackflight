@@ -44,7 +44,7 @@ namespace hf {
             // Accelerometer will be used to correct
             Accelerometer() : SurfaceMountSensor(false, true)
             {
-                memset(_gs, 0, 3*sizeof(float));
+                memset(_accels, 0, 3*sizeof(float));
             }
             
             virtual void getJacobianObservation(float * H, float * x) override
@@ -85,12 +85,8 @@ namespace hf {
 
             virtual void getInnovation(float * z, float * x) override
             {
-                float meas[3];
                 float tmp1[3];
                 float tmp2[3];
-                meas[0] = _gs[0]*9.80665;
-                meas[1] = _gs[1]*9.80665;
-                meas[2] = _gs[2]*9.80665;
                 // We might have to normalize these two vectors (y and h)
                 // Predicted Observations
                 _predictedObservation[0] = ((2*x[2]*x[4] - 
@@ -103,7 +99,7 @@ namespace hf {
                                              x[5]*x[5])*-9.80665);
                                              
                 norvec(_predictedObservation, tmp1, 3);
-                norvec(meas, tmp2, 3);
+                norvec(_accels, tmp2, 3);
                 // innovation = measured - predicted
                 z[0] = tmp2[0] - tmp1[0];
                 z[1] = tmp2[1] - tmp1[1];
@@ -130,7 +126,7 @@ namespace hf {
             virtual bool ready(float time) override
             {
                 (void)time;
-                return board->getAccelerometer(_gs);
+                return board->getAccelerometer(_accels);
             }
             
             virtual bool shouldUpdateESKF(float time) override
@@ -140,7 +136,7 @@ namespace hf {
 
         private:
 
-            float _gs[3];
+            float _accels[3];
             float _predictedObservation[3];
 
     };  // class Accelerometer
