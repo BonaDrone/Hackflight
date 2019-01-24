@@ -44,13 +44,11 @@ namespace hf {
       float K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
       float Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
 
-      float Fx[NNsta][NNsta];  /* Jacobian of process model */
       float Fdx[NEsta][NEsta];  /* Jacobian of process model */
       float H[Mobs][NEsta];  /* Jacobian of measurement model */
 
       float Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
       float Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
-      float Pp[NEsta][NEsta]; /* P, post-prediction, pre-update */
       
       float G[NEsta][NEsta];  
 
@@ -63,13 +61,10 @@ namespace hf {
       float tmp2[Mobs][NEsta];
       float tmp3[Mobs][Mobs];
       float tmp4[Mobs][Mobs];
-      float tmp5[Mobs];
-      float tmp6[NNsta]; 
-      float tmp7[NNsta];
-      float tmp8[Mobs];
-      float tmp9[NEsta][NEsta];
-      float tmp10[NEsta][NEsta];
-      float tmp11[NEsta][NEsta];
+      float tmp5[NNsta];
+      float tmp6[NEsta][NEsta];
+      float tmp7[NEsta][NEsta];
+      float tmp8[NEsta][NEsta];
 
   } eskf_t;
   
@@ -86,13 +81,11 @@ namespace hf {
       float * K;  /* Kalman gain; a.k.a. K */
       float * Kt;  /* transpose Kalman gain; a.k.a. K */
 
-      float * Fx;  /* Jacobian of process model */
       float * Fdx;  /* Jacobian of process model */
       float * H;  /* Jacobian of measurement model */
 
       float * Ht; /* transpose of measurement Jacobian */
       float * Fdxt; /* transpose of process Jacobian */
-      float * Pp; /* P, post-prediction, pre-update */
       
       float * G;  
 
@@ -106,12 +99,9 @@ namespace hf {
       float * tmp3;
       float * tmp4;
       float * tmp5;
-      float * tmp6; 
+      float * tmp6;
       float * tmp7;
       float * tmp8;
-      float * tmp9;
-      float * tmp10;
-      float * tmp11;
 
   } eskf_p_t;
   
