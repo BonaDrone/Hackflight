@@ -33,7 +33,7 @@
 #include "pidcontroller.hpp"
 #include "pidcontrollers/rate.hpp"
 #include "sensors/peripheral.hpp"
-#include "sensors/gyrometer.hpp"
+#include "sensors/imu.hpp"
 #include "sensors/accelerometer.hpp"
 #include "sensors/quaternion.hpp"
 
@@ -44,6 +44,8 @@
 namespace hf {
 
     class Hackflight : public MspParser {
+
+        friend class HackflightWrapper;
 
         private: 
 
@@ -64,7 +66,7 @@ namespace hf {
             uint8_t _pid_controller_count = 0;
 
             // Mandatory sensors on the board
-            Gyrometer _gyrometer;
+            IMU _imu;
             Quaternion _quaternion; // not really a sensor, but we treat it like one!
             Accelerometer _accelerometer;
 
@@ -110,10 +112,10 @@ namespace hf {
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
                     ESKF_Sensor * sensor = eskf.sensors[k];
+                    float time = _board->getTime();
 
-                    if (sensor->isEstimation)
+                    if (sensor->isEstimation && sensor->shouldUpdateESKF(time))
                     {
-                        float time = _board->getTime();
                         eskf.update(sensor, time);
                     }
                 }
@@ -125,10 +127,10 @@ namespace hf {
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
                     ESKF_Sensor * sensor = eskf.sensors[k];
+                    float time = _board->getTime();
 
-                    if (sensor->isCorrection)
+                    if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
                     {
-                        float time = _board->getTime();
                         eskf.correct(sensor, time);
                     }
                 }
@@ -418,16 +420,13 @@ namespace hf {
                 
                 // Error state kalman filter
                 eskf.init();
-                eskf.addSensorESKF(&_gyrometer);
+                eskf.addSensorESKF(&_imu);
                 eskf.addSensorESKF(&_accelerometer);
                 
                 // Support for mandatory sensors
-                addSensor(&_gyrometer, board);
+                addSensor(&_imu, board);
                 addSensor(&_accelerometer, board);      
-                
-                // XXX
-                
-                
+
                 // Last PID controller is always ratePid (rate), aux state = 0
                 addPidController(_ratePid, 0);
 
@@ -487,11 +486,6 @@ namespace hf {
                 // Estimate and correct states via the ESKF
                 updateStateEstimate();
                 correctStateEstimate();
-                Serial.print(eskf.eskf.x[4], 8);
-                Serial.print(",");
-                Serial.print(eskf.eskf.x[5], 8);
-                Serial.print(",");
-                Serial.println(eskf.eskf.x[6], 8);
                 // Compute control signal
                 checkFailsafe();
                 updateControlSignal();

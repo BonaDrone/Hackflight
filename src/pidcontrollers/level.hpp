@@ -1,7 +1,7 @@
 /*
    level.hpp : PID controller for Level mode
 
-   Copyright (c) 2018 Juan Gallostra and Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    Author: Juan Gallostra
 

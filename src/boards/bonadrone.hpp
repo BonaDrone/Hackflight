@@ -68,8 +68,10 @@ namespace hf {
             }
 
         protected:
-
+            // M 150
             const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
+            // M 90
+            //const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
 
             virtual void writeMotor(uint8_t index, float value) = 0;
 
@@ -81,6 +83,11 @@ namespace hf {
             virtual bool  getGyrometer(float gyroRates[3]) override
             {
                 return SoftwareQuaternionBoard::getGyrometer(gyroRates);
+            }
+
+            virtual bool  getIMU(float gyroRates[3], float accels[3]) override
+            {
+                return SoftwareQuaternionBoard::getIMU(gyroRates, accels);
             }
 
             virtual bool  getAccelerometer(float accelGs[3]) override
@@ -143,6 +150,7 @@ namespace hf {
 
                 // Clear the interrupt
                 _lsm6dsm.clearInterrupt();
+
                 setLed(false);
             }
 

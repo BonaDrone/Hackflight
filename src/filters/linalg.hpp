@@ -1,7 +1,8 @@
 /*
    linalg.hpp : Simple linear algebra support
    
-   Copyright (c) 2018 Simon D. Levy
+   Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+   Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
    
    This file is part of Hackflight.
    
@@ -243,6 +244,13 @@ namespace hf {
       for (int ii=0; ii<n; ++ii)
         y[ii] = x[ii]*norm;
         
+  }
+
+  /* copy vector */
+  static void copyvec(float * a, float * b, int n)
+  {
+      for(int i=0; i<n; ++i)
+              b[i] = a[i];
   }
 
   static void makesym(float *a, float *b, int n)

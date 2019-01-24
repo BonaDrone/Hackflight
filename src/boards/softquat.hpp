@@ -86,14 +86,44 @@ namespace hf {
 
             bool getAccelerometer(float accel[3])
             {
-                // Store output
-                accel[0] = _ax;
-                accel[1] = _ay;
-                accel[2] = _az;
+                // Read acceleromter Gs, gyrometer degrees/sec
+                if (imuRead()) {
+                    // convert from Gs to m/s^2
+                    accel[0] = _ax*9.80665;
+                    accel[1] = _ay*9.80665;
+                    accel[2] = _az*9.80665;
 
-                return true;
+                    return true;
+                }
+
+                return false;
             }
 
+            bool getIMU(float gyro[3], float accel[3])
+            {
+                // Read acceleromter Gs, gyrometer degrees/sec
+                if (imuRead()) {
+
+                    // Convert gyrometer values from degrees/sec to radians/sec
+                    _gx = deg2rad(_gx);
+                    _gy = deg2rad(_gy);
+                    _gz = deg2rad(_gz);
+
+                    // Store output
+                    gyro[0] = int(_gx*100)/100.0;
+                    gyro[1] = int(_gy*100)/100.0;
+                    gyro[2] = int(_gz*100)/100.0;
+
+                    // convert from Gs to m/s^2
+                    accel[0] = _ax*9.80665;
+                    accel[1] = _ay*9.80665;
+                    accel[2] = _az*9.80665;
+
+                    return true;
+                }
+
+                return false;
+            }
 
             bool getQuaternion(float quat[4], float time)
             {

@@ -1,7 +1,8 @@
 /*
    eskf.hpp : Implementation of Error-state Kalman Filter for state estimation
 
-   Copyright (c) 2018 Juan Gallostra Acin, Pep Martí Saumell
+   Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+   Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
 
    This file is part of Hackflight.
 
@@ -117,12 +118,14 @@ namespace hf {
       void synchState(void)
       {
           // Update euler angles
-          float q[4] = {eskf.x[0], eskf.x[1], eskf.x[2], eskf.x[3]};
+          float q[4] = {eskf.x[2], eskf.x[3], eskf.x[4], eskf.x[5]};
           Quaternion::computeEulerAngles(q, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
+          state.position[2] = eskf.x[0];
+          state.linearVelocities[2] = eskf.x[1];
       }
 
     public:
@@ -144,61 +147,88 @@ namespace hf {
           zeros(eskfp.Fdx, errorStates, errorStates);
           zeros(eskfp.H, observations, errorStates);
           
-          eskfp.x[0] = 1.0;
-          eskfp.x[1] = 0.0;
-          eskfp.x[2] = 0.0;
+          eskfp.x[0] = 0.0; // vertical position
+          eskfp.x[1] = 0.0; // vertical velocity
+          eskfp.x[2] = 1.0; // orientation
           eskfp.x[3] = 0.0;
-          eskfp.x[4] = 0.301350;
-          eskfp.x[5] = -0.818594;
-          eskfp.x[6] = -0.701652;
+          eskfp.x[4] = 0.0;
+          eskfp.x[5] = 0.0;
+          eskfp.x[6] = 0.301350; // gyro bias
+          eskfp.x[7] = -0.818594;
+          eskfp.x[8] = -0.701652;
           
-          // First Column
-          eskfp.P[0]  =  1.0;
-          eskfp.P[6]  =  0.0;
-          eskfp.P[12] = 0.0;
-          eskfp.P[18] = 0.0;
-          eskfp.P[24] = 0.0;
-          eskfp.P[30] = 0.0;
-          
-          // Second Column
-          eskfp.P[1]  = 0.0;
-          eskfp.P[7]  =  1.0;
-          eskfp.P[13] = 0.0;
-          eskfp.P[19] = 0.0;
-          eskfp.P[25] = 0.0;
-          eskfp.P[31] = 0.0;
-
-          // Third Column
-          eskfp.P[2]  = 0.0;
-          eskfp.P[8]  = 0.0;
-          eskfp.P[14] = 1.0;
-          eskfp.P[20] = 0.0;
-          eskfp.P[26] = 0.0;
-          eskfp.P[32] = 0.0;
-
-          // Fourth Column
-          eskfp.P[3]  = 0.0;
-          eskfp.P[9]  = 0.0;
-          eskfp.P[15] = 0.0;
-          eskfp.P[21] = 1.0;
-          eskfp.P[27] = 0.0;
-          eskfp.P[33] = 0.0;
-          
-          // Fifth Column
-          eskfp.P[4]  = 0.0;
+          // 1 column
+          eskfp.P[0] =  1.0;
+          eskfp.P[8] =  0.0;
+          eskfp.P[16] =  0.0;
+          eskfp.P[24] =  0.0;
+          eskfp.P[32] =  0.0;
+          eskfp.P[40] =  0.0;
+          eskfp.P[48] =  0.0;
+          eskfp.P[56] =  0.0;
+          // 2 column
+          eskfp.P[1] =  0.0;
+          eskfp.P[9] =  1.0;
+          eskfp.P[17] =  0.0;
+          eskfp.P[25] =  0.0;
+          eskfp.P[33] =  0.0;
+          eskfp.P[41] =  0.0;
+          eskfp.P[49] =  0.0;
+          eskfp.P[57] =  0.0;
+          // 3 column
+          eskfp.P[2] = 0.0;
           eskfp.P[10] = 0.0;
-          eskfp.P[16] = 0.0;
-          eskfp.P[22] = 0.0;
-          eskfp.P[28] = 1.0;
+          eskfp.P[18] = 1.0;
+          eskfp.P[26] = 0.0;
           eskfp.P[34] = 0.0;
-          
-          // Sixth Column
-          eskfp.P[5]  = 0.0;
+          eskfp.P[42] = 0.0;
+          eskfp.P[50] = 0.0;
+          eskfp.P[58] = 0.0;
+          // 4 column
+          eskfp.P[3] = 0.0;
           eskfp.P[11] = 0.0;
-          eskfp.P[17] = 0.0;
-          eskfp.P[23] = 0.0;
-          eskfp.P[29] = 0.0;
-          eskfp.P[35] = 1.0;
+          eskfp.P[19] = 0.0;
+          eskfp.P[27] = 1.0;
+          eskfp.P[35] = 0.0;
+          eskfp.P[43] = 0.0;
+          eskfp.P[51] = 0.0;
+          eskfp.P[59] = 0.0;
+          // 5 column
+          eskfp.P[4] = 0.0;
+          eskfp.P[12] = 0.0;
+          eskfp.P[20] = 0.0;
+          eskfp.P[28] = 0.0;
+          eskfp.P[36] = 1.0;
+          eskfp.P[44] = 0.0;
+          eskfp.P[52] = 0.0;
+          eskfp.P[60] = 0.0;
+          // 6 column
+          eskfp.P[5] =  0.0;
+          eskfp.P[13] =  0.0;
+          eskfp.P[21] =  0.0;
+          eskfp.P[29] =  0.0;
+          eskfp.P[37] =  0.0;
+          eskfp.P[45] =  1.0;
+          eskfp.P[53] =  0.0;
+          eskfp.P[61] =  0.0;
+          // 7 column
+          eskfp.P[6] =  0.0;
+          eskfp.P[14] =  0.0;
+          eskfp.P[22] =  0.0;
+          eskfp.P[30] =  0.0;
+          eskfp.P[38] =  0.0;
+          eskfp.P[46] =  0.0;
+          eskfp.P[54] =  1.0;
+          eskfp.P[62] =  0.0;
+          // 8 column
+          eskfp.P[7] =  0.0;
+          eskfp.P[15] =  0.0;
+          eskfp.P[23] =  0.0;
+          eskfp.P[31] =  0.0;
+          eskfp.P[39] =  0.0;
+          eskfp.P[47] =  0.0;
+          eskfp.P[55] =  0.0;
+          eskfp.P[63] =  1.0;
 
       }
 
@@ -229,26 +259,34 @@ namespace hf {
           dt = (t_now - t_lastCall)/1000000.0f;
           t_lastCall = t_now;
           
-          sensor->getJacobianModel(eskfp.Fx, eskfp.x, dt);
-          sensor->getJacobianErrors(eskfp.Fdx, dt);
+          sensor->integrateNominalState(eskfp.fx, eskfp.x, dt);
+          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
+
+          // normalize quaternion
+          float quat_tmp[4] = { eskf.fx[2], eskf.fx[3], eskf.fx[4], eskf.fx[5] };
+          float norm_quat_tmp[4];
+          norvec(quat_tmp, norm_quat_tmp, 4);
+          eskf.fx[2] = norm_quat_tmp[0];
+          eskf.fx[3] = norm_quat_tmp[1];
+          eskf.fx[4] = norm_quat_tmp[2];
+          eskf.fx[5] = norm_quat_tmp[3];
           
-          /* f(x) = F*eskfp.x; */
-          mulvec(eskfp.Fx, eskfp.x, eskfp.tmp6, nominalStates, nominalStates);
-          norvec(eskfp.tmp6, eskfp.fx, nominalStates);
+          // Copy back estimated states into x
+          copyvec(eskfp.fx, eskfp.x, nominalStates);
           
+          // Predict covariance
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
-          mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
           transpose(eskfp.Fdx, eskfp.Fdxt, errorStates, errorStates);
-          mulmat(eskfp.tmp0, eskfp.Fdxt, eskfp.tmp1, errorStates, errorStates, errorStates);
-          accum(eskfp.tmp1, eskfp.Q, errorStates, errorStates);
-          //makesym(eskfp.tmp1, eskfp.P, errorStates);
-          makesym(eskfp.tmp1, eskfp.Pp, errorStates);
+          mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
+          mulmat(eskfp.tmp0, eskfp.Fdxt, eskfp.tmp9, errorStates, errorStates, errorStates);
+          accum(eskfp.tmp9, eskfp.Q, errorStates, errorStates);
+          makesym(eskfp.tmp9, eskfp.P, errorStates);
 
           /* success */
           synchState();
           return 0;
-      }
+      } // update
       
       int correct(ESKF_Sensor * sensor, float time) 
       {
@@ -265,31 +303,38 @@ namespace hf {
             9. Reset errors
           */
           
+          // zero used matrices
+          // This is required because not all sensors have the same number of 
+          // observations and matrices are dimensioned so that they can store the
+          // max number of observations. When correcting states with a sensor that
+          // has less observations we don't want residual values from previous
+          // calculations to affect the current correction.
+          zeroCorrectMatrices();
+          
           // Check sensor
           if (sensor->ready(time)) {
               // Update state with gyro rates
               sensor->modifyState(state, time);                    
           } 
           
-          // Comming from eskf.update the state is stored in fx
-          sensor->getJacobianObservation(eskfp.H, eskfp.fx);
-          sensor->getInnovation(eskfp.hx, eskfp.fx);
+          sensor->getJacobianObservation(eskfp.H, eskfp.x);
+          sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
+
+          // printMatrix(eskfp.H, observations, errorStates);
 
           // Compute gain:
           /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
           transpose(eskfp.H, eskfp.Ht, observations, errorStates);
-          mulmat(eskfp.Pp, eskfp.Ht, eskfp.tmp1, errorStates, errorStates, observations); // P*H'
-          mulmat(eskfp.H, eskfp.Pp, eskfp.tmp2, observations, errorStates, errorStates);  // H*P
+          mulmat(eskfp.P, eskfp.Ht, eskfp.tmp1, errorStates, errorStates, observations); // P*H'
+          mulmat(eskfp.H, eskfp.P, eskfp.tmp2, observations, errorStates, errorStates);  // H*P
           mulmat(eskfp.tmp2, eskfp.Ht, eskfp.tmp3, observations, errorStates, observations); // H*P*H'
           accum(eskfp.tmp3, eskfp.R, observations, observations);                 // Z = H*P*H' + R
-          if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
+          // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
+          if (sensor->Zinverse(eskfp.tmp3, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
-          
+
           // /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
-          //norvec(z, eskfp.tmp5, errorStates);
-          //norvec(eskfp.hx, eskfp.tmp8, observations);
-          //sub(eskfp.tmp5, eskfp.tmp8, eskfp.hx, observations);
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
           
           /* P_k = P_k - K_k Z_k K^T_k  */
@@ -304,32 +349,40 @@ namespace hf {
           negate(eskfp.tmp9, errorStates, errorStates); // -K*H
           mat_addeye(eskfp.tmp9, errorStates); // -K*H + I
           transpose(eskfp.tmp9, eskfp.tmp10, errorStates, errorStates); // (-K*H + I)'
-          mulmat(eskfp.tmp9, eskfp.Pp, eskfp.tmp11, errorStates, errorStates, errorStates); // (-K*H + I)*P
+          mulmat(eskfp.tmp9, eskfp.P, eskfp.tmp11, errorStates, errorStates, errorStates); // (-K*H + I)*P
           mulmat(eskfp.tmp11, eskfp.tmp10, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
-          // Z is stored in eskf.tmp3 and K in eskfp.K
+          // Z is stored in eskfp.tmp3 and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
           mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
           accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
-
-          // Serial.println("P before G update");
-          // printMatrix(eskfp.Pp, errorStates, errorStates);
           
           /* Error injection */
           // XXX Quaternion injection as a method
           float tmp[4];
           tmp[0] = 1.0;
-          tmp[1] = eskfp.dx[0]/2.0;
-          tmp[2] = eskfp.dx[1]/2.0;
-          tmp[3] = eskfp.dx[2]/2.0;
-          Quaternion::computeqL(eskfp.qL, eskfp.fx);
+          tmp[1] = eskfp.dx[2]/2.0;
+          tmp[2] = eskfp.dx[3]/2.0;
+          tmp[3] = eskfp.dx[4]/2.0;
+          float quat_tmp[4] = {eskfp.x[2], eskfp.x[3], eskfp.x[4], eskfp.x[5]}; 
+          Quaternion::computeqL(eskfp.qL, quat_tmp);
           mulvec(eskfp.qL, tmp, eskfp.tmp7, 4, 4);
-          norvec(eskfp.tmp7, eskf.x, 4); // XXX Be careful when the quat is not the first state
+          norvec(eskfp.tmp7, tmp, 4);
+          eskf.x[2] = tmp[0];
+          eskf.x[3] = tmp[1];
+          eskf.x[4] = tmp[2];
+          eskf.x[5] = tmp[3];
+          // inject rest of errors
+          eskfp.x[0] += eskfp.dx[0];
+          eskfp.x[1] += eskfp.dx[1];
+          eskfp.x[6] += eskfp.dx[5];
+          eskfp.x[7] += eskfp.dx[6];
+          //eskfp.x[8] += eskfp.dx[7];
 
-          eskfp.x[4] += eskfp.dx[3];
-          eskfp.x[5] += eskfp.dx[4];
-          //eskfp.x[6] = -3.138039; // Brute force yaw bias
-          eskfp.x[6] = 0.00; // Brute force yaw bias
+          //eskfp.x[6] = 0.00; // Brute force roll bias
+          //eskfp.x[7] = 0.00; // Brute force pitch bias
+          eskfp.x[8] = 0.00; // Brute force yaw bias
+          // eskfp.x[1] = 0.00; // Brute force vertical velocity
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
@@ -345,16 +398,41 @@ namespace hf {
           // Force its symmetry: P = (P + P')/2
           makesym(eskfp.tmp10, eskfp.P, errorStates);*/
           
-          
-          // Serial.println("P after G update");
-          // printMatrix(eskfp.P, errorStates, errorStates);
-          
           /* reset error state */
           zeros(eskfp.dx, errorStates, 1);
           /* success */
           synchState();
+          
+          // Serial.println("Correction:");
+          // printMatrix(eskfp.x, nominalStates, 1);
+          
+          Serial.print(eskfp.x[1]);
+          Serial.print(",");
+          Serial.println(eskfp.x[0]);
+          
           return 0;
-      }
+      } // correct
+
+      void zeroCorrectMatrices(void)
+      {
+          zeros(eskfp.H, observations, errorStates);
+          zeros(eskfp.Ht, errorStates, observations);
+          zeros(eskfp.K, errorStates, observations);
+          zeros(eskfp.Kt, observations, errorStates);
+          zeros(eskfp.hx, observations, 1);
+          zeros(eskfp.R, observations, observations);          
+          
+          zeros(eskfp.tmp0, errorStates, errorStates);
+          zeros(eskfp.tmp1, errorStates, observations);
+          zeros(eskfp.tmp2, observations, errorStates);
+          zeros(eskfp.tmp3, observations, observations);
+          zeros(eskfp.tmp4, observations, observations);
+          zeros(eskfp.tmp5, observations, 1);
+          zeros(eskfp.tmp7, nominalStates, 1);
+          zeros(eskfp.tmp9, errorStates, errorStates);
+          zeros(eskfp.tmp10, errorStates, errorStates);
+          zeros(eskfp.tmp11, errorStates, errorStates);
+      } // zeroCorrectMatrices
 
       // XXX Debug
       void printMatrix(float * M, int r, int c)

@@ -1,7 +1,8 @@
 /*
   eskf_sensor.hpp: Sensor abstraction for ESKF
  
-  Copyright (C) 2018 Juan Gallostra, Pep Martí Saumell
+  Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+  Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
   
   This file is part of Hackflight.
 
@@ -42,18 +43,34 @@ namespace hf {
         bool isCorrection;
         
         // This methods should be overriden by sensors that estimate
-        virtual void getJacobianModel(float * Fx, float * x, double dt) { (void)Fx; }
+        virtual void integrateNominalState(float * fx, float * x, double dt) { (void)fx; (void)x; }
         
-        virtual void getJacobianErrors(float * Fdx, double dt) { (void)Fdx; }
+        virtual void getJacobianErrors(float * Fdx, float * x, double dt) { (void)Fdx; (void)x; }
         
         virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
         virtual void getJacobianObservation(float * H, float * x) { (void)H; (void)x; }
         
-        virtual void getInnovation(float * z, float * x) { (void)z; }
+        virtual void getInnovation(float * z, float * x) { (void)z; (void)x; }
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
+        
+        // This method should be overriden if control over update/correct
+        // frequency is desired. It should return true when the sensor is
+        // ready to update/correct the state and false otherwise
+        virtual bool shouldUpdateESKF(float time) { return true; }
+        
+        // This method might be overriden to return the appropriate inverse of Z
+        virtual int Zinverse(float * Z, float * invZ)
+        {
+          float tmp[Mobs];
+          if (cholsl(Z, invZ, tmp, Mobs))
+          { 
+            return 1;
+          }
+          return 0;
+        }
 
     }; // class ESKF_Sensor
 
