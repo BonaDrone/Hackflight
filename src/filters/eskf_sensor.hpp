@@ -55,11 +55,12 @@ namespace hf {
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
         
-        // This method should be overriden by all sensors and return true when
-        // the sensor is ready to update/correct the state and false otherwise
+        // This method should be overriden if control over update/correct
+        // frequency is desired. It should return true when the sensor is
+        // ready to update/correct the state and false otherwise
         virtual bool shouldUpdateESKF(float time) { return true; }
         
-        // This method might be overriden and return the inverse of Z
+        // This method might be overriden to return the appropriate inverse of Z
         virtual int Zinverse(float * Z, float * invZ)
         {
           float tmp[Mobs];
