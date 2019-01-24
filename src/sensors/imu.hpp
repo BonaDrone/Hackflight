@@ -1,5 +1,5 @@
 /*
-   imu.hpp : Support for imu (a.k.a. gyroscope+accelerometer) 
+   imu.hpp : Support for imu (a.k.a. gyroscope + accelerometer) 
 
    Copyright (c) 2018 Simon D. Levy
 
@@ -36,7 +36,7 @@ namespace hf {
 
         public:
 
-            // Gyrometer will be used to estimate but not to correct
+            // IMU will be used to estimate but not to correct
             IMU(void) : SurfaceMountSensor(true, false)
             {
                 memset(_rates, 0, 3*sizeof(float));
@@ -296,7 +296,7 @@ namespace hf {
             {
                 (void)time;
 
-                // NB: We negate gyro X, Y to simplify PID controller
+                // NB: We negate X, Y rates to simplify PID controller
                 state.angularVelocities[0] =  _rates[0];
                 state.angularVelocities[1] = -_rates[1];
                 state.angularVelocities[2] = -_rates[2];
@@ -321,6 +321,6 @@ namespace hf {
             float _rates[3];
             float _accels[3];
 
-    };  // class Gyrometer
+    };  // class IMU
 
 } // namespace
