@@ -9,6 +9,7 @@
 * #43 ESKF estimates vertical position and velocity
 * #43 Add IMU to the list of available sensors 
 * #43 Allow to define the frequency at which sensors correct/update ESKF estimates
+* #45 Allow to set rangefinder parameters with an MSP message
 
 ### Changed
 
