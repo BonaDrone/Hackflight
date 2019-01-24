@@ -274,6 +274,9 @@ namespace hf {
             // Map parameters to EEPROM addresses
             static const uint8_t GENERAL_CONFIG    = 0;
             static const uint8_t PID_CONSTANTS     = 1;
+            static const uint8_t N_PID_CONSTANTS   = 16;
+            static const uint8_t RANGE_PARAMS      = PID_CONSTANTS + N_PID_CONSTANTS * sizeof(float);
+            static const uint8_t N_RANGE_PARAMS    = 3;
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
@@ -401,7 +404,17 @@ namespace hf {
                 EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), altHoldVelI);
                 EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), altHoldVelD);
                 EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
-                
+                EEPROM.put(PID_CONSTANTS + 12 * sizeof(float), param6);
+                EEPROM.put(PID_CONSTANTS + 13 * sizeof(float), param7);
+                EEPROM.put(PID_CONSTANTS + 14 * sizeof(float), param8);
+                EEPROM.put(PID_CONSTANTS + 15 * sizeof(float), param9);
+            }
+            
+            virtual void handle_SET_RANGE_PARAMETERS_Request(float rx, float ry, float rz) override
+            {
+              EEPROM.put(RANGE_PARAMS, rx);
+              EEPROM.put(RANGE_PARAMS + 1 * sizeof(float), ry);
+              EEPROM.put(RANGE_PARAMS + 2 * sizeof(float), rz);
             }
 
         public:

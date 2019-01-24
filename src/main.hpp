@@ -72,6 +72,10 @@ namespace hf {
               float _altHoldVelI;
               float _altHoldVelD;
               float _minAltitude;
+              // range params
+              float _rx;
+              float _ry;
+              float _rz;
 
 
               // Required objects to run Hackflight 
@@ -95,12 +99,14 @@ namespace hf {
                   EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), _gyroYawI);
                   EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), _demandsToRate);
                   EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), _levelP);
-                  EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), _altHoldP);
-                  EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), _altHoldVelP);
-                  EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), _altHoldVelI);
-                  EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), _altHoldVelD);
-                  EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), _minAltitude);
-                  
+                  EEPROM.get(PID_CONSTANTS + 7 * sizeof(float), _altHoldP);
+                  EEPROM.get(PID_CONSTANTS + 8 * sizeof(float), _altHoldVelP);
+                  EEPROM.get(PID_CONSTANTS + 9 * sizeof(float), _altHoldVelI);
+                  EEPROM.get(PID_CONSTANTS + 10 * sizeof(float), _altHoldVelD);
+                  EEPROM.get(PID_CONSTANTS + 11 * sizeof(float), _minAltitude);
+                  EEPROM.get(RANGE_PARAMS, _rx);
+                  EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
+                  EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
               }
 
         protected:
@@ -157,6 +163,7 @@ namespace hf {
                 {
                     hf::VL53L1X_Rangefinder rangefinder;
                     rangefinder.begin();
+                    rangefinder.setCalibration(_rx, _ry, _rz);
                     h.addSensor(&rangefinder);
                     h.eskf.addSensorESKF(&rangefinder);
                     
