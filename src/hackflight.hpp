@@ -33,7 +33,7 @@
 #include "pidcontroller.hpp"
 #include "pidcontrollers/rate.hpp"
 #include "sensors/peripheral.hpp"
-#include "sensors/gyrometer.hpp"
+#include "sensors/imu.hpp"
 #include "sensors/accelerometer.hpp"
 #include "sensors/quaternion.hpp"
 
@@ -66,7 +66,7 @@ namespace hf {
             uint8_t _pid_controller_count = 0;
 
             // Mandatory sensors on the board
-            Gyrometer _gyrometer;
+            IMU _imu;
             Quaternion _quaternion; // not really a sensor, but we treat it like one!
             Accelerometer _accelerometer;
 
@@ -420,11 +420,11 @@ namespace hf {
                 
                 // Error state kalman filter
                 eskf.init();
-                eskf.addSensorESKF(&_gyrometer);
+                eskf.addSensorESKF(&_imu);
                 eskf.addSensorESKF(&_accelerometer);
                 
                 // Support for mandatory sensors
-                addSensor(&_gyrometer, board);
+                addSensor(&_imu, board);
                 addSensor(&_accelerometer, board);      
 
                 // Last PID controller is always ratePid (rate), aux state = 0
