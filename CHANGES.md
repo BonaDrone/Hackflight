@@ -16,6 +16,8 @@
 
 ### Removed
 
+* #44 Obsolete ESKF helper struct matrices
+
 ### Fixed
 
 * #39 Firmware version
