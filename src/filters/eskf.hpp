@@ -114,6 +114,7 @@ namespace hf {
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
+          // update vertical position and velocity
           state.position[2] = eskf.x[0];
           state.linearVelocities[2] = eskf.x[1];
       }
@@ -253,7 +254,7 @@ namespace hf {
           sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
 
-          // normalize quaternion
+          // Normalize quaternion
           float quat_tmp[4] = { eskf.fx[2], eskf.fx[3], eskf.fx[4], eskf.fx[5] };
           float norm_quat_tmp[4];
           norvec(quat_tmp, norm_quat_tmp, 4);
@@ -276,6 +277,7 @@ namespace hf {
           /* success */
           synchState();
           return 0;
+
       } // update
       
       int correct(ESKF_Sensor * sensor, float time) 
@@ -322,7 +324,7 @@ namespace hf {
           if (sensor->Zinverse(eskfp.tmp3, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
 
-          // /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
+          /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
           
           /* P_k = P_k - K_k Z_k K^T_k  */
@@ -360,17 +362,14 @@ namespace hf {
           eskf.x[3] = tmp[1];
           eskf.x[4] = tmp[2];
           eskf.x[5] = tmp[3];
-          // inject rest of errors
+          // Inject rest of errors
           eskfp.x[0] += eskfp.dx[0];
           eskfp.x[1] += eskfp.dx[1];
           eskfp.x[6] += eskfp.dx[5];
           eskfp.x[7] += eskfp.dx[6];
           //eskfp.x[8] += eskfp.dx[7];
 
-          //eskfp.x[6] = 0.00; // Brute force roll bias
-          //eskfp.x[7] = 0.00; // Brute force pitch bias
           eskfp.x[8] = 0.00; // Brute force yaw bias
-          // eskfp.x[1] = 0.00; // Brute force vertical velocity
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
