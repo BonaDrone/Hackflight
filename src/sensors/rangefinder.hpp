@@ -40,9 +40,9 @@ namespace hf {
             float _distance;
             
             // Range finder calibration parameters
-            float rx = 0;
-            float ry = 0;
-            float rz = 0;
+            float _rx = 0;
+            float _ry = 0;
+            float _rz = 0;
             
         public:
 
@@ -54,13 +54,13 @@ namespace hf {
             {
               // auxiliary variables to avoid duplicating computations
               float aux1 = x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
-              float aux2 = rx*(2*x[2]*x[4] - 2*x[3]*x[5]);
-              float aux3 = ry*(2*x[2]*x[3] + 2*x[4]*x[5]);
-              float aux4 = x[0] + rz*aux1 - aux2 + aux3;
-              float aux5 = (2*x[3]*rx + 2*x[4]*ry + 2*x[5]*rz)/aux1 - 2*x[5]*aux4/(aux1*aux1);
-              float aux6 = (2*x[2]*ry - 2*x[3]*rz + 2*x[5]*rx)/aux1 + 2*x[3]*aux4/(aux1*aux1);
-              float aux7 = (2*x[2]*rx + 2*x[4]*rz - 2*x[5]*ry)/aux1 - 2*x[4]*aux4/(aux1*aux1);
-              float aux8 = (2*x[2]*rz + 2*x[3]*ry - 2*x[4]*rx)/aux1 - 2*x[2]*aux4/(aux1*aux1);
+              float aux2 = _rx*(2*x[2]*x[4] - 2*x[3]*x[5]);
+              float aux3 = _ry*(2*x[2]*x[3] + 2*x[4]*x[5]);
+              float aux4 = x[0] + _rz*aux1 - aux2 + aux3;
+              float aux5 = (2*x[3]*_rx + 2*x[4]*_ry + 2*x[5]*_rz)/aux1 - 2*x[5]*aux4/(aux1*aux1);
+              float aux6 = (2*x[2]*_ry - 2*x[3]*_rz + 2*x[5]*_rx)/aux1 + 2*x[3]*aux4/(aux1*aux1);
+              float aux7 = (2*x[2]*_rx + 2*x[4]*_rz - 2*x[5]*_ry)/aux1 - 2*x[4]*aux4/(aux1*aux1);
+              float aux8 = (2*x[2]*_rz + 2*x[3]*_ry - 2*x[4]*_rx)/aux1 - 2*x[2]*aux4/(aux1*aux1);
               // 1 column
               H[0] =  1/aux1;
               // 2 column
@@ -83,7 +83,7 @@ namespace hf {
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = (x[0] + rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);;
+                float predicted = (x[0] + _rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - _rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + _ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);;
                 z[0] = _distance - predicted;
             }
             
@@ -100,7 +100,14 @@ namespace hf {
                 }
                 invZ[0] = 1.0/Z[0];
                 return 0;
-            }  
+            }
+            
+            void setCalibration(float rx, float ry, float rz)
+            {
+              _rx = rx;
+              _ry = ry;
+              _rz = rz;
+            }
 
         protected:
 
