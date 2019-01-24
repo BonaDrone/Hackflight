@@ -1,7 +1,7 @@
 /*
    rangefinder.hpp : Support for rangefinder sensors (sonar, time-of-flight)
 
-   Copyright (c) 2018 Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    This file is part of Hackflight.
 

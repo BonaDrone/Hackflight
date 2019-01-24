@@ -1,7 +1,8 @@
 /*
    linalg.hpp : Simple linear algebra support
    
-   Copyright (c) 2018 Simon D. Levy
+   Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+   Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
    
    This file is part of Hackflight.
    

@@ -1,7 +1,8 @@
 /*
    eskf.hpp : Implementation of Error-state Kalman Filter for state estimation
 
-   Copyright (c) 2018 Juan Gallostra Acin, Pep Martí Saumell
+   Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+   Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
 
    This file is part of Hackflight.
 

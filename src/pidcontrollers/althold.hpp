@@ -1,7 +1,7 @@
 /*
    althold.hpp : Altitude hold PID controller
 
-   Copyright (c) 2018 Juan Gallostra and Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    This file is part of Hackflight.
 

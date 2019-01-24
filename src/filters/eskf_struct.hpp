@@ -5,7 +5,8 @@
     You should #include this file after using #define for NNsta (nominal states),
     NEsta (error states) and Mobs (observations)
 
-    Copyright (c) 2018 Simon D. Levy, Juan Gallostra Acin, Pep Martí Saumell
+    Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+    Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
 
     This file is part of Hackflight.
 
