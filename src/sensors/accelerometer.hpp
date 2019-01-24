@@ -41,8 +41,8 @@ namespace hf {
 
         public:
             
-            // Accel. will be used to estimate and to correct
-            Accelerometer() : SurfaceMountSensor(true, true)
+            // Accelerometer will be used to correct
+            Accelerometer() : SurfaceMountSensor(false, true)
             {
                 memset(_gs, 0, 3*sizeof(float));
             }
