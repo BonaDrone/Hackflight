@@ -49,38 +49,38 @@ namespace hf {
             
             virtual void getJacobianObservation(float * H, float * x) override
             {
-              // 1 column
-              H[0] =  0;
-              H[8] =  0;
-              H[16] =  0;
-              // 2 column
-              H[1] =  0;
-              H[9] =  0;
-              H[17] =  0;
-              // 3 column
-              H[2] =                                  0;
-              H[10] =  x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
-              H[18] =            - 2*x[2]*x[3] - 2*x[4]*x[5];
-              // 4 column
-              H[3] =  - x[2]*x[2] + x[3]*x[3] + x[4]*x[4] - x[5]*x[5];
-              H[11] =                                    0;
-              H[19] =                2*x[3]*x[5] - 2*x[2]*x[4];
-              // 5 column
-              H[4] =  2*x[2]*x[3] + 2*x[4]*x[5];
-              H[12] =  2*x[2]*x[4] - 2*x[3]*x[5];
-              H[20] =                      0;
-              // 6 column
-              H[5] =  0;
-              H[13] =  0;
-              H[21] =  0;
-              // 7 column
-              H[6] =  0;
-              H[14] =  0;
-              H[22] =  0;
-              // 8 column
-              H[7] =  0;
-              H[15] =  0;
-              H[23] =  0;
+                // 1 column
+                H[0] =  0;
+                H[8] =  0;
+                H[16] =  0;
+                // 2 column
+                H[1] =  0;
+                H[9] =  0;
+                H[17] =  0;
+                // 3 column
+                H[2] =                                  0;
+                H[10] =  x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
+                H[18] =            - 2*x[2]*x[3] - 2*x[4]*x[5];
+                // 4 column
+                H[3] =  - x[2]*x[2] + x[3]*x[3] + x[4]*x[4] - x[5]*x[5];
+                H[11] =                                    0;
+                H[19] =                2*x[3]*x[5] - 2*x[2]*x[4];
+                // 5 column
+                H[4] =  2*x[2]*x[3] + 2*x[4]*x[5];
+                H[12] =  2*x[2]*x[4] - 2*x[3]*x[5];
+                H[20] =                      0;
+                // 6 column
+                H[5] =  0;
+                H[13] =  0;
+                H[21] =  0;
+                // 7 column
+                H[6] =  0;
+                H[14] =  0;
+                H[22] =  0;
+                // 8 column
+                H[7] =  0;
+                H[15] =  0;
+                H[23] =  0;
             }
 
             virtual void getInnovation(float * z, float * x) override
