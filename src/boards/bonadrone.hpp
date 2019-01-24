@@ -150,8 +150,7 @@ namespace hf {
 
                 // Clear the interrupt
                 _lsm6dsm.clearInterrupt();
-                // calibrate
-                //_lsm6dsm.calibrate(GYRO_BIAS, ACCEL_BIAS, 512);
+
                 setLed(false);
             }
 
