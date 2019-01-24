@@ -68,8 +68,6 @@ namespace hf {
           eskfp.Kt = dptr;
           dptr += m*ne;
           
-          eskfp.Fx = dptr;
-          dptr += nn*nn;
           eskfp.Fdx = dptr;
           dptr += ne*ne;
           eskfp.H = dptr;
@@ -78,8 +76,6 @@ namespace hf {
           eskfp.Ht = dptr;
           dptr += ne*m;
           eskfp.Fdxt = dptr;
-          dptr += ne*ne;
-          eskfp.Pp = dptr;
           dptr += ne*ne;
           
           eskfp.G = dptr;
@@ -101,18 +97,12 @@ namespace hf {
           eskfp.tmp4 = dptr;
           dptr += m*m;
           eskfp.tmp5 = dptr;
-          dptr += m;
+          dptr += nn;
           eskfp.tmp6 = dptr;
-          dptr += nn;
+          dptr += ne*ne;
           eskfp.tmp7 = dptr;
-          dptr += nn;
+          dptr += ne*ne;
           eskfp.tmp8 = dptr;
-          dptr += m;
-          eskfp.tmp9 = dptr;
-          dptr += ne*ne;
-          eskfp.tmp10 = dptr;
-          dptr += ne*ne;
-          eskfp.tmp11 = dptr;
       }
       
       void synchState(void)
@@ -143,13 +133,13 @@ namespace hf {
           zeros(eskfp.Q, errorStates, errorStates);
           zeros(eskfp.R, observations, observations);
           zeros(eskfp.K, errorStates, observations);
-          zeros(eskfp.Fx, nominalStates, nominalStates);
           zeros(eskfp.Fdx, errorStates, errorStates);
           zeros(eskfp.H, observations, errorStates);
           
+          // initial state
           eskfp.x[0] = 0.0; // vertical position
           eskfp.x[1] = 0.0; // vertical velocity
-          eskfp.x[2] = 1.0; // orientation
+          eskfp.x[2] = 1.0; // orientation (quaternion)
           eskfp.x[3] = 0.0;
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
@@ -241,8 +231,8 @@ namespace hf {
       {
           /*
           This method should:
-            1. Obtain the nominal state Jacobian and the error-state Jacobian.
-            2. Update the nominal state estimate
+            1. Obtain the the error-state Jacobian.
+            2. Update the nominal state estimate by integrating it
             3. From the error-state Jacobian, the process noise and the past 
                iteration covariance estimate the current Covariance (and enforce
                its symmetry?)
@@ -279,9 +269,9 @@ namespace hf {
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
           transpose(eskfp.Fdx, eskfp.Fdxt, errorStates, errorStates);
           mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
-          mulmat(eskfp.tmp0, eskfp.Fdxt, eskfp.tmp9, errorStates, errorStates, errorStates);
-          accum(eskfp.tmp9, eskfp.Q, errorStates, errorStates);
-          makesym(eskfp.tmp9, eskfp.P, errorStates);
+          mulmat(eskfp.tmp0, eskfp.Fdxt, eskfp.tmp6, errorStates, errorStates, errorStates);
+          accum(eskfp.tmp6, eskfp.Q, errorStates, errorStates);
+          makesym(eskfp.tmp6, eskfp.P, errorStates);
 
           /* success */
           synchState();
@@ -321,8 +311,6 @@ namespace hf {
           sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
 
-          // printMatrix(eskfp.H, observations, errorStates);
-
           // Compute gain:
           /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
           transpose(eskfp.H, eskfp.Ht, observations, errorStates);
@@ -345,12 +333,12 @@ namespace hf {
           //makesym(eskfp.tmp0, eskfp.P, errorStates);
           
           /* P = (I-KH)*P*(I-KH)' + KZK' */
-          mulmat(eskfp.K, eskfp.H, eskfp.tmp9, errorStates, observations, errorStates); // K*H
-          negate(eskfp.tmp9, errorStates, errorStates); // -K*H
-          mat_addeye(eskfp.tmp9, errorStates); // -K*H + I
-          transpose(eskfp.tmp9, eskfp.tmp10, errorStates, errorStates); // (-K*H + I)'
-          mulmat(eskfp.tmp9, eskfp.P, eskfp.tmp11, errorStates, errorStates, errorStates); // (-K*H + I)*P
-          mulmat(eskfp.tmp11, eskfp.tmp10, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
+          mulmat(eskfp.K, eskfp.H, eskfp.tmp6, errorStates, observations, errorStates); // K*H
+          negate(eskfp.tmp6, errorStates, errorStates); // -K*H
+          mat_addeye(eskfp.tmp6, errorStates); // -K*H + I
+          transpose(eskfp.tmp6, eskfp.tmp7, errorStates, errorStates); // (-K*H + I)'
+          mulmat(eskfp.tmp6, eskfp.P, eskfp.tmp8, errorStates, errorStates, errorStates); // (-K*H + I)*P
+          mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
           // Z is stored in eskfp.tmp3 and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
           mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
@@ -366,8 +354,8 @@ namespace hf {
           tmp[3] = eskfp.dx[4]/2.0;
           float quat_tmp[4] = {eskfp.x[2], eskfp.x[3], eskfp.x[4], eskfp.x[5]}; 
           Quaternion::computeqL(eskfp.qL, quat_tmp);
-          mulvec(eskfp.qL, tmp, eskfp.tmp7, 4, 4);
-          norvec(eskfp.tmp7, tmp, 4);
+          mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
+          norvec(eskfp.tmp5, tmp, 4);
           eskf.x[2] = tmp[0];
           eskf.x[3] = tmp[1];
           eskf.x[4] = tmp[2];
@@ -402,14 +390,7 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
           /* success */
           synchState();
-          
-          // Serial.println("Correction:");
-          // printMatrix(eskfp.x, nominalStates, 1);
-          
-          Serial.print(eskfp.x[1]);
-          Serial.print(",");
-          Serial.println(eskfp.x[0]);
-          
+                    
           return 0;
       } // correct
 
@@ -427,11 +408,10 @@ namespace hf {
           zeros(eskfp.tmp2, observations, errorStates);
           zeros(eskfp.tmp3, observations, observations);
           zeros(eskfp.tmp4, observations, observations);
-          zeros(eskfp.tmp5, observations, 1);
-          zeros(eskfp.tmp7, nominalStates, 1);
-          zeros(eskfp.tmp9, errorStates, errorStates);
-          zeros(eskfp.tmp10, errorStates, errorStates);
-          zeros(eskfp.tmp11, errorStates, errorStates);
+          zeros(eskfp.tmp5, nominalStates, 1);
+          zeros(eskfp.tmp6, errorStates, errorStates);
+          zeros(eskfp.tmp7, errorStates, errorStates);
+          zeros(eskfp.tmp8, errorStates, errorStates);
       } // zeroCorrectMatrices
 
       // XXX Debug
