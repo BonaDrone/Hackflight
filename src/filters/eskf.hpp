@@ -115,7 +115,11 @@ namespace hf {
               state.eulerAngles[2] += 2*M_PI;
           }
           // update vertical position and velocity
+          state.position[0] = eskf.x[0];
+          state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
+          state.linearVelocities[0] = eskf.x[3];
+          state.linearVelocities[1] = eskf.x[4];
           state.linearVelocities[2] = eskf.x[5];
       }
 
@@ -341,7 +345,7 @@ namespace hf {
           eskfp.x[14] += eskfp.dx[13];
           eskfp.x[15] += eskfp.dx[14];
 
-          eskfp.x[15] = 0.00; // Brute force yaw bias
+          eskfp.x[15] = 0.00; // Brute force yaw bias to 0
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
