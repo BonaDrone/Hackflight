@@ -52,38 +52,56 @@ namespace hf {
 
             virtual void getJacobianObservation(float * H, float * x) override
             {
-              // auxiliary variables to avoid duplicating computations
-              float aux1 = x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
-              float aux2 = _rx*(2*x[2]*x[4] - 2*x[3]*x[5]);
-              float aux3 = _ry*(2*x[2]*x[3] + 2*x[4]*x[5]);
-              float aux4 = x[0] + _rz*aux1 - aux2 + aux3;
-              float aux5 = (2*x[3]*_rx + 2*x[4]*_ry + 2*x[5]*_rz)/aux1 - 2*x[5]*aux4/(aux1*aux1);
-              float aux6 = (2*x[2]*_ry - 2*x[3]*_rz + 2*x[5]*_rx)/aux1 + 2*x[3]*aux4/(aux1*aux1);
-              float aux7 = (2*x[2]*_rx + 2*x[4]*_rz - 2*x[5]*_ry)/aux1 - 2*x[4]*aux4/(aux1*aux1);
-              float aux8 = (2*x[2]*_rz + 2*x[3]*_ry - 2*x[4]*_rx)/aux1 - 2*x[2]*aux4/(aux1*aux1);
+              // auxiliary variables to avoid duplicate calculations
+              float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
+              float aux2 = (2*x[6]*_rx + 2*x[8]*_rz - 2*x[9]*_ry)/aux1;
+              float aux3 = 2*x[6]*x[7] + 2*x[8]*x[9];
+              float aux4 = 2*x[6]*x[8] - 2*x[7]*x[9];
+              float aux5 = (2*x[6]*_ry - 2*x[7]*_rz + 2*x[9]*_rx)/aux1;
+              float aux6 = (2*x[7]*_rx + 2*x[8]*_ry + 2*x[9]*_rz)/aux1;
+              float aux7 = (2*x[6]*_rz + 2*x[7]*_ry - 2*x[8]*_rx)/aux1;
+              float aux8 = x[0] + _rz*aux1 - _rx*aux4 + _ry*aux3;
+              float aux9 = aux5 + (2*x[7]*aux8)/(aux1*aux1);
+              float aux10 = aux7 - (2*x[6]*aux8)/(aux1*aux1);
+              float aux11 = aux2 - (2*x[8]*aux8)/(aux1*aux1);
+              float aux12 = aux6 - (2*x[9]*aux8)/(aux1*aux1);
               // 1 column
               H[0] =  1/aux1;
               // 2 column
               H[1] =  0;
               // 3 column
-              H[2] =  (x[2]*aux6)/2 - (x[3]*aux8)/2 - (x[5]*aux7)/2 - (x[4]*aux5)/2;
+              H[2] =  0;
               // 4 column
-              H[3] =  (x[3]*aux5)/2 - (x[2]*aux7)/2 - (x[5]*aux6)/2 - (x[4]*aux8)/2;
+              H[3] =  0;
               // 5 column
-              H[4] =  (x[4]*aux6)/2 - (x[5]*aux8)/2 + (x[3]*aux7)/2 + (x[2]*aux5)/2;
+              H[4] =  0;
               // 6 column
               H[5] =  0;
               // 7 column
-              H[6] =  0;
+              H[6] =  (x[6]*aux9)/2 - (x[7]*aux10)/2 - (x[9]*aux11)/2 - (x[8]*aux12)/2;
               // 8 column
-              H[7] =  0;
+              H[7] =  (x[7]*aux12)/2 - (x[6]*aux11)/2 - (x[9]*aux9)/2 - (x[8]*aux10)/2;
+              // 9 column
+              H[8] =  (x[8]*aux9)/2 - (x[9]*aux10)/2 + (x[7]*aux11)/2 + (x[6]*aux12)/2;
+              // 10 column
+              H[9] =  0;
+              // 11 column
+              H[10] =  0;
+              // 12 column
+              H[11] =  0;
+              // 13 column
+              H[12] =  0;
+              // 14 column
+              H[13] =  0;
+              // 15 column
+              H[14] =  0;
             }
 
             virtual void getInnovation(float * z, float * x) override
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = (x[0] + _rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - _rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + _ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);;
+                float predicted = (x[0] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9]))/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
                 z[0] = _distance - predicted;
             }
             
