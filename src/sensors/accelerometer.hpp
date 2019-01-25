@@ -50,38 +50,66 @@ namespace hf {
             
             virtual void getJacobianObservation(float * H, float * x) override
             {
-                // 1 column
-                H[0] =  0;
-                H[8] =  0;
-                H[16] =  0;
-                // 2 column
-                H[1] =  0;
-                H[9] =  0;
-                H[17] =  0;
-                // 3 column
-                H[2] =                                  0;
-                H[10] =  x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
-                H[18] =            - 2*x[2]*x[3] - 2*x[4]*x[5];
-                // 4 column
-                H[3] =  - x[2]*x[2] + x[3]*x[3] + x[4]*x[4] - x[5]*x[5];
-                H[11] =                                    0;
-                H[19] =                2*x[3]*x[5] - 2*x[2]*x[4];
-                // 5 column
-                H[4] =  2*x[2]*x[3] + 2*x[4]*x[5];
-                H[12] =  2*x[2]*x[4] - 2*x[3]*x[5];
-                H[20] =                      0;
-                // 6 column
-                H[5] =  0;
-                H[13] =  0;
-                H[21] =  0;
-                // 7 column
-                H[6] =  0;
-                H[14] =  0;
-                H[22] =  0;
-                // 8 column
-                H[7] =  0;
-                H[15] =  0;
-                H[23] =  0;
+              // 1 column
+              H[0] =  0;
+              H[3] =  0;
+              H[6] =  0;
+              // 2 column
+              H[1] =  0;
+              H[4] =  0;
+              H[7] =  0;
+              // 3 column
+              H[2] =  0;
+              H[5] =  0;
+              H[8] =  0;
+              // 4 column
+              H[3] =  0;
+              H[6] =  0;
+              H[9] =  0;
+              // 5 column
+              H[4] =  0;
+              H[7] =  0;
+              H[10] =  0;
+              // 6 column
+              H[5] =  0;
+              H[8] =  0;
+              H[11] =  0;
+              // 7 column
+              H[6] =                                  0;
+              H[9] =  x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
+              H[12] =            - 2*x[6]*x[7] - 2*x[8]*x[9];
+              // 8 column
+              H[7] =  - x[6]*x[6] + x[7]*x[7] + x[8]*x[8] - x[9]*x[9];
+              H[10] =                                    0;
+              H[13] =                2*x[7]*x[9] - 2*x[6]*x[8];
+              // 9 column
+              H[8] =  2*x[6]*x[7] + 2*x[8]*x[9];
+              H[11] =  2*x[6]*x[8] - 2*x[7]*x[9];
+              H[14] =                      0;
+              // 10 column
+              H[9] =  0;
+              H[12] =  0;
+              H[15] =  0;
+              // 11 column
+              H[10] =  0;
+              H[13] =  0;
+              H[16] =  0;
+              // 12 column
+              H[11] =  0;
+              H[14] =  0;
+              H[17] =  0;
+              // 13 column
+              H[12] =  0;
+              H[15] =  0;
+              H[18] =  0;
+              // 14 column
+              H[13] =  0;
+              H[16] =  0;
+              H[19] =  0;
+              // 15 column
+              H[14] =  0;
+              H[17] =  0;
+              H[20] =  0;
             }
 
             virtual void getInnovation(float * z, float * x) override
@@ -90,14 +118,14 @@ namespace hf {
                 float tmp2[3];
                 // We might have to normalize these two vectors (y and h)
                 // Predicted Observations
-                _predictedObservation[0] = ((2*x[2]*x[4] - 
-                                            2*x[3]*x[5])*-9.80665);
-                _predictedObservation[1] = ((-2*x[2]*x[3] - 
-                                             2*x[4]*x[5])*-9.80665);
-                _predictedObservation[2] = ((-x[2]*x[2] + 
-                                             x[3]*x[3] +
-                                             x[4]*x[4] -
-                                             x[5]*x[5])*-9.80665);
+                _predictedObservation[0] = ((2*x[6]*x[8] - 
+                                            2*x[7]*x[9])*-9.80665);
+                _predictedObservation[1] = ((-2*x[6]*x[7] - 
+                                             2*x[8]*x[9])*-9.80665);
+                _predictedObservation[2] = ((-x[6]*x[6] + 
+                                             x[7]*x[7] +
+                                             x[8]*x[8] -
+                                             x[9]*x[9])*-9.80665);
                                              
                 norvec(_predictedObservation, tmp1, 3);
                 norvec(_accels, tmp2, 3);
