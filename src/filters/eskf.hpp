@@ -108,15 +108,15 @@ namespace hf {
       void synchState(void)
       {
           // Update euler angles
-          float q[4] = {eskf.x[2], eskf.x[3], eskf.x[4], eskf.x[5]};
+          float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
           Quaternion::computeEulerAngles(q, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
           // update vertical position and velocity
-          state.position[2] = eskf.x[0];
-          state.linearVelocities[2] = eskf.x[1];
+          state.position[2] = eskf.x[2];
+          state.linearVelocities[2] = eskf.x[5];
       }
 
     public:
@@ -138,89 +138,54 @@ namespace hf {
           zeros(eskfp.H, observations, errorStates);
           
           // initial state
-          eskfp.x[0] = 0.0; // vertical position
-          eskfp.x[1] = 0.0; // vertical velocity
-          eskfp.x[2] = 1.0; // orientation (quaternion)
-          eskfp.x[3] = 0.0;
+          eskfp.x[0] = 0.0; // position
+          eskfp.x[1] = 0.0; 
+          eskfp.x[2] = 0.0;
+          eskfp.x[3] = 0.0; // velocity
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
-          eskfp.x[6] = 0.301350; // gyro bias
-          eskfp.x[7] = -0.818594;
-          eskfp.x[8] = -0.701652;
+          eskfp.x[6] = 1.0; // orientation
+          eskfp.x[7] = 0.0;
+          eskfp.x[8] = 0.0;
+          eskfp.x[9] = 0.0;
+          eskfp.x[10] = 0.0; // accel bias
+          eskfp.x[11] = 0.0;
+          eskfp.x[12] = 0.0;
+          eskfp.x[13] = 0.301350; // gyro bias
+          eskfp.x[14] = -0.818594;
+          eskfp.x[15] = -0.701652;
           
+          // Since P has already been zero-ed only elements != 0 have to be set
           // 1 column
-          eskfp.P[0] =  1.0;
-          eskfp.P[8] =  0.0;
-          eskfp.P[16] =  0.0;
-          eskfp.P[24] =  0.0;
-          eskfp.P[32] =  0.0;
-          eskfp.P[40] =  0.0;
-          eskfp.P[48] =  0.0;
-          eskfp.P[56] =  0.0;
+          eskfp.P[0] = 1.0;
           // 2 column
-          eskfp.P[1] =  0.0;
-          eskfp.P[9] =  1.0;
-          eskfp.P[17] =  0.0;
-          eskfp.P[25] =  0.0;
-          eskfp.P[33] =  0.0;
-          eskfp.P[41] =  0.0;
-          eskfp.P[49] =  0.0;
-          eskfp.P[57] =  0.0;
+          eskfp.P[16] = 1.0;
           // 3 column
-          eskfp.P[2] = 0.0;
-          eskfp.P[10] = 0.0;
-          eskfp.P[18] = 1.0;
-          eskfp.P[26] = 0.0;
-          eskfp.P[34] = 0.0;
-          eskfp.P[42] = 0.0;
-          eskfp.P[50] = 0.0;
-          eskfp.P[58] = 0.0;
+          eskfp.P[32] = 1.0;
           // 4 column
-          eskfp.P[3] = 0.0;
-          eskfp.P[11] = 0.0;
-          eskfp.P[19] = 0.0;
-          eskfp.P[27] = 1.0;
-          eskfp.P[35] = 0.0;
-          eskfp.P[43] = 0.0;
-          eskfp.P[51] = 0.0;
-          eskfp.P[59] = 0.0;
+          eskfp.P[48] = 1.0;
           // 5 column
-          eskfp.P[4] = 0.0;
-          eskfp.P[12] = 0.0;
-          eskfp.P[20] = 0.0;
-          eskfp.P[28] = 0.0;
-          eskfp.P[36] = 1.0;
-          eskfp.P[44] = 0.0;
-          eskfp.P[52] = 0.0;
-          eskfp.P[60] = 0.0;
+          eskfp.P[64] = 1.0;
           // 6 column
-          eskfp.P[5] =  0.0;
-          eskfp.P[13] =  0.0;
-          eskfp.P[21] =  0.0;
-          eskfp.P[29] =  0.0;
-          eskfp.P[37] =  0.0;
-          eskfp.P[45] =  1.0;
-          eskfp.P[53] =  0.0;
-          eskfp.P[61] =  0.0;
+          eskfp.P[80] = 1.0;
           // 7 column
-          eskfp.P[6] =  0.0;
-          eskfp.P[14] =  0.0;
-          eskfp.P[22] =  0.0;
-          eskfp.P[30] =  0.0;
-          eskfp.P[38] =  0.0;
-          eskfp.P[46] =  0.0;
-          eskfp.P[54] =  1.0;
-          eskfp.P[62] =  0.0;
+          eskfp.P[96] = 1.0;
           // 8 column
-          eskfp.P[7] =  0.0;
-          eskfp.P[15] =  0.0;
-          eskfp.P[23] =  0.0;
-          eskfp.P[31] =  0.0;
-          eskfp.P[39] =  0.0;
-          eskfp.P[47] =  0.0;
-          eskfp.P[55] =  0.0;
-          eskfp.P[63] =  1.0;
-
+          eskfp.P[112] = 1.0;
+          // 9 column
+          eskfp.P[128] = 1.0;
+          // 10 column
+          eskfp.P[144] = 1.0;
+          // 11 column
+          eskfp.P[160] = 1.0;
+          // 12 column
+          eskfp.P[176] = 1.0;
+          // 13 column
+          eskfp.P[192] = 1.0;
+          // 14 column
+          eskfp.P[208] = 1.0;
+          // 15 column
+          eskfp.P[224] = 1.0;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -255,13 +220,13 @@ namespace hf {
           sensor->getCovarianceEstimation(eskfp.Q);
 
           // Normalize quaternion
-          float quat_tmp[4] = { eskf.fx[2], eskf.fx[3], eskf.fx[4], eskf.fx[5] };
+          float quat_tmp[4] = { eskf.fx[6], eskf.fx[7], eskf.fx[8], eskf.fx[9] };
           float norm_quat_tmp[4];
           norvec(quat_tmp, norm_quat_tmp, 4);
-          eskf.fx[2] = norm_quat_tmp[0];
-          eskf.fx[3] = norm_quat_tmp[1];
-          eskf.fx[4] = norm_quat_tmp[2];
-          eskf.fx[5] = norm_quat_tmp[3];
+          eskf.fx[6] = norm_quat_tmp[0];
+          eskf.fx[7] = norm_quat_tmp[1];
+          eskf.fx[8] = norm_quat_tmp[2];
+          eskf.fx[9] = norm_quat_tmp[3];
           
           // Copy back estimated states into x
           copyvec(eskfp.fx, eskfp.x, nominalStates);
@@ -351,25 +316,32 @@ namespace hf {
           // XXX Quaternion injection as a method
           float tmp[4];
           tmp[0] = 1.0;
-          tmp[1] = eskfp.dx[2]/2.0;
-          tmp[2] = eskfp.dx[3]/2.0;
-          tmp[3] = eskfp.dx[4]/2.0;
-          float quat_tmp[4] = {eskfp.x[2], eskfp.x[3], eskfp.x[4], eskfp.x[5]}; 
+          tmp[1] = eskfp.dx[6]/2.0;
+          tmp[2] = eskfp.dx[7]/2.0;
+          tmp[3] = eskfp.dx[8]/2.0;
+          float quat_tmp[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]}; 
           Quaternion::computeqL(eskfp.qL, quat_tmp);
           mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
           norvec(eskfp.tmp5, tmp, 4);
-          eskf.x[2] = tmp[0];
-          eskf.x[3] = tmp[1];
-          eskf.x[4] = tmp[2];
-          eskf.x[5] = tmp[3];
+          eskf.x[6] = tmp[0];
+          eskf.x[7] = tmp[1];
+          eskf.x[8] = tmp[2];
+          eskf.x[9] = tmp[3];
           // Inject rest of errors
-          eskfp.x[0] += eskfp.dx[0];
+          eskfp.x[0] += eskfp.dx[0]; // position
           eskfp.x[1] += eskfp.dx[1];
-          eskfp.x[6] += eskfp.dx[5];
-          eskfp.x[7] += eskfp.dx[6];
-          //eskfp.x[8] += eskfp.dx[7];
+          eskfp.x[2] += eskfp.dx[2];
+          eskfp.x[3] += eskfp.dx[3]; // velocity
+          eskfp.x[4] += eskfp.dx[4];
+          eskfp.x[5] += eskfp.dx[5];
+          eskfp.x[10] += eskfp.dx[9]; // accel bias
+          eskfp.x[11] += eskfp.dx[10];
+          eskfp.x[12] += eskfp.dx[11];
+          eskfp.x[13] += eskfp.dx[12]; // gyro bias
+          eskfp.x[14] += eskfp.dx[13];
+          eskfp.x[15] += eskfp.dx[14];
 
-          eskfp.x[8] = 0.00; // Brute force yaw bias
+          eskfp.x[15] = 0.00; // Brute force yaw bias
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
