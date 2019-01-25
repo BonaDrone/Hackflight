@@ -34,37 +34,41 @@ namespace hf {
 
         private:
 
-            static constexpr float UPDATE_PERIOD = .01f;
+            static constexpr float UPDATE_HZ = 100.0; // XXX should be using interrupt!
+            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
 
-            // Use digital pin 10 for chip select
-            PMW3901 _flowSensor = PMW3901(A4, &SPI1);
-
-            // Track elapsed time for periodic readiness
-            bool _previousTime = 0;
+            // Use digital pin 12 for chip select and SPI1 port for comms
+            PMW3901 _flowSensor = PMW3901(12, &SPI1);
+            // flow measures
+            float _deltaX = 0;
+            float _deltaY = 0;
 
 
         protected:
 
             virtual void modifyState(eskf_state_t & state, float time) override
             {
-                (void)time; 
-
-                int16_t deltaX=0, deltaY=0;
-                _flowSensor.readMotionCount(&deltaX, &deltaY);
-
-                state.linearVelocities[1]   =  (float)deltaY;
-                state.linearVelocities[0] = -(float)deltaX;
+                (void)time;
+                (void)state;
             }
 
             virtual bool ready(float time) override
             {
-                _previousTime = time;
+                int16_t deltaX=0, deltaY=0;
+                _flowSensor.readMotionCount(&deltaX, &deltaY);
+                _deltaX = (float)deltaX;
+                _deltaY = (float)deltaY;
+            }
+            
+            virtual bool shouldUpdateESKF(float time) override
+            {
+                static float _time;
 
-                bool result = (time - _previousTime > UPDATE_PERIOD);
-
-                _previousTime = time;
-
-                return result;
+                if (time - _time > UPDATE_PERIOD) {
+                    _time = time;
+                    return true; 
+                }
+                return false;
             }
 
         public:
