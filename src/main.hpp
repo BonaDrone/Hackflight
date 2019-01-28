@@ -167,10 +167,10 @@ namespace hf {
                     h.addSensor(&rangefinder);
                     h.eskf.addSensorESKF(&rangefinder);
                     
-                    hf::OpticalFlow opticalflow;
-                    opticalflow.begin();
-                    h.addSensor(&opticalflow);                    
-                    h.eskf.addSensorESKF(&opticalflow);                    
+                    // hf::OpticalFlow opticalflow;
+                    // opticalflow.begin();
+                    // h.addSensor(&opticalflow);                    
+                    // h.eskf.addSensorESKF(&opticalflow);                    
                 }
                 
             } // init
