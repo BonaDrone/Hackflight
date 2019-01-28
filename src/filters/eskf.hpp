@@ -365,6 +365,10 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
           /* success */
           synchState();
+          
+          Serial.print(eskf.x[2]);
+          Serial.print(",");
+          Serial.println(eskf.x[5]);
                     
           return 0;
       } // correct
