@@ -118,8 +118,8 @@ namespace hf {
                 float tmp2[3];
                 // We might have to normalize these two vectors (y and h)
                 // Predicted Observations
-                _predictedObservation[0] = ((2*x[6]*x[8] - 2*x[7]*x[9])*-9.80665);
-                _predictedObservation[1] = ((-2*x[6]*x[7] - 2*x[8]*x[9])*-9.80665);
+                _predictedObservation[0] = ((2*x[6]*x[8] - 2*x[7]*x[9]) * -9.80665);
+                _predictedObservation[1] = ((-2*x[6]*x[7] - 2*x[8]*x[9]) * -9.80665);
                 _predictedObservation[2] = ((-x[6]*x[6] + x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) * -9.80665);
                                              
                 norvec(_predictedObservation, tmp1, 3);
@@ -155,10 +155,20 @@ namespace hf {
             
             virtual bool shouldUpdateESKF(float time) override
             {
-                return true;
+                static float _time;
+
+                if (time - _time > UPDATE_PERIOD) {
+                    _time = time;
+                    return true; 
+                }
+                return false;
             }
 
         private:
+
+            static constexpr float UPDATE_HZ = 200.0; // XXX should be using interrupt!
+
+            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
 
             float _accels[3];
             float _predictedObservation[3];
