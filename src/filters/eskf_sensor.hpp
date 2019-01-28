@@ -62,7 +62,7 @@ namespace hf {
         virtual bool shouldUpdateESKF(float time) { return true; }
         
         // This method might be overriden to return the appropriate inverse of Z
-        virtual int Zinverse(float * Z, float * invZ)
+        virtual bool Zinverse(float * Z, float * invZ)
         {
           float tmp[Mobs];
           if (cholsl(Z, invZ, tmp, Mobs))

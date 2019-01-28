@@ -94,10 +94,10 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 0.0001f;
+                R[0] = 0.001f;
             }
 
-            virtual int Zinverse(float * Z, float * invZ) override
+            virtual bool Zinverse(float * Z, float * invZ) override
             {
                 if (Z[0] == 0)
                 {
