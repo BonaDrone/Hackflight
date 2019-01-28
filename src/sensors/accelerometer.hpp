@@ -122,8 +122,8 @@ namespace hf {
                 _predictedObservation[1] = ((-2*x[6]*x[7] - 2*x[8]*x[9])*-9.80665);
                 _predictedObservation[2] = ((-x[6]*x[6] + x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) * -9.80665);
                                              
-                //norvec(_predictedObservation, tmp1, 3);
-                //norvec(_accels, tmp2, 3);
+                norvec(_predictedObservation, tmp1, 3);
+                norvec(_accels, tmp2, 3);
                 // innovation = measured - predicted
                 z[0] = tmp2[0] - tmp1[0];
                 z[1] = tmp2[1] - tmp1[1];
