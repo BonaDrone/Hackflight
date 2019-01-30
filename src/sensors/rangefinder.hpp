@@ -52,12 +52,13 @@ namespace hf {
 
             virtual void getJacobianObservation(float * H, float * x) override
             {
+              float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
               // 1 column
               H[0] =  0;
               // 2 column
               H[1] =  0;
               // 3 column
-              H[2] =  1/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
+              H[2] =  1/aux1;
               // 4 column
               H[3] =  0;
               // 5 column
@@ -65,11 +66,11 @@ namespace hf {
               // 6 column
               H[5] =  0;
               // 7 column
-              H[6] =  (x[6]*((2*x[6]*_ry - 2*x[7]*_rz + 2*x[9]*_rx)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) + (2*x[7]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[7]*((2*x[6]*_rz + 2*x[7]*_ry - 2*x[8]*_rx)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[6]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[9]*((2*x[6]*_rx + 2*x[8]*_rz - 2*x[9]*_ry)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[8]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[8]*((2*x[7]*_rx + 2*x[8]*_ry + 2*x[9]*_rz)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[9]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2;
+              H[6] =  (2*x[2]*x[6]*x[7])/(aux1*aux1) + (2*x[2]*x[8]*x[9])/(aux1*aux1);
               // 8 column
-              H[7] =  (x[7]*((2*x[7]*_rx + 2*x[8]*_ry + 2*x[9]*_rz)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[9]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[6]*((2*x[6]*_rx + 2*x[8]*_rz - 2*x[9]*_ry)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[8]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[9]*((2*x[6]*_ry - 2*x[7]*_rz + 2*x[9]*_rx)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) + (2*x[7]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[8]*((2*x[6]*_rz + 2*x[7]*_ry - 2*x[8]*_rx)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[6]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2;
+              H[7] =  (2*x[2]*x[6]*x[8])/(aux1*aux1) - (2*x[2]*x[7]*x[9])/(aux1*aux1);
               // 9 column
-              H[8] =  (x[8]*((2*x[6]*_ry - 2*x[7]*_rz + 2*x[9]*_rx)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) + (2*x[7]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 - (x[9]*((2*x[6]*_rz + 2*x[7]*_ry - 2*x[8]*_rx)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[6]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 + (x[7]*((2*x[6]*_rx + 2*x[8]*_rz - 2*x[9]*_ry)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[8]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2 + (x[6]*((2*x[7]*_rx + 2*x[8]*_ry + 2*x[9]*_rz)/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - (2*x[9]*(x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9])))/((x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))))/2;
+              H[8] =  0;
               // 10 column
               H[9] =  0;
               // 11 column
@@ -88,13 +89,13 @@ namespace hf {
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = (x[2] + _rz*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]) - _rx*(2*x[6]*x[8] - 2*x[7]*x[9]) + _ry*(2*x[6]*x[7] + 2*x[8]*x[9]))/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
-                z[0] = _distance - predicted;
+                float predicted = x[2]/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
+                z[0] = _distance - predicted;                
             }
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 0.001f;
+                R[0] = 0.5f;
             }
 
             virtual bool Zinverse(float * Z, float * invZ) override
@@ -122,23 +123,17 @@ namespace hf {
                 (void)time;
             }
 
-            virtual bool ready(float time) override
-            {
-                float newDistance;
-
-                if (distanceAvailable(newDistance)) {
-                        _distance = newDistance;
-                        return true;
-                }
-                return false; 
-            }
-
             virtual bool shouldUpdateESKF(float time) override
             {
                 static float _time;
-
-                if (time - _time > UPDATE_PERIOD) {
+                float newDistance;
+                if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) {
                     _time = time;
+                    if (_distance < 0.0 && _distance > 4.5)
+                    {
+                      return false;
+                    }
+                    _distance = newDistance;
                     return true; 
                 }
                 return false;
