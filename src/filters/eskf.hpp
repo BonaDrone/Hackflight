@@ -161,35 +161,35 @@ namespace hf {
           
           // Since P has already been zero-ed only elements != 0 have to be set
           // 1 column
-          eskfp.P[0] = 1.0;
+          eskfp.P[0] = 0.0;
           // 2 column
-          eskfp.P[16] = 1.0;
+          eskfp.P[16] = 0.0;
           // 3 column
-          eskfp.P[32] = 1.0;
+          eskfp.P[32] = 0.0;
           // 4 column
-          eskfp.P[48] = 1.0;
+          eskfp.P[48] = 0.0;
           // 5 column
-          eskfp.P[64] = 1.0;
+          eskfp.P[64] = 0.0;
           // 6 column
-          eskfp.P[80] = 1.0;
+          eskfp.P[80] = 0.0;
           // 7 column
-          eskfp.P[96] = 1.0;
+          eskfp.P[96] = 0.01;
           // 8 column
-          eskfp.P[112] = 1.0;
+          eskfp.P[112] = 0.01;
           // 9 column
-          eskfp.P[128] = 1.0;
+          eskfp.P[128] = 0.0;
           // 10 column
-          eskfp.P[144] = 1.0;
+          eskfp.P[144] = 0.000001;
           // 11 column
-          eskfp.P[160] = 1.0;
+          eskfp.P[160] = 0.000001;
           // 12 column
-          eskfp.P[176] = 1.0;
+          eskfp.P[176] = 0.000001;
           // 13 column
-          eskfp.P[192] = 1.0;
+          eskfp.P[192] = 0.000001;
           // 14 column
-          eskfp.P[208] = 1.0;
+          eskfp.P[208] = 0.000001;
           // 15 column
-          eskfp.P[224] = 1.0;
+          eskfp.P[224] = 0.000001;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -271,13 +271,7 @@ namespace hf {
           // has less observations we don't want residual values from previous
           // calculations to affect the current correction.
           zeroCorrectMatrices();
-          
-          // Check sensor
-          if (sensor->ready(time)) {
-              // Update state with gyro rates
-              sensor->modifyState(state, time);                    
-          } 
-          
+
           sensor->getJacobianObservation(eskfp.H, eskfp.x);
           sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
@@ -365,10 +359,10 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
           /* success */
           synchState();
-          
-          Serial.print(eskf.x[2]);
+
+          Serial.print(eskf.x[2], 8);
           Serial.print(",");
-          Serial.println(eskf.x[5]);
+          Serial.println(eskf.x[5], 8);
                     
           return 0;
       } // correct
