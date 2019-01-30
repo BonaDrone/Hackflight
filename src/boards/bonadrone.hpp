@@ -49,7 +49,7 @@ namespace hf {
             static const LSM6DSM::Rate_t   GODR   = LSM6DSM::ODR_1660Hz;
 
             // Gyro bias will be estimated by the ESKF filter
-            float ACCEL_BIAS[3] = {-0.020306,0.008926,0.029526};
+            float ACCEL_BIAS[3] = {0.0,0.0,0.0};
             float GYRO_BIAS[3]  = {0.0,0.0,0.0};
 
 
