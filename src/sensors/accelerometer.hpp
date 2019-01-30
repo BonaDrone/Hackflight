@@ -139,25 +139,13 @@ namespace hf {
             }            
 
         protected:
-
-            virtual void modifyState(eskf_state_t & state, float time) override
-            {
-                // Here is where you'd do sensor fusion
-                (void)state;
-                (void)time;
-            }
-
-            virtual bool ready(float time) override
-            {
-                (void)time;
-                return board->getAccelerometer(_accels);
-            }
             
             virtual bool shouldUpdateESKF(float time) override
             {
                 static float _time;
 
                 if (time - _time > UPDATE_PERIOD) {
+                    board->getAccelerometer(_accels);
                     _time = time;
                     return true; 
                 }
