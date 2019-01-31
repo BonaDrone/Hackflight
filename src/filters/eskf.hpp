@@ -360,9 +360,9 @@ namespace hf {
           /* success */
           synchState();
 
-          Serial.print(eskf.x[2], 8);
+          Serial.print(eskf.x[0], 8);
           Serial.print(",");
-          Serial.println(eskf.x[5], 8);
+          Serial.println(eskf.x[3], 8);
                     
           return 0;
       } // correct

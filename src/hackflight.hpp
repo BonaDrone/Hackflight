@@ -131,6 +131,7 @@ namespace hf {
 
                     if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
                     {
+                        sensor->getMeasures(*_state.UAVState);
                         eskf.correct(sensor, time);
                     }
                 }

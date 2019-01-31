@@ -71,6 +71,10 @@ namespace hf {
           }
           return 0;
         }
+        
+        // This method should be overriden if the sensor needs some measures (such as rates) that
+        // are not accessible from the state
+        virtual void getMeasures(eskf_state_t & state) {(void)state;}
 
     }; // class ESKF_Sensor
 
