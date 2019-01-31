@@ -161,16 +161,16 @@ namespace hf {
                 // Add additional sensors
                 if (_hasPositioningBoard)
                 {
-                    hf::VL53L1X_Rangefinder rangefinder;
-                    rangefinder.begin();
-                    rangefinder.setCalibration(_rx, _ry, _rz);
-                    h.addSensor(&rangefinder);
-                    h.eskf.addSensorESKF(&rangefinder);
+                    hf::VL53L1X_Rangefinder * rangefinder = new hf::VL53L1X_Rangefinder();
+                    rangefinder->begin();
+                    rangefinder->setCalibration(_rx, _ry, _rz);
+                    h.addSensor(rangefinder);
+                    h.eskf.addSensorESKF(rangefinder);
                     
-                    // hf::OpticalFlow opticalflow;
-                    // opticalflow.begin();
-                    // h.addSensor(&opticalflow);                    
-                    // h.eskf.addSensorESKF(&opticalflow);                    
+                    hf::OpticalFlow * opticalflow = new hf::OpticalFlow();
+                    opticalflow->begin();
+                    h.addSensor(opticalflow);                    
+                    h.eskf.addSensorESKF(opticalflow);                    
                 }
                 
             } // init
