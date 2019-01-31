@@ -117,12 +117,6 @@ namespace hf {
 
         protected:
 
-            virtual void modifyState(eskf_state_t & state, float time) override
-            {
-                (void)state;
-                (void)time;
-            }
-
             virtual bool shouldUpdateESKF(float time) override
             {
                 static float _time;
