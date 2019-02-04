@@ -46,6 +46,8 @@ namespace hf {
 
             // XXX use a proper version formating
             uint8_t _firmwareVersion = 0;
+            bool _isMosquito90;
+            bool _hasPositioningBoard;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -409,14 +411,23 @@ namespace hf {
                 
             }
             
-            virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4)
+            virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4) override
             {
                   m1 = _mixer->motorsDisarmed[0];
                   m2 = _mixer->motorsDisarmed[1];
                   m3 = _mixer->motorsDisarmed[2];
                   m4 = _mixer->motorsDisarmed[3];
             }
-
+            
+            virtual void handle_MOSQUITO_VERSION_Request(uint8_t & mosquitoVersion) override
+            {
+                mosquitoVersion = _isMosquito90;
+            }
+            
+            virtual void handle_POSITION_BOARD_Request(uint8_t & hasPositionBoard) override
+            {
+                hasPositionBoard = _hasPositioningBoard;
+            }
 
         public:
 
@@ -466,6 +477,12 @@ namespace hf {
                 _failsafe = false;
 
             } // init
+
+            void setParams(bool hasPositionBoard, bool isMosquito90)
+            {
+                _hasPositioningBoard = hasPositionBoard;
+                _isMosquito90 = isMosquito90;
+            }
 
             void addSensor(PeripheralSensor * sensor) 
             {
