@@ -169,6 +169,53 @@ namespace hf {
                     analogWrite(MOTOR_PINS[k], PWM_MIN>>3);
                 }
             }
+            
+            virtual void calibrateESCs(void) override
+            {
+                // PWM Values
+                uint16_t BASELINE = 1000;
+                uint16_t MIDVAL   = 1500;
+                uint16_t MAXVAL   = 2000;
+
+                uint8_t LED_R = 25;
+                uint8_t LED_G = 26;
+                uint8_t LED_B = 38;
+
+                pinMode(LED_R, OUTPUT);  
+                pinMode(LED_G, OUTPUT);
+                pinMode(LED_B, OUTPUT);
+
+                digitalWrite(LED_R, HIGH);
+                digitalWrite(LED_G, HIGH);
+                digitalWrite(LED_B, HIGH);
+  
+                digitalWrite(LED_R, LOW);
+                delay(500);
+                digitalWrite(LED_R, HIGH);
+                digitalWrite(LED_G, LOW);
+                delay(500);
+                digitalWrite(LED_G, HIGH);
+                digitalWrite(LED_B, LOW);
+                delay(500);
+  
+                // Blue LED ON when calibrating (first part)
+                for (int k=0; k<4; ++k)
+                {
+                    pinMode(MOTOR_PINS[k], OUTPUT);    
+                    analogWrite(MOTOR_PINS[k], MAXVAL >> 3);
+                }
+                delay(10000);
+                digitalWrite(LED_B, HIGH);
+  
+                // Green LED ON when calibrating (second part)
+                digitalWrite(LED_G, LOW);
+                for (int k=0; k<4; ++k)
+                {
+                    analogWrite(MOTOR_PINS[k], BASELINE >> 3);
+                }
+                delay(10000);
+                digitalWrite(LED_G, HIGH);
+            }
 
     }; // class BonadroneStandard
 
@@ -199,6 +246,55 @@ namespace hf {
                     analogWriteRange(MOTOR_PINS[k], 10000);
                     analogWrite(MOTOR_PINS[k], PWM_MIN);
                 }
+            }
+            
+            virtual void calibrateESCs(void) override
+            {
+                // PWM Values
+                uint16_t BASELINE = 100;
+                uint16_t MAXVAL   = 500;
+                uint8_t LED_R = 25;
+                uint8_t LED_G = 26;
+                uint8_t LED_B = 38;
+    
+                pinMode(LED_R, OUTPUT);  
+                pinMode(LED_G, OUTPUT);
+                pinMode(LED_B, OUTPUT);
+                
+                // LED sequence that signals begin of calibration
+                digitalWrite(LED_R, HIGH);
+                digitalWrite(LED_G, HIGH);
+                digitalWrite(LED_B, HIGH);
+
+                digitalWrite(LED_R, LOW);
+                delay(500);
+                digitalWrite(LED_R, HIGH);
+                digitalWrite(LED_G, LOW);
+                delay(500);
+                digitalWrite(LED_G, HIGH);
+                digitalWrite(LED_B, LOW);
+                delay(500);
+
+                // Blue LED ON when calibrating (first part)
+                for (int k=0; k<4; ++k)
+                {
+                    pinMode(MOTOR_PINS[k], OUTPUT);
+                    analogWriteFrequency(MOTOR_PINS[k], 2000);
+                    analogWriteRange(MOTOR_PINS[k], 10000);
+                    analogWrite(MOTOR_PINS[k], MAXVAL);
+                }
+
+                delay(10000);
+                digitalWrite(LED_B, HIGH);
+
+                // Green LED ON when calibrating (second part)
+                digitalWrite(LED_G, LOW);
+                for (int k=0; k<4; ++k)
+                {
+                    analogWrite(MOTOR_PINS[k], BASELINE);
+                }
+                delay(10000);
+                digitalWrite(LED_G, HIGH);
             }
 
     }; // class BonadroneMultiShot

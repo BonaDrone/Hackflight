@@ -298,6 +298,13 @@ namespace hf {
                 }
             }
 
+            virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
+            {
+                (void)protocol;
+                _board->calibrateESCs();
+            }
+
+
             virtual void handle_RC_NORMAL_Request(float & c1, float & c2, float & c3, float & c4, float & c5, float & c6) override
             {
                 c1 = _receiver->getRawval(0);

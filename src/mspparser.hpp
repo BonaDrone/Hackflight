@@ -626,6 +626,15 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 24:
+                    {
+                        uint8_t protocol = 0;
+                        handle_ESC_CALIBRATION_Request(protocol);
+                        prepareToSendBytes(1);
+                        sendByte(protocol);
+                        serialize8(_checksum);
+                        } break;
+
                     case 25:
                     {
                         uint8_t mosquitoVersion = 0;
@@ -903,6 +912,12 @@ namespace hf {
                     {
                         uint8_t flag = getArgument(0);
                         handle_WP_MISSION_FLAG_Data(flag);
+                        } break;
+
+                    case 24:
+                    {
+                        uint8_t protocol = getArgument(0);
+                        handle_ESC_CALIBRATION_Data(protocol);
                         } break;
 
                     case 25:
@@ -1272,6 +1287,16 @@ namespace hf {
             virtual void handle_WP_MISSION_FLAG_Data(uint8_t & flag)
             {
                 (void)flag;
+            }
+
+            virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
+            {
+                (void)protocol;
+            }
+
+            virtual void handle_ESC_CALIBRATION_Data(uint8_t & protocol)
+            {
+                (void)protocol;
             }
 
             virtual void handle_MOSQUITO_VERSION_Request(uint8_t & mosquitoVersion)
@@ -2064,6 +2089,33 @@ namespace hf {
                 bytes[4] = 23;
 
                 memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_ESC_CALIBRATION_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 24;
+                bytes[5] = 24;
+
+                return 6;
+            }
+
+            static uint8_t serialize_ESC_CALIBRATION(uint8_t bytes[], uint8_t  protocol)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 24;
+
+                memcpy(&bytes[5], &protocol, sizeof(uint8_t));
 
                 bytes[6] = CRC8(&bytes[3], 3);
 
