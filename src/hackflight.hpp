@@ -408,6 +408,15 @@ namespace hf {
                 EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
                 
             }
+            
+            virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4)
+            {
+                  m1 = _mixer->motorsDisarmed[0];
+                  m2 = _mixer->motorsDisarmed[1];
+                  m3 = _mixer->motorsDisarmed[2];
+                  m4 = _mixer->motorsDisarmed[3];
+            }
+
 
         public:
 
