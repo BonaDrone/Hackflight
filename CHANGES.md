@@ -5,6 +5,7 @@
 ### Added
 
 * #37 Hackflight Parametrization
+* #46 Implement handler for getting Motor values via MSP
 
 ### Changed
 
