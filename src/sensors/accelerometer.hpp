@@ -48,7 +48,7 @@ namespace hf {
                 memset(_accels, 0, 3*sizeof(float));
             }
             
-            virtual void getJacobianObservation(float * H, float * x) override
+            virtual bool getJacobianObservation(float * H, float * x) override
             {
               // 1 column
               H[0] =  0;
@@ -110,9 +110,11 @@ namespace hf {
               H[14] =  0;
               H[29] =  0;
               H[44] =  0;
+              
+              return true;
             }
 
-            virtual void getInnovation(float * z, float * x) override
+            virtual bool getInnovation(float * z, float * x) override
             {
                 float tmp1[3];
                 float tmp2[3];
@@ -128,6 +130,8 @@ namespace hf {
                 z[0] = tmp2[0] - tmp1[0];
                 z[1] = tmp2[1] - tmp1[1];
                 z[2] = tmp2[2] - tmp1[2];
+                
+                return true;
             }
             
             virtual void getCovarianceCorrection(float * R) override

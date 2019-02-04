@@ -54,6 +54,7 @@ namespace hf {
                 state.angularVelocities[0] =  _rates[0];
                 state.angularVelocities[1] = -_rates[1];
                 state.angularVelocities[2] = -_rates[2];
+                
             }
 
             virtual bool ready(float time) override

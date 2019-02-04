@@ -50,7 +50,7 @@ namespace hf {
             {
             }
 
-            virtual void getJacobianObservation(float * H, float * x) override
+            virtual bool getJacobianObservation(float * H, float * x) override
             {
                 float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
                 // 1 column
@@ -83,14 +83,18 @@ namespace hf {
                 H[13] =  0;
                 // 15 column
                 H[14] =  0;
+                
+                return true;
             }
 
-            virtual void getInnovation(float * z, float * x) override
+            virtual bool getInnovation(float * z, float * x) override
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
                 float predicted = x[2]/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
-                z[0] = _distance - predicted;                
+                z[0] = _distance - predicted; 
+                
+                return true;               
             }
             
             virtual void getCovarianceCorrection(float * R) override

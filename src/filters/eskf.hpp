@@ -243,6 +243,17 @@ namespace hf {
           accum(eskfp.tmp6, eskfp.Q, errorStates, errorStates);
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
+          Serial.println("P");
+          printMatrix(eskfp.P, errorStates, errorStates);
+
+          Serial.print(eskf.x[0], 8);
+          Serial.print(",");
+          Serial.print(eskf.x[3], 8);
+          Serial.print(",");
+          Serial.println(eskf.x[2], 8);
+          
+          Serial.println("Update");
+
           /* success */
           synchState();
           return 0;
@@ -272,9 +283,16 @@ namespace hf {
           // calculations to affect the current correction.
           zeroCorrectMatrices();
 
-          sensor->getJacobianObservation(eskfp.H, eskfp.x);
-          sensor->getInnovation(eskfp.hx, eskfp.x);
+          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x);
+          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
+          
+          if (!JacobianOk || !InnovationOk)
+          {
+            return 1;
+          }
+          Serial.println("H");
+          printMatrix(eskfp.H, observations, errorStates);
 
           // Compute gain:
           /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
@@ -283,9 +301,17 @@ namespace hf {
           mulmat(eskfp.H, eskfp.P, eskfp.tmp2, observations, errorStates, errorStates);  // H*P
           mulmat(eskfp.tmp2, eskfp.Ht, eskfp.tmp3, observations, errorStates, observations); // H*P*H'
           accum(eskfp.tmp3, eskfp.R, observations, observations);                 // Z = H*P*H' + R
+          
+          Serial.println("Z");
+          printMatrix(eskfp.tmp3, observations, observations);
+
+          
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
           if (sensor->Zinverse(eskfp.tmp3, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
+          
+          Serial.println("K");
+          printMatrix(eskfp.K, errorStates, observations);
 
           /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
@@ -309,6 +335,9 @@ namespace hf {
           mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
           accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
+          
+          Serial.println("P");
+          printMatrix(eskfp.P, errorStates, errorStates);
           
           /* Error injection */
           // XXX Quaternion injection as a method
@@ -362,7 +391,9 @@ namespace hf {
 
           Serial.print(eskf.x[0], 8);
           Serial.print(",");
-          Serial.println(eskf.x[3], 8);
+          Serial.print(eskf.x[3], 8);
+          Serial.print(",");
+          Serial.println(eskf.x[2], 8);
                     
           return 0;
       } // correct
