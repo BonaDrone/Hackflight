@@ -164,6 +164,11 @@
    {"comment": "begin of mission codes flag"},
    {"flag": "byte"}],
 
+  "ESC_CALIBRATION":
+  [{"ID": 24},
+   {"comment": "Calibrate the ESCs with the Standard or MultiShot protocol"},
+   {"protocol": "byte"}],
+
   "MOSQUITO_VERSION":
   [{"ID": 25},
    {"comment": "Return the type of Mosquito (90 or 150)"},
