@@ -162,6 +162,10 @@ namespace hf {
                     opticalflow.begin();
                     h.addSensor(&opticalflow);                    
                 }
+
+                // Set parameters in hackflight instance so that they can be queried
+                // via MSP
+                h.setParams(_hasPositioningBoard, _isMosquito90);
                 
             } // init
 

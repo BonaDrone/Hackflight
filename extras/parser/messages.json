@@ -164,6 +164,16 @@
    {"comment": "begin of mission codes flag"},
    {"flag": "byte"}],
 
+  "MOSQUITO_VERSION":
+  [{"ID": 25},
+   {"comment": "Return the type of Mosquito (90 or 150)"},
+   {"mosquitoVersion": "byte"}],
+  
+  "POSITION_BOARD":
+  [{"ID": 26},
+   {"comment": "Return if position board is present"},
+   {"hasPositionBoard": "byte"}],
+
   "WP_MISSION_BEGIN":
   [{"ID": 30},
    {"comment": "Start mission execution"},
