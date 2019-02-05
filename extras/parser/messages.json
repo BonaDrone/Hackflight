@@ -176,8 +176,13 @@
   
   "POSITION_BOARD":
   [{"ID": 26},
-   {"comment": "Return if position board is present"},
+   {"comment": "Return if position board parameter is set to True or False"},
    {"hasPositionBoard": "byte"}],
+
+  "POSITION_BOARD_CONNECTED":
+  [{"ID": 27},
+   {"comment": "Return if position board is connected"},
+   {"positionBoardConnected": "byte"}],
 
   "WP_MISSION_BEGIN":
   [{"ID": 30},

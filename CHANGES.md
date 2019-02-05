@@ -8,6 +8,7 @@
 * #46 Implement handler for getting Motor values via MSP
 * #47 MSP getters for Mosquito version and presence of Position Board
 * #48 MSP message and methods to calibrate ESCs
+* #50 Check if position board is connected via MSP
 
 ### Changed
 

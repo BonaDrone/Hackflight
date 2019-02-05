@@ -653,6 +653,15 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 27:
+                    {
+                        uint8_t positionBoardConnected = 0;
+                        handle_POSITION_BOARD_CONNECTED_Request(positionBoardConnected);
+                        prepareToSendBytes(1);
+                        sendByte(positionBoardConnected);
+                        serialize8(_checksum);
+                        } break;
+
                     case 30:
                     {
                         uint8_t flag = 0;
@@ -930,6 +939,12 @@ namespace hf {
                     {
                         uint8_t hasPositionBoard = getArgument(0);
                         handle_POSITION_BOARD_Data(hasPositionBoard);
+                        } break;
+
+                    case 27:
+                    {
+                        uint8_t positionBoardConnected = getArgument(0);
+                        handle_POSITION_BOARD_CONNECTED_Data(positionBoardConnected);
                         } break;
 
                     case 30:
@@ -1317,6 +1332,16 @@ namespace hf {
             virtual void handle_POSITION_BOARD_Data(uint8_t & hasPositionBoard)
             {
                 (void)hasPositionBoard;
+            }
+
+            virtual void handle_POSITION_BOARD_CONNECTED_Request(uint8_t & positionBoardConnected)
+            {
+                (void)positionBoardConnected;
+            }
+
+            virtual void handle_POSITION_BOARD_CONNECTED_Data(uint8_t & positionBoardConnected)
+            {
+                (void)positionBoardConnected;
             }
 
             virtual void handle_WP_MISSION_BEGIN_Request(uint8_t & flag)
@@ -2170,6 +2195,33 @@ namespace hf {
                 bytes[4] = 26;
 
                 memcpy(&bytes[5], &hasPositionBoard, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_CONNECTED_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 27;
+                bytes[5] = 27;
+
+                return 6;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_CONNECTED(uint8_t bytes[], uint8_t  positionBoardConnected)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 27;
+
+                memcpy(&bytes[5], &positionBoardConnected, sizeof(uint8_t));
 
                 bytes[6] = CRC8(&bytes[3], 3);
 
