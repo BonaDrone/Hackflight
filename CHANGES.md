@@ -16,4 +16,4 @@
 ### Fixed
 
 * #39 Firmware version
-
+* #49 Optical Flow connection pin
