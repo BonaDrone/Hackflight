@@ -182,7 +182,7 @@
   "POSITION_BOARD_CONNECTED":
   [{"ID": 27},
    {"comment": "Return if position board is connected"},
-   {"hasPositionBoard": "byte"}],
+   {"positionBoardConnected": "byte"}],
 
   "WP_MISSION_BEGIN":
   [{"ID": 30},
