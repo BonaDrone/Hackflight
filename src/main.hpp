@@ -56,6 +56,8 @@ namespace hf {
               // Params
               bool _hasPositioningBoard = false;
               bool _isMosquito90 = false;
+              // Connection status (false unless proven otherwise)
+              bool _positionBoardConnected = false;
               // Rate PID params
               float _gyroRollPitchP;
               float _gyroRollPitchI;
@@ -155,17 +157,19 @@ namespace hf {
                 if (_hasPositioningBoard)
                 {
                     hf::VL53L1X_Rangefinder rangefinder;
-                    rangefinder.begin();
+                    bool _rangeConnected = rangefinder.begin();
                     h.addSensor(&rangefinder);
                     
                     hf::OpticalFlow opticalflow;
-                    opticalflow.begin();
-                    h.addSensor(&opticalflow);                    
+                    bool _opticalConnected = opticalflow.begin();
+                    h.addSensor(&opticalflow);
+                    
+                    _positionBoardConnected = _rangeConnected & _opticalConnected;                 
                 }
 
                 // Set parameters in hackflight instance so that they can be queried
                 // via MSP
-                h.setParams(_hasPositioningBoard, _isMosquito90);
+                h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
             } // init
 

@@ -48,6 +48,7 @@ namespace hf {
             uint8_t _firmwareVersion = 0;
             bool _isMosquito90;
             bool _hasPositioningBoard;
+            bool _positionBoardConnected;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -435,6 +436,12 @@ namespace hf {
             {
                 hasPositionBoard = _hasPositioningBoard;
             }
+            
+            virtual void handle_POSITION_BOARD_CONNECTED_Request(uint8_t & positionBoardConnected) override
+            {
+                positionBoardConnected = _positionBoardConnected;
+            }
+
 
         public:
 
@@ -485,10 +492,11 @@ namespace hf {
 
             } // init
 
-            void setParams(bool hasPositionBoard, bool isMosquito90)
+            void setParams(bool hasPositionBoard, bool isMosquito90, bool positionBoardConnected)
             {
                 _hasPositioningBoard = hasPositionBoard;
                 _isMosquito90 = isMosquito90;
+                _positionBoardConnected = positionBoardConnected;
             }
 
             void addSensor(PeripheralSensor * sensor) 
