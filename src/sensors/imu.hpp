@@ -579,12 +579,7 @@ namespace hf {
                 // NB: We negate X, Y rates to simplify PID controller
                 state.angularVelocities[0] =  _rates[0];
                 state.angularVelocities[1] = -_rates[1];
-                state.angularVelocities[2] = -_rates[2];
-                
-                Serial.print("Angular");
-                Serial.print(state.angularVelocities[0]);
-                Serial.print(",");
-                Serial.println(state.angularVelocities[1]);
+                state.angularVelocities[2] = -_rates[2];                
             }
 
             virtual bool ready(float time) override

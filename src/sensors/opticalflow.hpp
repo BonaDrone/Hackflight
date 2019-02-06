@@ -45,8 +45,8 @@ namespace hf {
             // focal distances XXX should be estimated
             // See: https://www.learnopencv.com/approximate-focal-length-for-webcams-and-cell-phone-cameras/
             // Assumptions are focal length = 30 pixels and alpha = 42 degrees
-            float _fx = 39.0;
-            float _fy = 39.0;
+            float _fx = 78.0;
+            float _fy = 78.0;
             // angular velocities
             float _rates[3];
 
@@ -139,8 +139,6 @@ namespace hf {
                 H[14] =  0;
                 H[29] =  0;
 
-                
-                Serial.println("Correcting");
                 return true;
             }
 
@@ -163,10 +161,12 @@ namespace hf {
                 z[0] = _deltaX - _predictedObservation[0];
                 z[1] = _deltaY - _predictedObservation[1];
                 
-                Serial.println("Observ");
                 Serial.print(_deltaX);
                 Serial.print(",");
-                Serial.println(_predictedObservation[0]);
+                Serial.println(_deltaY);
+                Serial.print(_predictedObservation[0]);
+                Serial.print(",");
+                Serial.println(_predictedObservation[1]);
                 
                 return true;
             }
