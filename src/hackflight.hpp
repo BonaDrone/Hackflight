@@ -381,8 +381,10 @@ namespace hf {
                 if (version)
                 {
                   EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                  _isMosquito90 = true;
                 } else {
                   EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                  _isMosquito90 = false;
                 }
             }
             
@@ -392,8 +394,10 @@ namespace hf {
                 if (hasBoard)
                 {
                   EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                  _hasPositioningBoard = true;
                 } else {
                   EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                  _hasPositioningBoard = false;
                 }
             }
             

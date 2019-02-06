@@ -18,3 +18,4 @@
 
 * #39 Firmware version
 * #49 Optical Flow connection pin
+* #51 Modify parameters at runtime (Mosquito version and Position Board presence)
