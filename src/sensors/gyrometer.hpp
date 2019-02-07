@@ -51,9 +51,9 @@ namespace hf {
                 (void)time;
 
                 // NB: We negate gyro X, Y to simplify PID controller
-                state.angularVelocities[0] =  _rates[0];
-                state.angularVelocities[1] = -_rates[1];
-                state.angularVelocities[2] = -_rates[2];
+                state.angularVelocities[0] = _rates[0];
+                state.angularVelocities[1] = _rates[1];
+                state.angularVelocities[2] = _rates[2];
                 
             }
 
