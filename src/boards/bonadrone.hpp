@@ -100,12 +100,6 @@ namespace hf {
                 if (_lsm6dsm.checkNewData()) {
 
                     _lsm6dsm.readData(_ax, _ay, _az, _gx, _gy, _gz);
-
-                    // Negate to support board orientation
-                    _ax = -_ax;
-                    _gy = -_gy;
-                    _gz = -_gz;
-
                     return true;
 
                 } 
