@@ -43,6 +43,12 @@ namespace hf {
             // We make this public so we can use it in different sketches
             static void computeEulerAngles(float q[4], float euler[3])
             {
+                // Rotate quaternion from IMU frame to euler convention frame
+                // This rotation is pi radians around x-axis
+                // See: https://en.m.wikipedia.org/wiki/Flight_dynamics_(fixed-wing_aircraft)
+                q[2] = -q[2];
+                q[3] = -q[3];
+              
                 euler[0] = atan2(2.0f*(q[0]*q[1]+q[2]*q[3]),q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3]);
                 euler[1] =  asin(2.0f*(q[1]*q[3]-q[0]*q[2]));
                 euler[2] = atan2(2.0f*(q[1]*q[2]+q[0]*q[3]),q[0]*q[0]+q[1]*q[1]-q[2]*q[2]-q[3]*q[3]);
