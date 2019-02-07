@@ -155,9 +155,9 @@ namespace hf {
           eskfp.x[10] = 0.0; // accel bias
           eskfp.x[11] = 0.0;
           eskfp.x[12] = 0.0;
-          eskfp.x[13] = 0.301350; // gyro bias
-          eskfp.x[14] = -0.818594;
-          eskfp.x[15] = -0.701652;
+          eskfp.x[13] = 0.0; // gyro bias
+          eskfp.x[14] = 0.0;
+          eskfp.x[15] = 0.0;
           
           // Since P has already been zero-ed only elements != 0 have to be set
           // 1 column
@@ -243,6 +243,8 @@ namespace hf {
           accum(eskfp.tmp6, eskfp.Q, errorStates, errorStates);
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
+          // saturate(eskfp.P, 100.0, errorStates, errorStates);
+
           // Serial.println("P");
           // printMatrix(eskfp.P, errorStates, errorStates);
           // 
@@ -256,6 +258,9 @@ namespace hf {
 
           /* success */
           synchState();
+          
+          printMatrix(eskfp.x, nominalStates, 1);          
+          
           return 0;
 
       } // update
@@ -337,6 +342,8 @@ namespace hf {
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
           accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
 
+          // saturate(eskfp.P, 100.0, errorStates, errorStates);
+
           // Serial.println("P");
           // printMatrix(eskfp.P, errorStates, errorStates);
           
@@ -390,17 +397,7 @@ namespace hf {
           /* success */
           synchState();
 
-          Serial.print(eskf.x[0], 8);
-          Serial.print(",");
-          Serial.print(eskf.x[1], 8);
-          Serial.print(",");
-          Serial.println(eskf.x[2], 8);
-
-          Serial.print(eskf.x[3], 8);
-          Serial.print(",");
-          Serial.print(eskf.x[4], 8);
-          Serial.print(",");
-          Serial.println(eskf.x[5], 8);
+          printMatrix(eskfp.x, nominalStates, 1);          
                     
           return 0;
       } // correct

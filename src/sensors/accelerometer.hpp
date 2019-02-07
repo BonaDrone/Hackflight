@@ -50,6 +50,9 @@ namespace hf {
             
             virtual bool getJacobianObservation(float * H, float * x) override
             {
+              
+              Serial.println("Accel Correct");
+              
               // 1 column
               H[0] =  0;
               H[15] =  0;
