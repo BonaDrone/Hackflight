@@ -245,21 +245,19 @@ namespace hf {
 
           // saturate(eskfp.P, 100.0, errorStates, errorStates);
 
-          // Serial.println("P");
-          // printMatrix(eskfp.P, errorStates, errorStates);
           // 
-          // Serial.print(eskf.x[0], 8);
+          Serial.print(eskf.x[2], 8);
+          Serial.print(",");
+          Serial.println(eskf.x[5], 8);
           // Serial.print(",");
-          // Serial.print(eskf.x[3], 8);
-          // Serial.print(",");
-          // Serial.println(eskf.x[2], 8);
+          // Serial.println(eskf.x[5], 8);
           // 
           // Serial.println("Update");
 
           /* success */
           synchState();
           
-          printMatrix(eskfp.x, nominalStates, 1);          
+          // printMatrix(eskfp.x, nominalStates, 1);          
           
           return 0;
 
@@ -297,6 +295,9 @@ namespace hf {
             return 1;
           }
 
+          // Serial.println("P");
+          // printMatrix(eskfp.P, errorStates, errorStates);
+          
           // Serial.println("H");
           // printMatrix(eskfp.H, observations, errorStates);
 
@@ -316,6 +317,9 @@ namespace hf {
           if (sensor->Zinverse(eskfp.tmp3, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
 
+          // Serial.println("Zinv");
+          // printMatrix(eskfp.tmp4, observations, observations);
+          // 
           // Serial.println("K");
           // printMatrix(eskfp.K, errorStates, observations);
 
@@ -329,18 +333,20 @@ namespace hf {
           //sub(eskfp.Pp, eskfp.tmp3, eskfp.tmp0, errorStates);
           //makesym(eskfp.tmp0, eskfp.P, errorStates);
           
-          /* P = (I-KH)*P*(I-KH)' + KZK' */
+          /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(eskfp.K, eskfp.H, eskfp.tmp6, errorStates, observations, errorStates); // K*H
           negate(eskfp.tmp6, errorStates, errorStates); // -K*H
           mat_addeye(eskfp.tmp6, errorStates); // -K*H + I
           transpose(eskfp.tmp6, eskfp.tmp7, errorStates, errorStates); // (-K*H + I)'
           mulmat(eskfp.tmp6, eskfp.P, eskfp.tmp8, errorStates, errorStates, errorStates); // (-K*H + I)*P
-          mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
+          mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.tmp6, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
           // Z is stored in eskfp.tmp3 and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
-          mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
+          mulmat(eskfp.R, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
-          accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
+          accum(eskfp.tmp6, eskfp.tmp0, errorStates, errorStates); 
+
+          makesym(eskfp.tmp6, eskfp.P, errorStates);
 
           // saturate(eskfp.P, 100.0, errorStates, errorStates);
 
@@ -397,7 +403,12 @@ namespace hf {
           /* success */
           synchState();
 
-          printMatrix(eskfp.x, nominalStates, 1);          
+          // printMatrix(eskfp.x, nominalStates, 1);
+          // Serial.print(eskfp.x[2]);
+          // Serial.print(",");
+          // Serial.println(eskfp.x[5]);
+          //Serial.print(",");
+          //Serial.println(eskfp.x[2]);
                     
           return 0;
       } // correct
