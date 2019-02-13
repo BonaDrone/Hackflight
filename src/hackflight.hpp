@@ -45,10 +45,12 @@ namespace hf {
         private: 
 
             // XXX use a proper version formating
-            uint8_t _firmwareVersion = 0;
+            uint8_t _firmwareVersion = 1;
             bool _isMosquito90;
             bool _hasPositioningBoard;
             bool _positionBoardConnected;
+            
+            bool _ESCsCalibrated = false;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -301,8 +303,12 @@ namespace hf {
 
             virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
             {
-                (void)protocol;
-                _board->calibrateESCs();
+                protocol = 1;
+                if (!_ESCsCalibrated)
+                {
+                  _ESCsCalibrated = true;
+                  _board->calibrateESCs();
+                }
             }
 
 
