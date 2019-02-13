@@ -103,6 +103,9 @@ namespace hf {
           eskfp.tmp7 = dptr;
           dptr += ne*ne;
           eskfp.tmp8 = dptr;
+          dptr += m*m;
+          eskfp.tmp9 = dptr;
+          
       }
       
       void synchState(void)
@@ -241,11 +244,11 @@ namespace hf {
           mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
           mulmat(eskfp.tmp0, eskfp.Fdxt, eskfp.tmp6, errorStates, errorStates, errorStates);
           accum(eskfp.tmp6, eskfp.Q, errorStates, errorStates);
+
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
           // saturate(eskfp.P, 100.0, errorStates, errorStates);
 
-          // 
           Serial.print(eskf.x[2], 8);
           Serial.print(",");
           Serial.println(eskf.x[5], 8);
@@ -309,12 +312,14 @@ namespace hf {
           mulmat(eskfp.tmp2, eskfp.Ht, eskfp.tmp3, observations, errorStates, observations); // H*P*H'
           accum(eskfp.tmp3, eskfp.R, observations, observations);                 // Z = H*P*H' + R
 
-          // Serial.println("Z");
-          // printMatrix(eskfp.tmp3, observations, observations);
+          makesym(eskfp.tmp3, eskfp.tmp9, observations);
+
+          Serial.println("Z");
+          printMatrix(eskfp.tmp9, observations, observations);
 
           
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
-          if (sensor->Zinverse(eskfp.tmp3, eskfp.tmp4)) return 1; // tmp4 = Z^-1
+          if (sensor->Zinverse(eskfp.tmp9, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
 
           // Serial.println("Zinv");
@@ -340,10 +345,10 @@ namespace hf {
           transpose(eskfp.tmp6, eskfp.tmp7, errorStates, errorStates); // (-K*H + I)'
           mulmat(eskfp.tmp6, eskfp.P, eskfp.tmp8, errorStates, errorStates, errorStates); // (-K*H + I)*P
           mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.tmp6, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
-          // Z is stored in eskfp.tmp3 and K in eskfp.K
+          // R is stored in eskfp.R and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
-          mulmat(eskfp.R, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
-          mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
+          mulmat(eskfp.R, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // R*K'
+          mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*R*K'
           accum(eskfp.tmp6, eskfp.tmp0, errorStates, errorStates); 
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
@@ -404,9 +409,9 @@ namespace hf {
           synchState();
 
           // printMatrix(eskfp.x, nominalStates, 1);
-          // Serial.print(eskfp.x[2]);
-          // Serial.print(",");
-          // Serial.println(eskfp.x[5]);
+          Serial.print(eskfp.x[2]);
+          Serial.print(",");
+          Serial.println(eskfp.x[5]);
           //Serial.print(",");
           //Serial.println(eskfp.x[2]);
                     
@@ -431,6 +436,7 @@ namespace hf {
           zeros(eskfp.tmp6, errorStates, errorStates);
           zeros(eskfp.tmp7, errorStates, errorStates);
           zeros(eskfp.tmp8, errorStates, errorStates);
+          zeros(eskfp.tmp9, observations, observations);
       } // zeroCorrectMatrices
 
       // XXX Debug
