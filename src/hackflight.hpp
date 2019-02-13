@@ -49,8 +49,6 @@ namespace hf {
             bool _isMosquito90;
             bool _hasPositioningBoard;
             bool _positionBoardConnected;
-            
-            bool _ESCsCalibrated = false;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -287,6 +285,7 @@ namespace hf {
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
+            static const uint8_t CALIBRATE_ESC     = 2;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -303,14 +302,9 @@ namespace hf {
 
             virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
             {
-                protocol = 1;
-                if (!_ESCsCalibrated)
-                {
-                  _ESCsCalibrated = true;
-                  _board->calibrateESCs();
-                }
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                EEPROM.put(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
             }
-
 
             virtual void handle_RC_NORMAL_Request(float & c1, float & c2, float & c3, float & c4, float & c5, float & c6) override
             {
