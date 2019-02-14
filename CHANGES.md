@@ -18,6 +18,7 @@
 ### Changed
 
 * #43 Update file headers
+* #53 Partial ESKF integration
 
 ### Removed
 
