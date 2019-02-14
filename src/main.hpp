@@ -274,15 +274,16 @@ namespace hf {
                 // Add additional sensors
                 if (_hasPositioningBoard)
                 {
-                    hf::VL53L1X_Rangefinder rangefinder;
-                    bool _rangeConnected = rangefinder.begin();
-                    rangefinder.setCalibration(_rx, _ry, _rz);
-                    h.addSensor(&rangefinder);
-                    h.eskf.addSensorESKF(&rangefinder);
+                    hf::VL53L1X_Rangefinder * rangefinder = new hf::VL53L1X_Rangefinder() ;
+                    bool _rangeConnected = rangefinder->begin();
+                    //rangefinder->setCalibration(_rx, _ry, _rz);
+                    h.addSensor(rangefinder);
+                    h.eskf.addSensorESKF(rangefinder);
                     
-                    //hf::OpticalFlow opticalflow;
-                    bool _opticalConnected = opticalflow.begin();
-                    h.addSensor(&opticalflow);
+                    hf::OpticalFlow * opticalflow = new hf::OpticalFlow();
+                    bool _opticalConnected = opticalflow->begin();
+                    //h.addSensor(&opticalflow);
+                    //h.eskf.addSensorESKF(&opticalflow);
                     
                     _positionBoardConnected = _rangeConnected & _opticalConnected;                 
                 }
