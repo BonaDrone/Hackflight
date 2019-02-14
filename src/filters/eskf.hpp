@@ -297,16 +297,16 @@ namespace hf {
           //sub(eskfp.Pp, eskfp.tmp3, eskfp.tmp0, errorStates);
           //makesym(eskfp.tmp0, eskfp.P, errorStates);
           
-          /* P = (I-KH)*P*(I-KH)' + KZK' */
+          /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(eskfp.K, eskfp.H, eskfp.tmp6, errorStates, observations, errorStates); // K*H
           negate(eskfp.tmp6, errorStates, errorStates); // -K*H
           mat_addeye(eskfp.tmp6, errorStates); // -K*H + I
           transpose(eskfp.tmp6, eskfp.tmp7, errorStates, errorStates); // (-K*H + I)'
           mulmat(eskfp.tmp6, eskfp.P, eskfp.tmp8, errorStates, errorStates, errorStates); // (-K*H + I)*P
           mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
-          // Z is stored in eskfp.tmp3 and K in eskfp.K
+          // R is stored in eskfp.R and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
-          mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
+          mulmat(eskfp.R, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
           accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
           
