@@ -75,15 +75,13 @@ namespace hf {
 
             OpticalFlow(void) : PeripheralSensor(false, true) {}
 
-            void begin(void)
+            bool begin(void)
             {
+                bool connected = true;
                 if (!_flowSensor.begin()) {
-                    while (true) {
-                        Serial.println("Initialization of the flow sensor failed");
-                        delay(500);
-                    }
+                  connected = false;
                 }
-
+                return connected;
             }
 
     };  // class OpticalFlow 

@@ -648,7 +648,42 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
-                    case 123:
+                    case 24:
+                    {
+                        uint8_t protocol = 0;
+                        handle_ESC_CALIBRATION_Request(protocol);
+                        prepareToSendBytes(1);
+                        sendByte(protocol);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 25:
+                    {
+                        uint8_t mosquitoVersion = 0;
+                        handle_MOSQUITO_VERSION_Request(mosquitoVersion);
+                        prepareToSendBytes(1);
+                        sendByte(mosquitoVersion);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 26:
+                    {
+                        uint8_t hasPositionBoard = 0;
+                        handle_POSITION_BOARD_Request(hasPositionBoard);
+                        prepareToSendBytes(1);
+                        sendByte(hasPositionBoard);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 27:
+                    {
+                        uint8_t positionBoardConnected = 0;
+                        handle_POSITION_BOARD_CONNECTED_Request(positionBoardConnected);
+                        prepareToSendBytes(1);
+                        sendByte(positionBoardConnected);
+                        serialize8(_checksum);
+                        } break;
+
                     {
                         float estalt = 0;
                         float vario = 0;
@@ -906,6 +941,30 @@ namespace hf {
                         uint8_t meters = getArgument(0);
                         uint8_t code = getArgument(1);
                         handle_WP_CHANGE_ALTITUDE_Data(meters, code);
+                        } break;
+
+                    case 24:
+                    {
+                        uint8_t protocol = getArgument(0);
+                        handle_ESC_CALIBRATION_Data(protocol);
+                        } break;
+
+                    case 25:
+                    {
+                        uint8_t mosquitoVersion = getArgument(0);
+                        handle_MOSQUITO_VERSION_Data(mosquitoVersion);
+                        } break;
+
+                    case 26:
+                    {
+                        uint8_t hasPositionBoard = getArgument(0);
+                        handle_POSITION_BOARD_Data(hasPositionBoard);
+                        } break;
+
+                    case 27:
+                    {
+                        uint8_t positionBoardConnected = getArgument(0);
+                        handle_POSITION_BOARD_CONNECTED_Data(positionBoardConnected);
                         } break;
 
                     case 30:
@@ -1269,7 +1328,46 @@ namespace hf {
                 (void)value2;
             }
 
-            virtual void handle_ALTITUDE_METERS_Request(float & estalt, float & vario)
+            virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
+            {
+                (void)protocol;
+            }
+
+            virtual void handle_ESC_CALIBRATION_Data(uint8_t & protocol)
+            {
+                (void)protocol;
+            }
+
+            virtual void handle_MOSQUITO_VERSION_Request(uint8_t & mosquitoVersion)
+            {
+                (void)mosquitoVersion;
+            }
+
+            virtual void handle_MOSQUITO_VERSION_Data(uint8_t & mosquitoVersion)
+            {
+                (void)mosquitoVersion;
+            }
+
+            virtual void handle_POSITION_BOARD_Request(uint8_t & hasPositionBoard)
+            {
+                (void)hasPositionBoard;
+            }
+
+            virtual void handle_POSITION_BOARD_Data(uint8_t & hasPositionBoard)
+            {
+                (void)hasPositionBoard;
+            }
+
+            virtual void handle_POSITION_BOARD_CONNECTED_Request(uint8_t & positionBoardConnected)
+            {
+                (void)positionBoardConnected;
+            }
+
+            virtual void handle_POSITION_BOARD_CONNECTED_Data(uint8_t & positionBoardConnected)
+            {
+                (void)positionBoardConnected;
+            }
+
             {
                 (void)estalt;
                 (void)vario;
@@ -2040,6 +2138,113 @@ namespace hf {
 
                 memcpy(&bytes[5], &estalt, sizeof(float));
                 memcpy(&bytes[9], &vario, sizeof(float));
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_ESC_CALIBRATION_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 24;
+                bytes[5] = 24;
+
+                return 6;
+            }
+
+            static uint8_t serialize_ESC_CALIBRATION(uint8_t bytes[], uint8_t  protocol)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 24;
+
+                memcpy(&bytes[5], &protocol, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_MOSQUITO_VERSION_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 25;
+                bytes[5] = 25;
+
+                return 6;
+            }
+
+            static uint8_t serialize_MOSQUITO_VERSION(uint8_t bytes[], uint8_t  mosquitoVersion)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 25;
+
+                memcpy(&bytes[5], &mosquitoVersion, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 26;
+                bytes[5] = 26;
+
+                return 6;
+            }
+
+            static uint8_t serialize_POSITION_BOARD(uint8_t bytes[], uint8_t  hasPositionBoard)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 26;
+
+                memcpy(&bytes[5], &hasPositionBoard, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_CONNECTED_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 27;
+                bytes[5] = 27;
+
+                return 6;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_CONNECTED(uint8_t bytes[], uint8_t  positionBoardConnected)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 27;
+
+                memcpy(&bytes[5], &positionBoardConnected, sizeof(uint8_t));
 
                 bytes[13] = CRC8(&bytes[3], 10);
 

@@ -50,7 +50,10 @@ namespace hf {
         private: 
 
             // XXX use a proper version formating
-            uint8_t _firmwareVersion = 0;
+            uint8_t _firmwareVersion = 1;
+            bool _isMosquito90;
+            bool _hasPositioningBoard;
+            bool _positionBoardConnected;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -280,6 +283,7 @@ namespace hf {
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
+            static const uint8_t CALIBRATE_ESC     = 2;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -292,6 +296,12 @@ namespace hf {
                 else {          // got disarming command: always disarm
                     _state.armed = false;
                 }
+            }
+
+            virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
+            {
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                EEPROM.put(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
             }
 
             virtual void handle_RC_NORMAL_Request(float & c1, float & c2, float & c3, float & c4, float & c5, float & c6) override
@@ -369,8 +379,10 @@ namespace hf {
                 if (version)
                 {
                   EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                  _isMosquito90 = true;
                 } else {
                   EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                  _isMosquito90 = false;
                 }
             }
             
@@ -380,8 +392,10 @@ namespace hf {
                 if (hasBoard)
                 {
                   EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                  _hasPositioningBoard = true;
                 } else {
                   EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                  _hasPositioningBoard = false;
                 }
             }
             
@@ -416,6 +430,30 @@ namespace hf {
               EEPROM.put(RANGE_PARAMS + 1 * sizeof(float), ry);
               EEPROM.put(RANGE_PARAMS + 2 * sizeof(float), rz);
             }
+            
+            virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4) override
+            {
+                  m1 = _mixer->motorsDisarmed[0];
+                  m2 = _mixer->motorsDisarmed[1];
+                  m3 = _mixer->motorsDisarmed[2];
+                  m4 = _mixer->motorsDisarmed[3];
+            }
+            
+            virtual void handle_MOSQUITO_VERSION_Request(uint8_t & mosquitoVersion) override
+            {
+                mosquitoVersion = _isMosquito90;
+            }
+            
+            virtual void handle_POSITION_BOARD_Request(uint8_t & hasPositionBoard) override
+            {
+                hasPositionBoard = _hasPositioningBoard;
+            }
+            
+            virtual void handle_POSITION_BOARD_CONNECTED_Request(uint8_t & positionBoardConnected) override
+            {
+                positionBoardConnected = _positionBoardConnected;
+            }
+
 
         public:
 
@@ -468,6 +506,13 @@ namespace hf {
                 // Setup failsafe
                 _failsafe = false;
             } // init
+
+            void setParams(bool hasPositionBoard, bool isMosquito90, bool positionBoardConnected)
+            {
+                _hasPositioningBoard = hasPositionBoard;
+                _isMosquito90 = isMosquito90;
+                _positionBoardConnected = positionBoardConnected;
+            }
 
             void addSensor(PeripheralSensor * sensor) 
             {

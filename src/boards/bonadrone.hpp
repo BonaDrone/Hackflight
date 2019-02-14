@@ -194,7 +194,6 @@ namespace hf {
                 analogWrite(MOTOR_PINS[index], (uint16_t)(PWM_MIN+value*(PWM_MAX-PWM_MIN)));
             }
 
-
         public:
 
             BonadroneMultiShot(void) : Bonadrone()
