@@ -144,9 +144,9 @@ namespace hf {
           eskfp.x[3] = 0.0;
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
-          eskfp.x[6] = 0.301350; // gyro bias
-          eskfp.x[7] = -0.818594;
-          eskfp.x[8] = -0.701652;
+          eskfp.x[6] = 0.0; // gyro bias
+          eskfp.x[7] = 0.0;
+          eskfp.x[8] = 0.0;
           
           // 1 column
           eskfp.P[0] =  1.0;
@@ -389,7 +389,6 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
           /* success */
           synchState();
-                    
           return 0;
       } // correct
 
