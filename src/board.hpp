@@ -68,9 +68,6 @@ namespace hf {
 
             //------------------------------- Reboot for non-Arduino boards ---------------------------------------------
             virtual void reboot(void) { }
-            
-            //------------------------------------ ESCs calibration ------------------------------------------------------
-            virtual void calibrateESCs(void) { }
 
             //----------------------------------------- Safety -----------------------------------------------------------
             virtual void showArmedStatus(bool armed) { (void)armed; }
