@@ -164,6 +164,26 @@
    {"comment": "begin of mission codes flag"},
    {"flag": "byte"}],
 
+  "ESC_CALIBRATION":
+  [{"ID": 24},
+   {"comment": "Calibrate the ESCs with the Standard or MultiShot protocol"},
+   {"protocol": "byte"}],
+
+  "MOSQUITO_VERSION":
+  [{"ID": 25},
+   {"comment": "Return the type of Mosquito (90 or 150)"},
+   {"mosquitoVersion": "byte"}],
+  
+  "POSITION_BOARD":
+  [{"ID": 26},
+   {"comment": "Return if position board parameter is set to True or False"},
+   {"hasPositionBoard": "byte"}],
+
+  "POSITION_BOARD_CONNECTED":
+  [{"ID": 27},
+   {"comment": "Return if position board is connected"},
+   {"positionBoardConnected": "byte"}],
+
   "WP_MISSION_BEGIN":
   [{"ID": 30},
    {"comment": "Start mission execution"},

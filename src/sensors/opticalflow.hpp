@@ -37,7 +37,7 @@ namespace hf {
             static constexpr float UPDATE_PERIOD = .01f;
 
             // Use digital pin 10 for chip select
-            PMW3901 _flowSensor = PMW3901(A4, &SPI1);
+            PMW3901 _flowSensor = PMW3901(12, &SPI1);
 
             // Track elapsed time for periodic readiness
             bool _previousTime = 0;
@@ -71,15 +71,13 @@ namespace hf {
 
             OpticalFlow(void) : PeripheralSensor(false, true) {}
 
-            void begin(void)
+            bool begin(void)
             {
+                bool connected = true;
                 if (!_flowSensor.begin()) {
-                    while (true) {
-                        Serial.println("Initialization of the flow sensor failed");
-                        delay(500);
-                    }
+                  connected = false;
                 }
-
+                return connected;
             }
 
     };  // class OpticalFlow 

@@ -44,9 +44,13 @@ namespace hf {
 
         public:
 
-            void begin(void)
+            bool begin(void)
             {
-                _distanceSensor.begin();
+                bool connected = true;
+                if (!_distanceSensor.begin()) {
+                  connected = false;
+                }
+                return connected;
             }
 
     }; // class VL53L1X_Rangefinder 

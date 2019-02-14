@@ -57,6 +57,9 @@ namespace hf {
               // Params
               bool _hasPositioningBoard = false;
               bool _isMosquito90 = false;
+              bool _calibrateESC = false;
+              // Connection status (false unless proven otherwise)
+              bool _positionBoardConnected = false;
               // Rate PID params
               float _gyroRollPitchP;
               float _gyroRollPitchI;
@@ -77,8 +80,7 @@ namespace hf {
               float _ry;
               float _rz;
 
-
-              // Required objects to run Hackflight 
+              // Required objects to run Hackflight
               hf::Hackflight h;
               hf::MixerQuadX mixer;
               hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL);
@@ -91,6 +93,7 @@ namespace hf {
                   uint8_t config = EEPROM.read(GENERAL_CONFIG);
                   _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
                   _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
+                  _calibrateESC = (config >> CALIBRATE_ESC) & 1;
                   // Load Rate PID parameters (each float is 4 bytes)
                   EEPROM.get(PID_CONSTANTS, _gyroRollPitchP);
                   EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollPitchI);
@@ -107,6 +110,108 @@ namespace hf {
                   EEPROM.get(RANGE_PARAMS, _rx);
                   EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
                   EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
+              }
+              
+              void calibrateESCsStandard(void)
+              {
+                  // Motor pins
+                  int MOTOR_PINS[4] = {3, 4, 5, 6};
+                
+                  // PWM Values
+                  uint16_t BASELINE = 1000;
+                  uint16_t MIDVAL   = 1500;
+                  uint16_t MAXVAL   = 2000;
+
+                  uint8_t LED_R = 25;
+                  uint8_t LED_G = 26;
+                  uint8_t LED_B = 38;
+
+                  pinMode(LED_R, OUTPUT);  
+                  pinMode(LED_G, OUTPUT);
+                  pinMode(LED_B, OUTPUT);
+
+                  digitalWrite(LED_R, HIGH);
+                  digitalWrite(LED_G, HIGH);
+                  digitalWrite(LED_B, HIGH);
+    
+                  digitalWrite(LED_R, LOW);
+                  delay(500);
+                  digitalWrite(LED_R, HIGH);
+                  digitalWrite(LED_G, LOW);
+                  delay(500);
+                  digitalWrite(LED_G, HIGH);
+                  digitalWrite(LED_B, LOW);
+                  delay(500);
+    
+                  // Blue LED ON when calibrating (first part)
+                  for (int k=0; k<4; ++k)
+                  {
+                      pinMode(MOTOR_PINS[k], OUTPUT);    
+                      analogWrite(MOTOR_PINS[k], MAXVAL >> 3);
+                  }
+                  delay(10000);
+                  digitalWrite(LED_B, HIGH);
+    
+                  // Green LED ON when calibrating (second part)
+                  digitalWrite(LED_G, LOW);
+                  for (int k=0; k<4; ++k)
+                  {
+                      analogWrite(MOTOR_PINS[k], BASELINE >> 3);
+                  }
+                  delay(10000);
+                  digitalWrite(LED_G, HIGH);
+              }
+
+              void calibrateESCsMultiShot(void)
+              {
+                  // Motor pins
+                  int MOTOR_PINS[4] = {3, 4, 5, 6};
+
+                  // PWM Values
+                  uint16_t BASELINE = 100;
+                  uint16_t MAXVAL   = 500;
+                  uint8_t LED_R = 25;
+                  uint8_t LED_G = 26;
+                  uint8_t LED_B = 38;
+      
+                  pinMode(LED_R, OUTPUT);  
+                  pinMode(LED_G, OUTPUT);
+                  pinMode(LED_B, OUTPUT);
+                  
+                  // LED sequence that signals begin of calibration
+                  digitalWrite(LED_R, HIGH);
+                  digitalWrite(LED_G, HIGH);
+                  digitalWrite(LED_B, HIGH);
+
+                  digitalWrite(LED_R, LOW);
+                  delay(500);
+                  digitalWrite(LED_R, HIGH);
+                  digitalWrite(LED_G, LOW);
+                  delay(500);
+                  digitalWrite(LED_G, HIGH);
+                  digitalWrite(LED_B, LOW);
+                  delay(500);
+
+                  // Blue LED ON when calibrating (first part)
+                  for (int k=0; k<4; ++k)
+                  {
+                      pinMode(MOTOR_PINS[k], OUTPUT);
+                      analogWriteFrequency(MOTOR_PINS[k], 2000);
+                      analogWriteRange(MOTOR_PINS[k], 10000);
+                      analogWrite(MOTOR_PINS[k], MAXVAL);
+                  }
+
+                  delay(10000);
+                  digitalWrite(LED_B, HIGH);
+
+                  // Green LED ON when calibrating (second part)
+                  digitalWrite(LED_G, LOW);
+                  for (int k=0; k<4; ++k)
+                  {
+                      analogWrite(MOTOR_PINS[k], BASELINE);
+                  }
+                  delay(10000);
+                  digitalWrite(LED_G, HIGH);
               }
 
         protected:
@@ -156,21 +261,35 @@ namespace hf {
                 if (_isMosquito90) {
                     h.init(new hf::BonadroneBrushed(), &rc, &mixer, ratePid);
                 } else {
+                    if (_calibrateESC)
+                    {
+                      calibrateESCsMultiShot();
+                      uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                      Serial.println(config);
+                      EEPROM.put(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
+                      Serial.println(config);
+                    }
                     h.init(new hf::BonadroneMultiShot(), &rc, &mixer, ratePid);
                 }
                 // Add additional sensors
                 if (_hasPositioningBoard)
                 {
                     hf::VL53L1X_Rangefinder rangefinder;
-                    rangefinder.begin();
+                    bool _rangeConnected = rangefinder.begin();
                     rangefinder.setCalibration(_rx, _ry, _rz);
                     h.addSensor(&rangefinder);
                     h.eskf.addSensorESKF(&rangefinder);
                     
                     //hf::OpticalFlow opticalflow;
-                    //opticalflow.begin();
-                    //h.addSensor(&opticalflow);                    
+                    bool _opticalConnected = opticalflow.begin();
+                    h.addSensor(&opticalflow);
+                    
+                    _positionBoardConnected = _rangeConnected & _opticalConnected;                 
                 }
+
+                // Set parameters in hackflight instance so that they can be queried
+                // via MSP
+                h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
             } // init
 
