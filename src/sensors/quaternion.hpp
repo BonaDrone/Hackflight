@@ -51,24 +51,40 @@ namespace hf {
                 euler[1] = int(euler[1]*1000)/1000.0;
                 euler[2] = int(euler[2]*1000)/1000.0;
             }
+            
+            static void computeqL(float * qL, float * q)
+            {        
+                qL[0] =  q[0];
+                qL[4] =  q[1];
+                qL[8] =  q[2];
+                qL[12] =  q[3];
+                      
+                qL[1] = -q[1];
+                qL[5] =  q[0];
+                qL[9] =  q[3];
+                qL[13] = -q[2];
+                      
+                qL[2]  = -q[2];
+                qL[6]  = -q[3];
+                qL[10] =  q[0];
+                qL[14] =  q[1];
+                      
+                qL[3] = -q[3];
+                qL[7] =  q[2];
+                qL[11] = -q[1];
+                qL[15] =  q[0];
+            }
 
         protected:
 
-            Quaternion(void)
+            Quaternion(void):SurfaceMountSensor(false, false)
             {
                 memset(_quat, 0, 4*sizeof(float));
             }
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
                 (void)time;
-
-                computeEulerAngles(_quat, state.eulerAngles);
-
-                // Convert heading from [-pi,+pi] to [0,2*pi]
-                if (state.eulerAngles[2] < 0) {
-                    state.eulerAngles[2] += 2*M_PI;
-                }
             }
 
             virtual bool ready(float time) override

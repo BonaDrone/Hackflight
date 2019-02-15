@@ -1,7 +1,7 @@
 /*
    rate.hpp : rate PID controller
 
-   Copyright (c) 2018 Juan Gallostra and Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    This file is part of Hackflight.
 
@@ -185,7 +185,7 @@ namespace hf {
                 _DConstants[1] = gyroRollPitchD;
             }
 
-            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
 

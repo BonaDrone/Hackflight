@@ -20,15 +20,18 @@
 
 #pragma once
 
-#include "sensor.hpp"
 #include "board.hpp"
+#include "filters/eskf_sensor.hpp"
 
 namespace hf {
 
-    class SurfaceMountSensor : public Sensor {
-
+    class SurfaceMountSensor : public ESKF_Sensor {
+    
         friend class Hackflight;
-
+        
+        public: 
+          SurfaceMountSensor(bool isEstimation, bool isCorrection) : ESKF_Sensor(isEstimation, isCorrection){}
+          
         protected:
 
             Board * board;

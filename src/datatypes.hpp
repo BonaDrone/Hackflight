@@ -1,7 +1,7 @@
 /*
    datatypes.hpp : Datatype declarations
  
-   Copyright (c) 2018 Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    This file is part of Hackflight.
 
@@ -21,6 +21,7 @@
 #pragma once
 
 #include <cstdint>
+#include "filters/eskf_struct.hpp"
 
 typedef struct {
 
@@ -33,17 +34,9 @@ typedef struct {
 } demands_t;
 
 typedef struct {
-
-    float eulerAngles[3];
-    float angularVelocities[3];
+    hf::eskf_state_t * UAVState;
     bool  armed;
     bool  executingMission;
-    float altitude;
-    float variometer;
-    float positionX;
-    float positionY;
-    float velocityForward;  
-    float velocityRightward; 
 
 } state_t;
 

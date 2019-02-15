@@ -45,15 +45,15 @@ namespace hf {
 
         protected:
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
                 (void)time; 
 
                 int16_t deltaX=0, deltaY=0;
                 _flowSensor.readMotionCount(&deltaX, &deltaY);
 
-                state.velocityForward   =  (float)deltaY;
-                state.velocityRightward = -(float)deltaX;
+                state.linearVelocities[1]   =  (float)deltaY;
+                state.linearVelocities[0] = -(float)deltaX;
             }
 
             virtual bool ready(float time) override
@@ -68,6 +68,8 @@ namespace hf {
             }
 
         public:
+
+            OpticalFlow(void) : PeripheralSensor(false, true) {}
 
             bool begin(void)
             {
