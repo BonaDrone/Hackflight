@@ -183,6 +183,8 @@ namespace hf {
 
             virtual bool Zinverse(float * Z, float * invZ) override
             {
+              // Since Z by default is a 3x3 matrix, temporarily copy its
+              // values in a 2x2 matrix to avoid messing up with the indexes
               float Ztmp[4];
               Ztmp[0] = Z[0];
               Ztmp[1] = Z[1];
