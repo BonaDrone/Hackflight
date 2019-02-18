@@ -49,8 +49,6 @@ namespace hf {
             float _fy = 65.0;
             // angular velocities
             float _rates[3];
-            // flag
-            bool flag = true;
 
         protected:
             
