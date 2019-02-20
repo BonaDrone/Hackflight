@@ -249,9 +249,11 @@ namespace hf {
 
           // saturate(eskfp.P, 100.0, errorStates, errorStates);
 
-          Serial.print(eskf.x[2], 8);
+          Serial.print(eskfp.x[3]);
           Serial.print(",");
-          Serial.println(eskf.x[5], 8);
+          Serial.print(eskfp.x[4]);
+          Serial.print(",");
+          Serial.println(eskfp.x[5]);
           // Serial.print(",");
           // Serial.println(eskf.x[5], 8);
           // 
@@ -314,8 +316,8 @@ namespace hf {
 
           makesym(eskfp.tmp3, eskfp.tmp9, observations);
 
-          Serial.println("Z");
-          printMatrix(eskfp.tmp9, observations, observations);
+          // Serial.println("Z");
+          // printMatrix(eskfp.tmp9, observations, observations);
 
           
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
@@ -418,7 +420,9 @@ namespace hf {
           synchState();
 
           // printMatrix(eskfp.x, nominalStates, 1);
-          Serial.print(eskfp.x[2]);
+          Serial.print(eskfp.x[3]);
+          Serial.print(",");
+          Serial.print(eskfp.x[4]);
           Serial.print(",");
           Serial.println(eskfp.x[5]);
           //Serial.print(",");
