@@ -57,12 +57,13 @@ namespace hf {
                 static float _time;
 
                 if (time - _time > UPDATE_PERIOD) {
+                    deltat = time -_time;
                     _time = time;
                     int16_t deltaX=0, deltaY=0;
                     _flowSensor.readMotionCount(&deltaX, &deltaY);
                     // To match camera frame
-                    _deltaX = -(float)deltaY;
-                    _deltaY = (float)deltaX;
+                    _deltaX = -(float)deltaY / deltat;
+                    _deltaY = (float)deltaX / deltat;
 
                     return true; 
                 }
