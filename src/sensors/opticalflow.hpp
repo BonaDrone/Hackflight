@@ -45,8 +45,8 @@ namespace hf {
             // focal distances XXX should be estimated
             // See: https://www.learnopencv.com/approximate-focal-length-for-webcams-and-cell-phone-cameras/
             // Assumptions are focal length = 30 pixels and alpha = 42 degrees
-            float _fx = 65.0;
-            float _fy = 65.0;
+            float _fx = 500.0;
+            float _fy = 500.0;
             // angular velocities
             float _rates[3];
 
