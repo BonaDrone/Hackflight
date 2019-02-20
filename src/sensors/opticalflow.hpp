@@ -42,9 +42,7 @@ namespace hf {
             // flow measures
             float _deltaX = 0;
             float _deltaY = 0;
-            // focal distances XXX should be estimated
-            // See: https://www.learnopencv.com/approximate-focal-length-for-webcams-and-cell-phone-cameras/
-            // Assumptions are focal length = 30 pixels and alpha = 42 degrees
+            // Focal distances 
             float _fx = 500.0;
             float _fy = 500.0;
             // angular velocities
