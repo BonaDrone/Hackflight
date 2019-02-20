@@ -42,6 +42,8 @@ namespace hf {
             // flow measures
             float _deltaX = 0;
             float _deltaY = 0;
+            // Time elapsed between corrections
+            float deltat = 0.0;
             // Focal distances 
             float _fx = 500.0;
             float _fy = 500.0;
