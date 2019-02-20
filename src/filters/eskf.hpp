@@ -359,36 +359,45 @@ namespace hf {
           // printMatrix(eskfp.P, errorStates, errorStates);
           
           /* Error injection */
-          // XXX Quaternion injection as a method
-          float tmp[4];
-          tmp[0] = 1.0;
-          tmp[1] = eskfp.dx[6]/2.0;
-          tmp[2] = eskfp.dx[7]/2.0;
-          tmp[3] = eskfp.dx[8]/2.0;
-          float quat_tmp[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]}; 
-          Quaternion::computeqL(eskfp.qL, quat_tmp);
-          mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
-          norvec(eskfp.tmp5, tmp, 4);
-          eskf.x[6] = tmp[0];
-          eskf.x[7] = tmp[1];
-          eskf.x[8] = tmp[2];
-          eskf.x[9] = tmp[3];
-          // Inject rest of errors
-          eskfp.x[0] += eskfp.dx[0]; // position
-          eskfp.x[1] += eskfp.dx[1];
-          eskfp.x[2] += eskfp.dx[2];
-          eskfp.x[3] += eskfp.dx[3]; // velocity
-          eskfp.x[4] += eskfp.dx[4];
-          eskfp.x[5] += eskfp.dx[5];
-          eskfp.x[10] += eskfp.dx[9]; // accel bias
-          eskfp.x[11] += eskfp.dx[10];
-          eskfp.x[12] += eskfp.dx[11];
-          eskfp.x[13] += eskfp.dx[12]; // gyro bias
-          eskfp.x[14] += eskfp.dx[13];
-          eskfp.x[15] += eskfp.dx[14];
+          if (sensor->isOpticalFlow())
+          {
+              eskfp.x[0] += eskfp.dx[0]; // position
+              eskfp.x[1] += eskfp.dx[1];
+              eskfp.x[2] += eskfp.dx[2];
+              eskfp.x[3] += eskfp.dx[3]; // velocity
+              eskfp.x[4] += eskfp.dx[4];
+              eskfp.x[5] += eskfp.dx[5];            
+          } else {
+              // XXX Quaternion injection as a method
+              float tmp[4];
+              tmp[0] = 1.0;
+              tmp[1] = eskfp.dx[6]/2.0;
+              tmp[2] = eskfp.dx[7]/2.0;
+              tmp[3] = eskfp.dx[8]/2.0;
+              float quat_tmp[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]}; 
+              Quaternion::computeqL(eskfp.qL, quat_tmp);
+              mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
+              norvec(eskfp.tmp5, tmp, 4);
+              eskf.x[6] = tmp[0];
+              eskf.x[7] = tmp[1];
+              eskf.x[8] = tmp[2];
+              eskf.x[9] = tmp[3];
+              // Inject rest of errors
+              eskfp.x[0] += eskfp.dx[0]; // position
+              eskfp.x[1] += eskfp.dx[1];
+              eskfp.x[2] += eskfp.dx[2];
+              eskfp.x[3] += eskfp.dx[3]; // velocity
+              eskfp.x[4] += eskfp.dx[4];
+              eskfp.x[5] += eskfp.dx[5];
+              eskfp.x[10] += eskfp.dx[9]; // accel bias
+              eskfp.x[11] += eskfp.dx[10];
+              eskfp.x[12] += eskfp.dx[11];
+              eskfp.x[13] += eskfp.dx[12]; // gyro bias
+              eskfp.x[14] += eskfp.dx[13];
+              eskfp.x[15] += eskfp.dx[14];
 
-          eskfp.x[15] = 0.00; // Brute force yaw bias to 0
-
+              eskfp.x[15] = 0.00; // Brute force yaw bias to 0
+          }
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
           eskfp.tmp5[1] = eskfp.dx[1]/2.0;
