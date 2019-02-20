@@ -47,7 +47,7 @@ namespace hf {
             // Time elapsed between corrections
             float deltat = 0.0;
             // Focal distance 
-            float _f = 500.0;
+            float f = 500.0;
             // angular velocities
             float _rates[3];
 
