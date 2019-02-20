@@ -75,6 +75,8 @@ namespace hf {
         // This method should be overriden if the sensor needs some measures (such as rates) that
         // are not accessible from the state
         virtual void getMeasures(eskf_state_t & state) {(void)state;}
+        
+        virtual bool isOpticalFlow(void) { return false; }
 
     }; // class ESKF_Sensor
 

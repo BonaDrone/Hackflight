@@ -203,6 +203,8 @@ namespace hf {
               invZ[4] = invZtmp[3];
               return 0;
             }
+            
+            virtual bool isOpticalFlow(void) override { return true; }
 
     };  // class OpticalFlow 
 
