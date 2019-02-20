@@ -365,10 +365,8 @@ namespace hf {
           {
               eskfp.x[0] += eskfp.dx[0]; // position
               eskfp.x[1] += eskfp.dx[1];
-              eskfp.x[2] += eskfp.dx[2];
               eskfp.x[3] += eskfp.dx[3]; // velocity
               eskfp.x[4] += eskfp.dx[4];
-              eskfp.x[5] += eskfp.dx[5];            
           } else {
               // XXX Quaternion injection as a method
               float tmp[4];

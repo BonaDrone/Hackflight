@@ -40,6 +40,8 @@ namespace hf {
             // Use digital pin 12 for chip select and SPI1 port for comms
             PMW3901 _flowSensor = PMW3901(12, &SPI1);
             // flow measures
+            hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(20);
+            hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
             float _deltaX = 0;
             float _deltaY = 0;
             // Time elapsed between corrections
@@ -62,8 +64,8 @@ namespace hf {
                     int16_t deltaX=0, deltaY=0;
                     _flowSensor.readMotionCount(&deltaX, &deltaY);
                     // To match camera frame
-                    _deltaX = -(float)deltaY / deltat;
-                    _deltaY = (float)deltaX / deltat;
+                    _deltaX = _lpDeltaX.update(-(float)deltaY / deltat);
+                    _deltaY = _lpDeltaY.update((float)deltaX / deltat);
 
                     return true; 
                 }
@@ -82,6 +84,8 @@ namespace hf {
                         delay(500);
                     }
                 }
+                _lpDeltaX.init();
+                _lpDeltaY.init();
 
             }
             
@@ -169,10 +173,8 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-              // See: http://lup.lub.lu.se/luur/download?func=downloadFile&recordOId=8905295&fileOId=8905299
-              // section 6.5
-              R[0] = 3.0;
-              R[3] = 3.0;
+              R[0] = 15.0;
+              R[3] = 15.0;
             }
             
             virtual void getMeasures(eskf_state_t & state) override
