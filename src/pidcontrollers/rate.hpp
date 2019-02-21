@@ -172,8 +172,8 @@ namespace hf {
                 _DConstants[1] = gyroPitchD;
                 
                 // Balance Mosquito 90
-                _offsetError[0] = 1.0; // Roll
-                _offsetError[1] = -1.0; // Pitch
+                _offsetError[0] = 0.5; // Roll
+                _offsetError[1] = -0.6; // Pitch
                 _offsetError[2] = 0.0;  // Yaw
             }
             
