@@ -102,11 +102,14 @@ namespace hf {
             float _PConstants[2];
             float _IConstants[2];
             float _DConstants[2];
+            
+            // Array for rates offset to balance unbalanced quads
+            float _offsetError[3];
 
             // Computes PID for pitch or roll
             float computeCyclicPid(float rcCommand, float gyro[3], uint8_t imuAxis)
             {
-                float error = rcCommand * _demandsToRate - gyro[imuAxis];
+                float error = rcCommand * _demandsToRate - gyro[imuAxis] + _offsetError[imuAxis];
 
                 // I
                 float ITerm = computeITermGyro(error, _IConstants[imuAxis], rcCommand, gyro, imuAxis);
@@ -120,13 +123,13 @@ namespace hf {
                 _gyroDeltaError1[imuAxis] = gyroDeltaError;
                 float DTerm = gyroDeltaErrorSum * _DConstants[imuAxis]; 
 
-                return computePid(_PConstants[imuAxis], _PTerm[imuAxis], ITerm, DTerm, gyro, imuAxis);
-            }
+                return computePid(_PConstants[imuAxis], _PTerm[imuAxis], ITerm, DTerm, gyro, _offsetError[imuAxis], imuAxis);
+            } 
 
             
-            float computePid(float rateP, float PTerm, float ITerm, float DTerm, float gyro[3], uint8_t axis)
+            float computePid(float rateP, float PTerm, float ITerm, float DTerm, float gyro[3], float offset, uint8_t axis)
             {
-                PTerm = (PTerm * _demandsToRate - gyro[axis]) * rateP;
+                PTerm = (PTerm * _demandsToRate - gyro[axis] + offset) * rateP;
 
                 return PTerm + ITerm + DTerm;
             }
@@ -167,6 +170,11 @@ namespace hf {
                 _IConstants[1] = gyroPitchI;
                 _DConstants[0] = gyroRollD;
                 _DConstants[1] = gyroPitchD;
+                
+                // Balance Mosquito 90
+                _offsetError[0] = 1.0; // Roll
+                _offsetError[1] = -1.0; // Pitch
+                _offsetError[2] = 0.0;  // Yaw
             }
             
             Rate(float gyroRollPitchP, float gyroRollPitchI, float gyroRollPitchD,
@@ -183,6 +191,11 @@ namespace hf {
                 _IConstants[1] = gyroRollPitchI;
                 _DConstants[0] = gyroRollPitchD;
                 _DConstants[1] = gyroRollPitchD;
+                
+                // Balance Mosquito 90
+                _offsetError[0] = 0.5; // Roll
+                _offsetError[1] = -0.6; // Pitch
+                _offsetError[2] = 0.0;  // Yaw
             }
 
             bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
@@ -199,7 +212,7 @@ namespace hf {
                 // For gyroYaw, P term comes directly from RC command, and D term is zero
                 float yawError = demands.yaw * _demandsToRate - state.angularVelocities[AXIS_YAW];
                 float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, demands.yaw, state.angularVelocities, AXIS_YAW);
-                demands.yaw = computePid(_gyroYawP, demands.yaw, ITermGyroYaw, 0, state.angularVelocities, AXIS_YAW);
+                demands.yaw = computePid(_gyroYawP, demands.yaw, ITermGyroYaw, 0, state.angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
                 demands.yaw = Filter::constrainAbs(demands.yaw, 0.1 + fabs(demands.yaw));
