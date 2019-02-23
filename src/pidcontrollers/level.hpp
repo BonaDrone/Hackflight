@@ -40,7 +40,7 @@ namespace hf {
 
         private:
           
-            const float FEED_FORWARD = 0.5;
+            const float FEED_FORWARD = 1.0;
             
             float PTerms[2];
             
@@ -48,7 +48,7 @@ namespace hf {
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -72,10 +72,6 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                   float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
-                  /*if (axis == 1)
-                  {
-                    Serial.println(error,8);
-                  }*/
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 

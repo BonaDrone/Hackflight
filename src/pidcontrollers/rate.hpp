@@ -53,7 +53,7 @@ namespace hf {
             }
 
             // Arbitrary constants
-            const float GYRO_WINDUP_MAX             = 1000.0f;
+            const float GYRO_WINDUP_MAX             = 2.5f;
             const float BIG_GYRO_DEGREES_PER_SECOND = 180.0f; 
             const float BIG_YAW_DEMAND              = 0.1f;
             const float MAX_ARMING_ANGLE_DEGREES    = 25.0f;
@@ -82,7 +82,7 @@ namespace hf {
             {
               // Zero-out previous values for D term
               for (uint8_t axis=0; axis<2; ++axis) {
-                  _lastError[axis] = 0;
+                  _lastGyro[axis] = 0;
                   _gyroDeltaError1[axis] = 0;
                   _gyroDeltaError2[axis] = 0;
               }
@@ -95,7 +95,7 @@ namespace hf {
               resetIntegral();
             }
 
-            float _lastError[2];
+            float _lastGyro[2];
             float _gyroDeltaError1[2]; 
             float _gyroDeltaError2[2];
             float _errorGyroI[3];
@@ -117,14 +117,13 @@ namespace hf {
                 float ITerm = computeITermGyro(error, _IConstants[imuAxis], rcCommand, gyro, deltat, imuAxis);
                 // ITerm *= _proportionalCyclicDemand;
 
-                // D
-                float gyroDeltaError = error - _lastError[imuAxis];
-                _lastError[imuAxis] = error;
-                float gyroDeltaErrorSum = _gyroDeltaError1[imuAxis] + _gyroDeltaError2[imuAxis] + gyroDeltaError;
-                _gyroDeltaError2[imuAxis] = _gyroDeltaError1[imuAxis];
-                _gyroDeltaError1[imuAxis] = gyroDeltaError;
-                float DTerm = gyroDeltaErrorSum * _DConstants[imuAxis]; 
-
+                // D 
+                // derivative of rate instead of derivative of error to avoid "Derivative Kick"
+                // http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-derivative-kick/
+                float gyroDelta = gyro[imuAxis] - _lastGyro[imuAxis];
+                _lastGyro[imuAxis] = gyro[imuAxis];
+                float DTerm = - gyroDelta * _DConstants[imuAxis] / deltat;
+                
                 return computePid(_PConstants[imuAxis], _PTerm[imuAxis], ITerm, DTerm, gyro, _offsetError[imuAxis], imuAxis);
             } 
 
