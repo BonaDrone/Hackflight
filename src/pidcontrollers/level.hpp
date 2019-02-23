@@ -48,7 +48,7 @@ namespace hf {
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 10)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -72,6 +72,10 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                   float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
+                  /*if (axis == 1)
+                  {
+                    Serial.println(error,8);
+                  }*/
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 
