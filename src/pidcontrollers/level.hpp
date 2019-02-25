@@ -45,10 +45,11 @@ namespace hf {
             float PTerms[2];
             
             float _demandsToAngle;
+            float _demandsToRate;
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -58,6 +59,7 @@ namespace hf {
                 // Since we work in radians:
                 // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
+                _demandsToRate = demandsToRate;
             }
 
             Level(float rollPitchLevelP) : Level(rollPitchLevelP, rollPitchLevelP)
@@ -75,8 +77,8 @@ namespace hf {
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 
-                demands.roll = _demands[0];
-                demands.pitch = _demands[1];
+                demands.roll = _demands[0]/_demandsToRate;
+                demands.pitch = _demands[1]/_demandsToRate;
 
                 // We've always gotta do this!
                 return true;
