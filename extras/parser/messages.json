@@ -226,7 +226,7 @@
    
   "SET_LEDS":
   [{"ID": 227},
-   {"comment": "Specify whether the positioning board is present or not"},
+   {"comment": "Set the board LEDs on or off"},
    {"red": "byte"},
    {"green": "byte"},
    {"blue": "byte"}]
