@@ -9,6 +9,7 @@
 * #47 MSP getters for Mosquito version and presence of Position Board
 * #48 MSP message and methods to calibrate ESCs
 * #50 Check if position board is connected via MSP
+* #55 Enable setting LEDs on/off with an MSP message
 
 ### Changed
 

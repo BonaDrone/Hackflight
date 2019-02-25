@@ -222,6 +222,13 @@
   "SET_POSITIONING_BOARD":
   [{"ID": 225},
    {"comment": "Specify whether the positioning board is present or not"},
-   {"hasBoard": "byte"}]
+   {"hasBoard": "byte"}],
+   
+  "SET_LEDS":
+  [{"ID": 227},
+   {"comment": "Specify whether the positioning board is present or not"},
+   {"red": "byte"},
+   {"green": "byte"},
+   {"blue": "byte"}]
 
 }

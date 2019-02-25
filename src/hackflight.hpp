@@ -306,6 +306,17 @@ namespace hf {
                 EEPROM.put(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
             }
 
+            virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue) override
+            {
+                // XXX Do not store led pins as hardcoded values
+                pinMode(25, OUTPUT);
+                pinMode(26, OUTPUT);
+                pinMode(38, OUTPUT);
+                red ? digitalWrite(25, LOW) : digitalWrite(25, HIGH);
+                green ? digitalWrite(26, LOW) : digitalWrite(26, HIGH);
+                blue ? digitalWrite(38, LOW) : digitalWrite(38, HIGH);
+            }
+
             virtual void handle_RC_NORMAL_Request(float & c1, float & c2, float & c3, float & c4, float & c5, float & c6) override
             {
                 c1 = _receiver->getRawval(0);

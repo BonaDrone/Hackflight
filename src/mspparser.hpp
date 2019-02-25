@@ -752,6 +752,21 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
+                    case 227:
+                    {
+                        uint8_t red = 0;
+                        memcpy(&red,  &_inBuf[0], sizeof(uint8_t));
+
+                        uint8_t green = 0;
+                        memcpy(&green,  &_inBuf[1], sizeof(uint8_t));
+
+                        uint8_t blue = 0;
+                        memcpy(&blue,  &_inBuf[2], sizeof(uint8_t));
+
+                        handle_SET_LEDS_Request(red, green, blue);
+                        acknowledgeResponse();
+                        } break;
+
                 }
             }
 
@@ -1422,6 +1437,20 @@ namespace hf {
             virtual void handle_SET_POSITIONING_BOARD_Data(uint8_t  hasBoard)
             {
                 (void)hasBoard;
+            }
+
+            virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue)
+            {
+                (void)red;
+                (void)green;
+                (void)blue;
+            }
+
+            virtual void handle_SET_LEDS_Data(uint8_t  red, uint8_t  green, uint8_t  blue)
+            {
+                (void)red;
+                (void)green;
+                (void)blue;
             }
 
         public:
@@ -2340,6 +2369,23 @@ namespace hf {
                 bytes[6] = CRC8(&bytes[3], 3);
 
                 return 7;
+            }
+
+            static uint8_t serialize_SET_LEDS(uint8_t bytes[], uint8_t  red, uint8_t  green, uint8_t  blue)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 3;
+                bytes[4] = 227;
+
+                memcpy(&bytes[5], &red, sizeof(uint8_t));
+                memcpy(&bytes[6], &green, sizeof(uint8_t));
+                memcpy(&bytes[7], &blue, sizeof(uint8_t));
+
+                bytes[8] = CRC8(&bytes[3], 5);
+
+                return 9;
             }
 
     }; // class MspParser
