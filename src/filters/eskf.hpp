@@ -247,8 +247,6 @@ namespace hf {
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
-          // saturate(eskfp.P, 100.0, errorStates, errorStates);
-
           // Serial.print(eskfp.x[0]);
           // Serial.print(",");
           // Serial.print(eskfp.x[1]);
@@ -261,16 +259,10 @@ namespace hf {
           Serial.print(eskfp.x[4]);
           Serial.print(",");
           Serial.println(eskfp.x[5]);
-          // Serial.print(",");
-          // Serial.println(eskf.x[5], 8);
-          // 
-          // Serial.println("Update");
 
           /* success */
           synchState();
-          
-          // printMatrix(eskfp.x, nominalStates, 1);          
-          
+
           return 0;
 
       } // update
@@ -290,7 +282,7 @@ namespace hf {
             9. Reset errors
           */
           
-          // zero used matrices
+          // Make all the entries of the used matrices zero
           // This is required because not all sensors have the same number of 
           // observations and matrices are dimensioned so that they can store the
           // max number of observations. When correcting states with a sensor that
@@ -326,14 +318,13 @@ namespace hf {
           // Serial.println("Z");
           // printMatrix(eskfp.tmp9, observations, observations);
 
-          
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
           if (sensor->Zinverse(eskfp.tmp9, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
 
           // Serial.println("Zinv");
           // printMatrix(eskfp.tmp4, observations, observations);
-          // 
+
           // Serial.println("K");
           // printMatrix(eskfp.K, errorStates, observations);
 
@@ -361,8 +352,6 @@ namespace hf {
           accum(eskfp.tmp6, eskfp.tmp0, errorStates, errorStates); 
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
-
-          // saturate(eskfp.P, 100.0, errorStates, errorStates);
 
           // Serial.println("P");
           // printMatrix(eskfp.P, errorStates, errorStates);
@@ -405,6 +394,7 @@ namespace hf {
 
               eskfp.x[15] = 0.00; // Brute force yaw bias to 0
           }
+
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
           eskfp.tmp5[1] = eskfp.dx[1]/2.0;
@@ -424,7 +414,6 @@ namespace hf {
           /* success */
           synchState();
 
-          // printMatrix(eskfp.x, nominalStates, 1);
           // Serial.print(eskfp.x[0]);
           // Serial.print(",");
           // Serial.print(eskfp.x[1]);
@@ -437,8 +426,6 @@ namespace hf {
           Serial.print(eskfp.x[4]);
           Serial.print(",");
           Serial.println(eskfp.x[5]);
-          //Serial.print(",");
-          //Serial.println(eskfp.x[2]);
                     
           return 0;
       } // correct
