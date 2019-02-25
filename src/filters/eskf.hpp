@@ -249,6 +249,13 @@ namespace hf {
 
           // saturate(eskfp.P, 100.0, errorStates, errorStates);
 
+          // Serial.print(eskfp.x[0]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[1]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[2]);
+          // Serial.print(",");
+
           Serial.print(eskfp.x[3]);
           Serial.print(",");
           Serial.print(eskfp.x[4]);
@@ -418,6 +425,13 @@ namespace hf {
           synchState();
 
           // printMatrix(eskfp.x, nominalStates, 1);
+          // Serial.print(eskfp.x[0]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[1]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[2]);
+          // Serial.print(",");
+          
           Serial.print(eskfp.x[3]);
           Serial.print(",");
           Serial.print(eskfp.x[4]);
