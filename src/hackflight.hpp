@@ -488,6 +488,11 @@ namespace hf {
                     EEPROM.put(PASSWORD + 3 * sizeof(uint8_t), c4);
                 }
             }
+            
+            virtual void handle_PASSWORD_VALIDATED_Request(uint8_t & validPassword)
+            {
+                validPassword = _passwordValid;
+            }
 
         public:
 
