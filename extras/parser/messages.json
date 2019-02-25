@@ -231,20 +231,25 @@
    {"green": "byte"},
    {"blue": "byte"}],
 
-  "SET_PASSWORD":
+  "CHECK_PASSWORD":
   [{"ID": 228},
+   {"comment": "Check if the entered password is correct"},
+   {"c1": "byte"},
+   {"c2": "byte"},
+   {"c3": "byte"},
+   {"c4": "byte"}],
+
+  "SET_PASSWORD":
+  [{"ID": 229},
    {"comment": "Set a password for the board"},
    {"c1": "byte"},
    {"c2": "byte"},
    {"c3": "byte"},
    {"c4": "byte"}],
    
-  "CHECK_PASSWORD":
+  "PASSWORD_VALIDATED":
   [{"ID": 127},
-   {"comment": "Check if the entered password is correct"},
-   {"c1": "byte"},
-   {"c2": "byte"},
-   {"c3": "byte"},
-   {"c4": "byte"}]
+   {"comment": "Retrieve the result of a password validation"},
+   {"validPassword": "byte"}]
 
 }
