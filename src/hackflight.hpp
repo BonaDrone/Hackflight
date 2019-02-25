@@ -50,6 +50,7 @@ namespace hf {
             bool _hasPositioningBoard;
             bool _positionBoardConnected;
             uint8_t _password[4];
+            bool _passwordValid = false;
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -462,6 +463,20 @@ namespace hf {
                 positionBoardConnected = _positionBoardConnected;
             }
 
+            virtual void handle_CHECK_PASSWORD_Request(uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4) override
+            {
+                uint8_t receivedPassword[PASSWORD_LENGTH] = {c1, c2, c3, c4};
+                for (int k=0; k<PASSWORD_LENGTH; k++)
+                {
+                  if (receivedPassword[k] != _password[k])
+                  {
+                    _passwordValid = false;
+                    return;
+                  }
+                }
+                _passwordValid = true;
+                return;
+            }
 
         public:
 
