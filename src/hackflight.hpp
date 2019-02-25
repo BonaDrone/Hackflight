@@ -49,6 +49,7 @@ namespace hf {
             bool _isMosquito90;
             bool _hasPositioningBoard;
             bool _positionBoardConnected;
+            uint8_t _password[4];
 
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -279,9 +280,13 @@ namespace hf {
 
         protected:
 
+            // Length of stored values
+            static const uint8_t PASSWORD_LENGTH   = 4;
+            static const uint8_t CONSTANTS_LENGTH  = 12; 
             // Map parameters to EEPROM addresses
             static const uint8_t GENERAL_CONFIG    = 0;
-            static const uint8_t PID_CONSTANTS     = 1;
+            static const uint8_t PASSWORD          = 1;
+            static const uint8_t PID_CONSTANTS     = PASSWORD + sizeof(uint8_t) * PASSWORD_LENGTH;
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
@@ -507,11 +512,15 @@ namespace hf {
 
             } // init
 
-            void setParams(bool hasPositionBoard, bool isMosquito90, bool positionBoardConnected)
+            void setParams(bool hasPositionBoard, bool isMosquito90, bool positionBoardConnected, uint8_t password[4])
             {
                 _hasPositioningBoard = hasPositionBoard;
                 _isMosquito90 = isMosquito90;
                 _positionBoardConnected = positionBoardConnected;
+                for (int k=0; k<PASSWORD_LENGTH; k++)
+                {
+                    _password[k] = password[k];
+                }
             }
 
             void addSensor(PeripheralSensor * sensor) 

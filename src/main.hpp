@@ -74,6 +74,8 @@ namespace hf {
               float _altHoldVelI;
               float _altHoldVelD;
               float _minAltitude;
+              // password
+              uint8_t _password[4];
 
               // Required objects to run Hackflight
               hf::Hackflight h;
@@ -89,6 +91,11 @@ namespace hf {
                   _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
                   _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
                   _calibrateESC = (config >> CALIBRATE_ESC) & 1;
+                  // Load password
+                  EEPROM.get(PASSWORD, _password[0]);
+                  EEPROM.get(PASSWORD + 1 * sizeof(uint8_t), _password[1]);
+                  EEPROM.get(PASSWORD + 2 * sizeof(uint8_t), _password[2]);
+                  EEPROM.get(PASSWORD + 3 * sizeof(uint8_t), _password[3]);
                   // Load Rate PID parameters (each float is 4 bytes)
                   EEPROM.get(PID_CONSTANTS, _gyroRollPitchP);
                   EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollPitchI);
@@ -213,8 +220,10 @@ namespace hf {
         public:
 
             void init()
-            {  
-              
+            {
+
+                memset(_password, 0, 4*sizeof(uint8_t));
+
                 loadParameters();
                 // begin the serial port for the ESP32
                 Serial4.begin(115200);
@@ -280,7 +289,7 @@ namespace hf {
 
                 // Set parameters in hackflight instance so that they can be queried
                 // via MSP
-                h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
+                h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected, _password);
                 
             } // init
 
