@@ -477,6 +477,17 @@ namespace hf {
                 _passwordValid = true;
                 return;
             }
+            
+            virtual void handle_SET_PASSWORD_Request(uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4) override
+            {
+                if (_passwordValid)
+                {
+                    EEPROM.put(PASSWORD, c1);
+                    EEPROM.put(PASSWORD + 1 * sizeof(uint8_t), c2);
+                    EEPROM.put(PASSWORD + 2 * sizeof(uint8_t), c3);
+                    EEPROM.put(PASSWORD + 3 * sizeof(uint8_t), c4);
+                }
+            }
 
         public:
 
