@@ -40,8 +40,8 @@ namespace hf {
             // Use digital pin 12 for chip select and SPI1 port for comms
             PMW3901 _flowSensor = PMW3901(12, &SPI1);
             // flow measures
-            hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(20);
-            hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
+            // hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(1);
+            // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(1);
             float _deltaX = 0;
             float _deltaY = 0;
             // Time elapsed between corrections
@@ -63,8 +63,10 @@ namespace hf {
                     int16_t deltaX=0, deltaY=0;
                     _flowSensor.readMotionCount(&deltaX, &deltaY);
                     // To match camera frame
-                    _deltaX = _lpDeltaX.update(-(float)deltaY / deltat);
-                    _deltaY = _lpDeltaY.update((float)deltaX / deltat);
+                    // _deltaX = _lpDeltaX.update(-(float)deltaY / deltat);
+                    // _deltaY = _lpDeltaY.update((float)deltaX / deltat);
+                    _deltaX = -(float)deltaY / deltat;
+                    _deltaY = (float)deltaX / deltat;
 
                     return true; 
                 }
@@ -83,9 +85,8 @@ namespace hf {
                         delay(500);
                     }
                 }
-                _lpDeltaX.init();
-                _lpDeltaY.init();
-
+                // _lpDeltaX.init();
+                // _lpDeltaY.init();
             }
             
             virtual bool getJacobianObservation(float * H, float * x) override
