@@ -44,12 +44,16 @@ namespace hf {
 
         private: 
 
+            // status variables
             // XXX use a proper version formating
             uint8_t _firmwareVersion = 1;
             bool _isMosquito90;
             bool _hasPositioningBoard;
             bool _positionBoardConnected;
-
+            // transmitter calibration
+            bool _endStage1 = false;
+            bool _endStage2 = false;
+            
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
             Receiver   * _receiver;
@@ -218,7 +222,6 @@ namespace hf {
             {
                 _board->setSerialFlag();
                 while (_board->serialAvailableBytes() > 0) {
-
                     if (MspParser::parse(_board->serialReadByte())) {
                         _board->reboot();
                     }
@@ -456,6 +459,47 @@ namespace hf {
             {
                 positionBoardConnected = _positionBoardConnected;
             }
+            
+            virtual void handle_RC_CALIBRATION_Request(uint8_t stage) override
+            {
+                switch (stage) {
+                  case 0:
+                      while (!_endStage1)
+                      {
+                        // Check whether receiver data is available
+                        bool newData = _receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial);
+                        if (newData)
+                        {
+                        }
+                        doSerialComms();
+                      }
+                      break;
+                  case 1:
+                      _endStage1 = true;
+                      while (!_endStage2)
+                      {
+                        // Check whether receiver data is available
+                        bool newData = _receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial);
+                        if (newData)
+                        {
+                        }
+                        doSerialComms();
+                      }
+                      break;
+                  case 2:
+                      _endStage2 = true;
+                      break;
+                }
+                _endStage1 = false;
+                _endStage2 = false;
+            }
+            
+            virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
+            {
+                (void)status;
+                //status = _rcCalibrationStatus;
+            }
+
 
 
         public:
