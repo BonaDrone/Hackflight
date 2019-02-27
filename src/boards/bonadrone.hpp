@@ -69,8 +69,6 @@ namespace hf {
 
         protected:
 
-            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
-
             virtual void writeMotor(uint8_t index, float value) = 0;
 
             virtual bool  getQuaternion(float quat[4]) override 
@@ -155,6 +153,8 @@ namespace hf {
 
         protected:
 
+            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
+
             virtual void writeMotor(uint8_t index, float value) override
             {
                 analogWrite(MOTOR_PINS[index], (uint16_t)(PWM_MIN+value*(PWM_MAX-PWM_MIN)) >> 3);
@@ -182,6 +182,8 @@ namespace hf {
 
         protected:
 
+            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
+
             virtual void writeMotor(uint8_t index, float value) override
             {
                 // Serial.println(value,8);
@@ -205,6 +207,8 @@ namespace hf {
     class BonadroneBrushed : public Bonadrone {
 
         protected:
+
+            const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
 
             virtual void writeMotor(uint8_t index, float value) override
             {
