@@ -157,7 +157,7 @@ namespace hf {
           eskfp.x[9] = 0.0;
           eskfp.x[10] = 0.0; // accel bias
           eskfp.x[11] = 0.0;
-          eskfp.x[12] = 0.0;
+          eskfp.x[12] = 0.3;
           eskfp.x[13] = 0.0; // gyro bias
           eskfp.x[14] = 0.0;
           eskfp.x[15] = 0.0;
@@ -254,11 +254,13 @@ namespace hf {
           // Serial.print(eskfp.x[2]);
           // Serial.print(",");
 
-          Serial.print(eskfp.x[3]);
+          // Serial.print(eskfp.x[3]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[4]);
+          // Serial.print(",");
+          Serial.print(eskfp.x[5]);
           Serial.print(",");
-          Serial.print(eskfp.x[4]);
-          Serial.print(",");
-          Serial.println(eskfp.x[5]);
+          Serial.println(eskfp.x[12]);
 
           /* success */
           synchState();
@@ -421,11 +423,14 @@ namespace hf {
           // Serial.print(eskfp.x[2]);
           // Serial.print(",");
           
-          Serial.print(eskfp.x[3]);
+          // Serial.print(eskfp.x[3]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[4]);
+          // Serial.print(",");
+          
+          Serial.print(eskfp.x[5]);
           Serial.print(",");
-          Serial.print(eskfp.x[4]);
-          Serial.print(",");
-          Serial.println(eskfp.x[5]);
+          Serial.println(eskfp.x[12]);
                     
           return 0;
       } // correct
