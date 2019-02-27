@@ -229,6 +229,16 @@
    {"comment": "Specify whether the positioning board is present or not"},
    {"red": "byte"},
    {"green": "byte"},
-   {"blue": "byte"}]
+   {"blue": "byte"}],
+   
+  "RC_CALIBRATION":
+  [{"ID": 214},
+   {"comment": "Calibrate the transmitter"},
+   {"stage": "byte"}],
+
+  "RC_CALIBRATION_STATUS":
+  [{"ID": 119},
+   {"comment": "Return the status of the transmitter calibration"},
+   {"status": "byte"}]
 
 }
