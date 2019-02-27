@@ -276,11 +276,11 @@ namespace hf {
                         break;
 
                     case HEADER_CMD:
-                        _state = IDLE;
                         if (_offset < _dataSize) {
                             _checksum ^= c;
                             _inBuf[_offset++] = c;
                         } else  {
+                            _state = IDLE;
                             if (_checksum == c) {        // compare calculated and transferred _checksum
                                 if (_direction == 0) {
                                     dispatchRequestMessage();
