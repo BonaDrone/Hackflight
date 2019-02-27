@@ -276,6 +276,7 @@ namespace hf {
                         break;
 
                     case HEADER_CMD:
+                        _state = IDLE;
                         if (_offset < _dataSize) {
                             _checksum ^= c;
                             _inBuf[_offset++] = c;
@@ -288,7 +289,6 @@ namespace hf {
                                     dispatchDataMessage();
                                 }
                             }
-                            _state = IDLE;
                         }
 
                 } // switch (_state)
