@@ -471,6 +471,7 @@ namespace hf {
                         bool newData = _receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
+                          // XXX Calibration logic of stage 1
                         }
                         doSerialComms();
                       }
@@ -483,12 +484,14 @@ namespace hf {
                         bool newData = _receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
+                          // XXX Calibration logic of stage 2
                         }
                         doSerialComms();
                       }
                       break;
                   case 2:
                       _endStage2 = true;
+                      // XXX Calibration logic of stage 3
                       break;
                 }
                 _endStage1 = false;
