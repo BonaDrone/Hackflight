@@ -752,18 +752,18 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
-                    case 221:
+                    case 227:
                     {
-                        float rx = 0;
-                        memcpy(&rx,  &_inBuf[0], sizeof(float));
+                        uint8_t red = 0;
+                        memcpy(&red,  &_inBuf[0], sizeof(uint8_t));
 
-                        float ry = 0;
-                        memcpy(&ry,  &_inBuf[4], sizeof(float));
+                        uint8_t green = 0;
+                        memcpy(&green,  &_inBuf[1], sizeof(uint8_t));
 
-                        float rz = 0;
-                        memcpy(&rz,  &_inBuf[8], sizeof(float));
+                        uint8_t blue = 0;
+                        memcpy(&blue,  &_inBuf[2], sizeof(uint8_t));
 
-                        handle_SET_RANGE_PARAMETERS_Request(rx, ry, rz);
+                        handle_SET_LEDS_Request(red, green, blue);
                         acknowledgeResponse();
                         } break;
 
@@ -1439,18 +1439,18 @@ namespace hf {
                 (void)hasBoard;
             }
 
-            virtual void handle_SET_RANGE_PARAMETERS_Request(float  rx, float  ry, float  rz)
+            virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue)
             {
-                (void)rx;
-                (void)ry;
-                (void)rz;
+                (void)red;
+                (void)green;
+                (void)blue;
             }
 
-            virtual void handle_SET_RANGE_PARAMETERS_Data(float  rx, float  ry, float  rz)
+            virtual void handle_SET_LEDS_Data(uint8_t  red, uint8_t  green, uint8_t  blue)
             {
-                (void)rx;
-                (void)ry;
-                (void)rz;
+                (void)red;
+                (void)green;
+                (void)blue;
             }
 
         public:
@@ -2371,21 +2371,21 @@ namespace hf {
                 return 7;
             }
 
-            static uint8_t serialize_SET_RANGE_PARAMETERS(uint8_t bytes[], float  rx, float  ry, float  rz)
+            static uint8_t serialize_SET_LEDS(uint8_t bytes[], uint8_t  red, uint8_t  green, uint8_t  blue)
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
                 bytes[2] = 62;
-                bytes[3] = 12;
-                bytes[4] = 221;
+                bytes[3] = 3;
+                bytes[4] = 227;
 
-                memcpy(&bytes[5], &rx, sizeof(float));
-                memcpy(&bytes[9], &ry, sizeof(float));
-                memcpy(&bytes[13], &rz, sizeof(float));
+                memcpy(&bytes[5], &red, sizeof(uint8_t));
+                memcpy(&bytes[6], &green, sizeof(uint8_t));
+                memcpy(&bytes[7], &blue, sizeof(uint8_t));
 
-                bytes[17] = CRC8(&bytes[3], 14);
+                bytes[8] = CRC8(&bytes[3], 5);
 
-                return 18;
+                return 9;
             }
 
     }; // class MspParser

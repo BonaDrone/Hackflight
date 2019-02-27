@@ -14,6 +14,8 @@
 * #48 MSP message and methods to calibrate ESCs
 * #50 Check if position board is connected via MSP
 * #45 Allow to set rangefinder parameters with an MSP message
+* #55 Enable setting LEDs on/off with an MSP message
+* #68 Motor pins are set according to the specified Mosquito version
 
 ### Changed
 
