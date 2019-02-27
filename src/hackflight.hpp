@@ -53,6 +53,7 @@ namespace hf {
             // transmitter calibration
             bool _endStage1 = false;
             bool _endStage2 = false;
+            uint8_t _rcCalibrationStatus = 0;
             
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -496,11 +497,8 @@ namespace hf {
             
             virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
             {
-                (void)status;
-                //status = _rcCalibrationStatus;
+                status = _rcCalibrationStatus;
             }
-
-
 
         public:
 
