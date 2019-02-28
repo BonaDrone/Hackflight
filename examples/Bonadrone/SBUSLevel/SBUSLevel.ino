@@ -49,19 +49,14 @@ hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL)
 hf::MixerQuadX mixer;
 
 hf::Rate ratePid = hf::Rate(
-        0.10f,  // Gyro Roll P
-        0.01f,  // Gyro Roll I
-        0.05f,  // Gyro Roll D
-        0.20f,  // Gyro Pitch P
-        0.01f,  // Gyro Pitch I
-        0.05f,  // Gyro Pitch D
-        0.10f,  // Gyro yaw P
+        0.06f,  // Gyro Roll/Pitch P
+        0.01f,  // Gyro Roll/Pitch I
+        0.00f,  // Gyro Roll/Pitch D
+        0.06f,  // Gyro yaw P
         0.01f,  // Gyro yaw I
-        8.58f); // Demands to rate
+        5.00f); // Demands to rate
 
-hf::Level level = hf::Level(
-        0.25f,   // Roll Level P
-        0.25f);  // Pitch Level P
+hf::Level level = hf::Level(0.3f);  // Pitch Level P
 
 void setup(void)
 {

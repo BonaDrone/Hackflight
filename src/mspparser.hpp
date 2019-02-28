@@ -785,6 +785,21 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 221:
+                    {
+                        float rx = 0;
+                        memcpy(&rx,  &_inBuf[0], sizeof(float));
+
+                        float ry = 0;
+                        memcpy(&ry,  &_inBuf[4], sizeof(float));
+
+                        float rz = 0;
+                        memcpy(&rz,  &_inBuf[8], sizeof(float));
+
+                        handle_SET_RANGE_PARAMETERS_Request(rx, ry, rz);
+                        acknowledgeResponse();
+                        } break;
+
                 }
             }
 
@@ -1495,6 +1510,20 @@ namespace hf {
             virtual void handle_RC_CALIBRATION_STATUS_Data(uint8_t & status)
             {
                 (void)status;
+            }
+
+            virtual void handle_SET_RANGE_PARAMETERS_Request(float  rx, float  ry, float  rz)
+            {
+                (void)rx;
+                (void)ry;
+                (void)rz;
+            }
+
+            virtual void handle_SET_RANGE_PARAMETERS_Data(float  rx, float  ry, float  rz)
+            {
+                (void)rx;
+                (void)ry;
+                (void)rz;
             }
 
         public:
@@ -2472,6 +2501,23 @@ namespace hf {
                 bytes[6] = CRC8(&bytes[3], 3);
 
                 return 7;
+            }
+
+            static uint8_t serialize_SET_RANGE_PARAMETERS(uint8_t bytes[], float  rx, float  ry, float  rz)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 12;
+                bytes[4] = 221;
+
+                memcpy(&bytes[5], &rx, sizeof(float));
+                memcpy(&bytes[9], &ry, sizeof(float));
+                memcpy(&bytes[13], &rz, sizeof(float));
+
+                bytes[17] = CRC8(&bytes[3], 14);
+
+                return 18;
             }
 
     }; // class MspParser

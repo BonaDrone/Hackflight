@@ -1,7 +1,7 @@
 /*
    gyrometer.hpp : Support for gyrometer (a.k.a. gyroscope) 
 
-   Copyright (c) 2018 Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    This file is part of Hackflight.
 
@@ -36,14 +36,17 @@ namespace hf {
 
         public:
 
-            Gyrometer(void)
+            // Gyrometer will not be used neither to estimate nor correct. 
+            // The imu is in charge of the estimation. Gyrometer is kept here
+            // for compatibility reasons
+            Gyrometer(void) : SurfaceMountSensor(false, false)
             {
                 memset(_rates, 0, 3*sizeof(float));
             }
 
         protected:
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
                 (void)time;
 

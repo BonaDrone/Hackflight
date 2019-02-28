@@ -1,7 +1,7 @@
 /*
    rangefinder.hpp : Support for rangefinder sensors (sonar, time-of-flight)
 
-   Copyright (c) 2018 Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    This file is part of Hackflight.
 
@@ -31,30 +31,90 @@ namespace hf {
 
     class Rangefinder : public PeripheralSensor {
 
+        private:
+
+            static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
+
+            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
+
+            float _distance;
+            
+            // Range finder calibration parameters
+            float _rx = 0;
+            float _ry = 0;
+            float _rz = 0;
+            
         public:
 
-            Rangefinder(void) 
+            Rangefinder(void) : PeripheralSensor(false, true)
             {
-                _lpf.init();
+            }
+
+            virtual void getJacobianObservation(float * H, float * x) override
+            {
+              // auxiliary variables to avoid duplicating computations
+              float aux1 = x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5];
+              float aux2 = _rx*(2*x[2]*x[4] - 2*x[3]*x[5]);
+              float aux3 = _ry*(2*x[2]*x[3] + 2*x[4]*x[5]);
+              float aux4 = x[0] + _rz*aux1 - aux2 + aux3;
+              float aux5 = (2*x[3]*_rx + 2*x[4]*_ry + 2*x[5]*_rz)/aux1 - 2*x[5]*aux4/(aux1*aux1);
+              float aux6 = (2*x[2]*_ry - 2*x[3]*_rz + 2*x[5]*_rx)/aux1 + 2*x[3]*aux4/(aux1*aux1);
+              float aux7 = (2*x[2]*_rx + 2*x[4]*_rz - 2*x[5]*_ry)/aux1 - 2*x[4]*aux4/(aux1*aux1);
+              float aux8 = (2*x[2]*_rz + 2*x[3]*_ry - 2*x[4]*_rx)/aux1 - 2*x[2]*aux4/(aux1*aux1);
+              // 1 column
+              H[0] =  1/aux1;
+              // 2 column
+              H[1] =  0;
+              // 3 column
+              H[2] =  (x[2]*aux6)/2 - (x[3]*aux8)/2 - (x[5]*aux7)/2 - (x[4]*aux5)/2;
+              // 4 column
+              H[3] =  (x[3]*aux5)/2 - (x[2]*aux7)/2 - (x[5]*aux6)/2 - (x[4]*aux8)/2;
+              // 5 column
+              H[4] =  (x[4]*aux6)/2 - (x[5]*aux8)/2 + (x[3]*aux7)/2 + (x[2]*aux5)/2;
+              // 6 column
+              H[5] =  0;
+              // 7 column
+              H[6] =  0;
+              // 8 column
+              H[7] =  0;
+            }
+
+            virtual void getInnovation(float * z, float * x) override
+            {
+                // innovation = measured - predicted
+                // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
+                float predicted = (x[0] + _rz*(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]) - _rx*(2*x[2]*x[4] - 2*x[3]*x[5]) + _ry*(2*x[2]*x[3] + 2*x[4]*x[5]))/(x[2]*x[2] - x[3]*x[3] - x[4]*x[4] + x[5]*x[5]);;
+                z[0] = _distance - predicted;
+            }
+            
+            virtual void getCovarianceCorrection(float * R) override
+            {
+                R[0] = 0.5f;
+            }
+
+            virtual int Zinverse(float * Z, float * invZ) override
+            {
+                if (Z[0] == 0)
+                {
+                  return 1;
+                }
+                invZ[0] = 1.0/Z[0];
+                return 0;
+            }
+            
+            void setCalibration(float rx, float ry, float rz)
+            {
+              _rx = rx;
+              _ry = ry;
+              _rz = rz;
             }
 
         protected:
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
-                // Previous values to support first-differencing
-                static float _time;
-                static float _altitude;
-
-                // Compensate for effect of pitch, roll on rangefinder reading
-                state.altitude =  _distance * cos(state.eulerAngles[0]) * cos(state.eulerAngles[1]);
-
-                // Use first-differenced, low-pass-filtered altitude as variometer
-                state.variometer = _lpf.update((state.altitude-_altitude) / (time-_time));
-
-                // Update first-difference values
-                _time = time;
-                _altitude = state.altitude;
+                (void)state;
+                (void)time;
             }
 
             virtual bool ready(float time) override
@@ -62,34 +122,24 @@ namespace hf {
                 float newDistance;
 
                 if (distanceAvailable(newDistance)) {
-
-                    static float _time;
-
-                    if (time-_time > UPDATE_PERIOD) {
-
                         _distance = newDistance;
-
-                        _time = time; 
-
                         return true;
-                    }
                 }
-
                 return false; 
             }
 
+            virtual bool shouldUpdateESKF(float time) override
+            {
+                static float _time;
+
+                if (time - _time > UPDATE_PERIOD) {
+                    _time = time;
+                    return true; 
+                }
+                return false;
+            }
 
             virtual bool distanceAvailable(float & distance) = 0;
-
-        private:
-
-            static constexpr float UPDATE_HZ = 25; // XXX should be using interrupt!
-
-            static constexpr float UPDATE_PERIOD = 1/UPDATE_HZ;
-
-            float _distance;
-
-            LowPassFilter _lpf = LowPassFilter(20);
 
     };  // class Rangefinder
 
