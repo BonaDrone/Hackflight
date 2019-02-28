@@ -59,6 +59,11 @@ namespace hf {
             bool _endStage1 = false;
             bool _endStage2 = false;
             uint8_t _rcCalibrationStatus = 0;
+            float _throttle_min = 0;
+            float _throttle_max = 0;
+            float _center[3] = {0, 0, 0};
+            float _min[3] = {0, 0, 0};
+            float _max[3] = {0, 0, 0};
             
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -474,20 +479,35 @@ namespace hf {
             {
                 switch (stage) {
                   case 0:
+                    {
+                      // Calibration logic of stage 1: T min and R,P,Y center values
                       _endStage2 = true;
                       _endStage1 = false;
+                      int i = 0;
                       while (!_endStage1)
                       {
-                        // Check whether receiver data is available
-                        bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
-                        if (newData)
-                        {
-                          // XXX Calibration logic of stage 1
-                        }
-                        doSerialComms();
+                          // Check whether receiver data is available
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
+                          if (newData)
+                          {
+                              _throttle_min += _receiver->getRawval(0);  // T
+                              _center[0] += _receiver->getRawval(1);     // R
+                              _center[1] += _receiver->getRawval(2);     // P
+                              _center[2] += _receiver->getRawval(3);     // Y
+                              i += 1;
+                          }
+                          doSerialComms();
                       }
-                      break;
+                      _throttle_min = _throttle_min / i;
+                      for (int k=0; k<3; k++)
+                      {
+                        _center[k] = _center[k] / i;
+                      }
+                    }
+                    break;
                   case 1:
+                    {
+                      // Calibration logic of stage 2: T max and R,P,Y min and max
                       _endStage1 = true;
                       _endStage2 = false;
                       while (!_endStage2)
@@ -496,16 +516,19 @@ namespace hf {
                         bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
-                          // XXX Calibration logic of stage 2
+                            
                         }
                         doSerialComms();
                       }
-                      break;
+                    }
+                    break;
                   case 2:
+                    {
+                      // Calibration logic of stage 3: Store params
                       _endStage1 = true;
                       _endStage2 = true;
-                      // XXX Calibration logic of stage 3
-                      break;
+                    }
+                    break;
                 }
                 _endStage1 = false;
                 _endStage2 = false;
