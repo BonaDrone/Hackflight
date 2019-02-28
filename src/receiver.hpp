@@ -256,6 +256,8 @@ namespace hf {
             _trimYaw = trim;
         }
         
+        virtual void pollForFrame(void) {}
+        
         // Setters and getters of the attributes required to be able to use the
         // ESP32 and MSP messages as a receiver. For now, we offer this possibility
         // to work with any receiver by implementing this methods in the receiver

@@ -77,7 +77,7 @@ namespace hf {
             bool gotNewFrame(void)
             {
                 if (rx.gotNewFrame()) {
-
+                  Serial.println("Got frame");
                     uint8_t failsafe = 0;
                     uint16_t lostFrames = 0;
 
@@ -106,6 +106,13 @@ namespace hf {
             bool lostSignal(void)
             {
                 return _failsafeCount > MAX_FAILSAFE;
+            }
+
+            virtual void pollForFrame(void) override
+            {
+                serialEvent1();
+                serialEvent2();
+                serialEvent3();
             }
 
         public:

@@ -486,8 +486,8 @@ namespace hf {
                       while (!_endStage1)
                       {
                           // Check whether receiver data is available
+                          _receiver->pollForFrame();
                           bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
-                          Serial.println(newData);
                           if (newData)
                           {
                               Serial.println(_receiver->getRawval(0));
@@ -516,6 +516,7 @@ namespace hf {
                       while (!_endStage2)
                       {
                         // Check whether receiver data is available
+                        _receiver->pollForFrame();
                         bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
