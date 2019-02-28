@@ -59,11 +59,9 @@ namespace hf {
             bool _endStage1 = false;
             bool _endStage2 = false;
             uint8_t _rcCalibrationStatus = 0;
-            float _throttle_min = 0;
-            float _throttle_max = 0;
-            float _center[3] = {0, 0, 0};
-            float _min[3] = {0, 0, 0};
-            float _max[3] = {0, 0, 0};
+            float _center[3] = {0, 0, 0};   // R, P, Y
+            float _min[4] = {0, 0, 0, 0};   // T, R, P, Y
+            float _max[4] = {0, 0, 0, 0};   // T, R, P, Y
             
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
@@ -480,7 +478,8 @@ namespace hf {
                 switch (stage) {
                   case 0:
                     {
-                      // Calibration logic of stage 1: T min and R,P,Y center values
+                      Serial.println("Stage 1");
+                      // Calibration logic of stage 1: T min and R, P, Y center values
                       _endStage2 = true;
                       _endStage1 = false;
                       int i = 0;
@@ -488,17 +487,20 @@ namespace hf {
                       {
                           // Check whether receiver data is available
                           bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
+                          Serial.println(newData);
                           if (newData)
                           {
-                              _throttle_min += _receiver->getRawval(0);  // T
+                              Serial.println(_receiver->getRawval(0));
+                              _min[0] += _receiver->getRawval(0);        // T
                               _center[0] += _receiver->getRawval(1);     // R
                               _center[1] += _receiver->getRawval(2);     // P
                               _center[2] += _receiver->getRawval(3);     // Y
                               i += 1;
                           }
+                          //delay(200);
                           doSerialComms();
                       }
-                      _throttle_min = _throttle_min / i;
+                      _min[0] = _min[0] / i;
                       for (int k=0; k<3; k++)
                       {
                         _center[k] = _center[k] / i;
@@ -507,7 +509,8 @@ namespace hf {
                     break;
                   case 1:
                     {
-                      // Calibration logic of stage 2: T max and R,P,Y min and max
+                      Serial.println("Stage 2");
+                      // Calibration logic of stage 2: T max and R, P, Y min and max
                       _endStage1 = true;
                       _endStage2 = false;
                       while (!_endStage2)
@@ -516,22 +519,56 @@ namespace hf {
                         bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
-                            
+                            // Update max of T, R, P, Y and min of R, P, Y
+                            for (int k=0; k<4; k++)
+                            {
+                              float lastVal = _receiver->getRawval(k);
+                              _max[k] = (lastVal > _max[k]) ? lastVal : _max[k];
+                              // Update min values of R, P, Y
+                              if (k!=0)
+                              {
+                                  _min[k] = (lastVal < _min[k]) ? lastVal : _min[k];
+                              }
+                            }
                         }
+                        //delay(200);
                         doSerialComms();
                       }
                     }
                     break;
                   case 2:
                     {
+                      Serial.println("Stage 3");
                       // Calibration logic of stage 3: Store params
                       _endStage1 = true;
                       _endStage2 = true;
                     }
                     break;
                 }
-                _endStage1 = false;
-                _endStage2 = false;
+                Serial.println("Over");
+                // XXX Debug calibration results
+                Serial.print(_center[0], 8);
+                Serial.print(",");
+                Serial.print(_center[1], 8);
+                Serial.print(",");
+                Serial.println(_center[2], 8);
+                
+                Serial.print(_min[0], 8);
+                Serial.print(",");
+                Serial.print(_min[1], 8);
+                Serial.print(",");
+                Serial.print(_min[2], 8);
+                Serial.print(",");
+                Serial.println(_min[3], 8);
+
+                Serial.print(_max[0], 8);
+                Serial.print(",");
+                Serial.print(_max[1], 8);
+                Serial.print(",");
+                Serial.print(_max[2], 8);
+                Serial.print(",");
+                Serial.println(_max[3], 8);
+
             }
             
             virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
