@@ -489,7 +489,6 @@ namespace hf {
                           bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
                           if (newData)
                           {
-                              Serial.println(_receiver->getRawval(0));
                               _min[0] += _receiver->getRawval(0);        // T
                               _center[0] += _receiver->getRawval(1);     // R
                               _center[1] += _receiver->getRawval(2);     // P
