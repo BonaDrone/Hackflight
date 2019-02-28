@@ -478,7 +478,6 @@ namespace hf {
                 switch (stage) {
                   case 0:
                     {
-                      Serial.println("Stage 1");
                       // Calibration logic of stage 1: T min and R, P, Y center values
                       _endStage2 = true;
                       _endStage1 = false;
@@ -497,7 +496,6 @@ namespace hf {
                               _center[2] += _receiver->getRawval(3);     // Y
                               i += 1;
                           }
-                          //delay(200);
                           doSerialComms();
                       }
                       _min[0] = _min[0] / i;
@@ -509,7 +507,6 @@ namespace hf {
                     break;
                   case 1:
                     {
-                      Serial.println("Stage 2");
                       // Calibration logic of stage 2: T max and R, P, Y min and max
                       _endStage1 = true;
                       _endStage2 = false;
@@ -532,14 +529,12 @@ namespace hf {
                               }
                             }
                         }
-                        //delay(200);
                         doSerialComms();
                       }
                     }
                     break;
                   case 2:
                     {
-                      Serial.println("Stage 3");
                       // Calibration logic of stage 3: Store params
                       _endStage1 = true;
                       _endStage2 = true;
