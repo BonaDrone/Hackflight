@@ -477,7 +477,7 @@ namespace hf {
                       while (!_endStage1)
                       {
                         // Check whether receiver data is available
-                        bool newData = _receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial);
+                        bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
                           // XXX Calibration logic of stage 1
@@ -490,7 +490,7 @@ namespace hf {
                       while (!_endStage2)
                       {
                         // Check whether receiver data is available
-                        bool newData = _receiver->getDemands(_state.eulerAngles[AXIS_YAW] - _yawInitial);
+                        bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
                         if (newData)
                         {
                           // XXX Calibration logic of stage 2
