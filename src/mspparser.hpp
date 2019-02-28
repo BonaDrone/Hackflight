@@ -38,7 +38,7 @@ namespace hf {
             static const uint8_t MAXMSG = 255;
             
             // Number of EEPROM reserved slots for parameters
-            static const int PARAMETER_SLOTS = 100;
+            static const int PARAMETER_SLOTS = 150;
 
         private:
 

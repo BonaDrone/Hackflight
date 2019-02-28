@@ -79,6 +79,10 @@ namespace hf {
               float _rx;
               float _ry;
               float _rz;
+              // transmitter trims
+              float _min[4] = {0,0,0,0}; 
+              float _center[3] = {0,0,0}; 
+              float _max[4] = {0,0,0,0}; 
 
               // Required objects to run Hackflight
               hf::Hackflight h;
@@ -110,6 +114,17 @@ namespace hf {
                   EEPROM.get(RANGE_PARAMS, _rx);
                   EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
                   EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
+                  EEPROM.get(TRANSMITER_TRIMS, _min[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 1 * sizeof(float), _max[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 2 * sizeof(float), _min[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 3 * sizeof(float), _center[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 4 * sizeof(float), _max[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 5 * sizeof(float), _min[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 6 * sizeof(float), _center[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 7 * sizeof(float), _max[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 8 * sizeof(float), _min[3]);
+                  EEPROM.get(TRANSMITER_TRIMS + 9 * sizeof(float), _center[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 10 * sizeof(float), _max[3]);
               }
               
               void calibrateESCsStandard(void)

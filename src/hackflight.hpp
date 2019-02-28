@@ -288,6 +288,8 @@ namespace hf {
             static const uint8_t N_PID_CONSTANTS   = 16;
             static const uint8_t RANGE_PARAMS      = PID_CONSTANTS + N_PID_CONSTANTS * sizeof(float);
             static const uint8_t N_RANGE_PARAMS    = 3;
+            static const uint8_t TRANSMITER_TRIMS  = RANGE_PARAMS + N_RANGE_PARAMS * sizeof(float);
+            static const uint8_t N_TRIMS           = 11;
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
@@ -534,36 +536,47 @@ namespace hf {
                     break;
                   case 2:
                     {
-                      // Calibration logic of stage 3: Store params
+                      // Calibration logic of stage 3: End calibration
                       _endStage1 = true;
                       _endStage2 = true;
                     }
                     break;
                 }
-                Serial.println("Over");
-                // XXX Debug calibration results
-                Serial.print(_center[0], 8);
-                Serial.print(",");
-                Serial.print(_center[1], 8);
-                Serial.print(",");
-                Serial.println(_center[2], 8);
+                // Store trims
+                EEPROM.put(TRANSMITER_TRIMS, _min[0]);
+                EEPROM.put(TRANSMITER_TRIMS + 1 * sizeof(float), _max[0]);
+                EEPROM.put(TRANSMITER_TRIMS + 2 * sizeof(float), _min[1]);
+                EEPROM.put(TRANSMITER_TRIMS + 3 * sizeof(float), _center[0]);
+                EEPROM.put(TRANSMITER_TRIMS + 4 * sizeof(float), _max[1]);
+                EEPROM.put(TRANSMITER_TRIMS + 5 * sizeof(float), _min[2]);
+                EEPROM.put(TRANSMITER_TRIMS + 6 * sizeof(float), _center[1]);
+                EEPROM.put(TRANSMITER_TRIMS + 7 * sizeof(float), _max[2]);
+                EEPROM.put(TRANSMITER_TRIMS + 8 * sizeof(float), _min[3]);
+                EEPROM.put(TRANSMITER_TRIMS + 9 * sizeof(float), _center[2]);
+                EEPROM.put(TRANSMITER_TRIMS + 10 * sizeof(float), _max[3]);
                 
-                Serial.print(_min[0], 8);
-                Serial.print(",");
-                Serial.print(_min[1], 8);
-                Serial.print(",");
-                Serial.print(_min[2], 8);
-                Serial.print(",");
-                Serial.println(_min[3], 8);
-
-                Serial.print(_max[0], 8);
-                Serial.print(",");
-                Serial.print(_max[1], 8);
-                Serial.print(",");
-                Serial.print(_max[2], 8);
-                Serial.print(",");
-                Serial.println(_max[3], 8);
-
+                // // XXX Debug calibration results
+                // Serial.print(_center[0], 8);
+                // Serial.print(",");
+                // Serial.print(_center[1], 8);
+                // Serial.print(",");
+                // Serial.println(_center[2], 8);
+                // 
+                // Serial.print(_min[0], 8);
+                // Serial.print(",");
+                // Serial.print(_min[1], 8);
+                // Serial.print(",");
+                // Serial.print(_min[2], 8);
+                // Serial.print(",");
+                // Serial.println(_min[3], 8);
+                // 
+                // Serial.print(_max[0], 8);
+                // Serial.print(",");
+                // Serial.print(_max[1], 8);
+                // Serial.print(",");
+                // Serial.print(_max[2], 8);
+                // Serial.print(",");
+                // Serial.println(_max[3], 8);
             }
             
             virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
