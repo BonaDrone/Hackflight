@@ -474,6 +474,8 @@ namespace hf {
             {
                 switch (stage) {
                   case 0:
+                      _endStage2 = true;
+                      _endStage1 = false;
                       while (!_endStage1)
                       {
                         // Check whether receiver data is available
@@ -487,6 +489,7 @@ namespace hf {
                       break;
                   case 1:
                       _endStage1 = true;
+                      _endStage2 = false;
                       while (!_endStage2)
                       {
                         // Check whether receiver data is available
@@ -499,6 +502,7 @@ namespace hf {
                       }
                       break;
                   case 2:
+                      _endStage1 = true;
                       _endStage2 = true;
                       // XXX Calibration logic of stage 3
                       break;
