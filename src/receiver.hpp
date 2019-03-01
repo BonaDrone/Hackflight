@@ -52,6 +52,12 @@ namespace hf {
         const float CYCLIC_RATE       = 0.90f;
         const float THROTTLE_MID      = 0.00f;
         const float THROTTLE_EXPO     = 0.20f;
+        
+        // Arrays to trim demands 
+        float M_POS[4];
+        float N_POS[4];
+        float M_NEG[4];
+        float N_NEG[4];
 
         float adjustCommand(float command, uint8_t channel)
         {
@@ -254,6 +260,14 @@ namespace hf {
         void setTrimYaw(float trim)
         {
             _trimYaw = trim;
+        }
+        
+        void setTrim(float m_pos, float n_pos, float m_neg, float n_neg, int channel)
+        {
+            M_POS[channel] = m_pos;
+            N_POS[channel] = n_pos;
+            M_NEG[channel] = m_neg;
+            N_NEG[channel] = n_neg;
         }
         
         virtual void pollForFrame(void) {}
