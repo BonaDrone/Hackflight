@@ -75,8 +75,10 @@ namespace hf {
             return rcFun(command, CYCLIC_EXPO, CYCLIC_RATE);
         }
 
-        void applyTrims(void)
+        void applyTrims(bool calibrating)
         {
+            if (calibrating) return;
+ 
             for (int channel=0; channel<4; channel++)
             {
                 float val = rawvals[_channelMap[channel]];
@@ -190,7 +192,7 @@ namespace hf {
         {
         }
 
-        bool getDemands(float yawAngle)
+        bool getDemands(float yawAngle, bool calibrating = false)
         {
             // Wait till there's a new frame
             if (!gotNewFrame() && !_gotNewFrame) return false;
@@ -198,7 +200,7 @@ namespace hf {
             // Read raw channel values
             readRawvals(_bypassReceiver);
             
-            applyTrims();
+            applyTrims(calibrating);
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);

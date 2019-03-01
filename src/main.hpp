@@ -236,11 +236,11 @@ namespace hf {
                   {
                     float m_pos = 1.0 / (_max[k+1] - _center[k]); 
                     float n_pos =  - (m_pos * _center[k]);
-                    float m_neg = 1.0 / (_center[k] - _min[k+1]); 
+                    float m_neg = - 1.0 / (_min[k+1] - _center[k]); 
                     float n_neg =  - (m_neg * _center[k]);
                     rc.setTrim(m_pos, n_pos, m_neg, n_neg, k+1);
                   }
-                  // Set T trims
+                  // Set Throttle trims
                   float m = 2.0 / (_max[0] - _min[0]);
                   float n = 1.0 - m*_max[0];
                   rc.setTrim(m, n, m, n, 0);

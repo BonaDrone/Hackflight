@@ -483,7 +483,7 @@ namespace hf {
                       {
                           // Check whether receiver data is available
                           _receiver->pollForFrame();
-                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
                           if (newData)
                           {
                               _tx_calibration._min[0] += _receiver->getRawval(0);        // T
@@ -494,10 +494,12 @@ namespace hf {
                           }
                           doSerialComms();
                       }
+
                       _tx_calibration._min[0] = _tx_calibration._min[0] / i;
+
                       for (int k=0; k<3; k++)
                       {
-                        _tx_calibration._center[k] = _tx_calibration._center[k] / i;
+                          _tx_calibration._center[k] = _tx_calibration._center[k] / i;
                       }
                     }
                     break;
@@ -510,7 +512,7 @@ namespace hf {
                       {
                         // Check whether receiver data is available
                         _receiver->pollForFrame();
-                        bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial);
+                        bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
                         if (newData)
                         {
                             // Update max of T, R, P, Y and min of R, P, Y
@@ -552,27 +554,27 @@ namespace hf {
                 // Mark calibration as successful
                 _tx_calibration._rcCalibrationStatus = 1;
                 // // XXX Debug calibration results
-                // Serial.print(_center[0], 8);
+                // Serial.print(_tx_calibration._center[0], 8);
                 // Serial.print(",");
-                // Serial.print(_center[1], 8);
+                // Serial.print(_tx_calibration._center[1], 8);
                 // Serial.print(",");
-                // Serial.println(_center[2], 8);
+                // Serial.println(_tx_calibration._center[2], 8);
                 // 
-                // Serial.print(_min[0], 8);
+                // Serial.print(_tx_calibration._min[0], 8);
                 // Serial.print(",");
-                // Serial.print(_min[1], 8);
+                // Serial.print(_tx_calibration._min[1], 8);
                 // Serial.print(",");
-                // Serial.print(_min[2], 8);
+                // Serial.print(_tx_calibration._min[2], 8);
                 // Serial.print(",");
-                // Serial.println(_min[3], 8);
+                // Serial.println(_tx_calibration._min[3], 8);
                 // 
-                // Serial.print(_max[0], 8);
+                // Serial.print(_tx_calibration._max[0], 8);
                 // Serial.print(",");
-                // Serial.print(_max[1], 8);
+                // Serial.print(_tx_calibration._max[1], 8);
                 // Serial.print(",");
-                // Serial.print(_max[2], 8);
+                // Serial.print(_tx_calibration._max[2], 8);
                 // Serial.print(",");
-                // Serial.println(_max[3], 8);
+                // Serial.println(_tx_calibration._max[3], 8);
             }
             
             virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
