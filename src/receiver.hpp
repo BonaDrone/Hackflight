@@ -75,6 +75,20 @@ namespace hf {
             return rcFun(command, CYCLIC_EXPO, CYCLIC_RATE);
         }
 
+        void applyTrims(void)
+        {
+            for (int channel=0; channel<4; channel++)
+            {
+                float val = rawvals[_channelMap[channel]];
+                if (val < 0)
+                {
+                    rawvals[_channelMap[channel]] = M_NEG[channel] * val + N_NEG[channel];
+                } else {
+                    rawvals[_channelMap[channel]] = M_POS[channel] * val + N_POS[channel];                  
+                }
+            }
+        }
+
         float makePositiveCommand(uint8_t channel)
         {
             return fabs(rawvals[_channelMap[channel]]);
@@ -183,6 +197,8 @@ namespace hf {
 
             // Read raw channel values
             readRawvals(_bypassReceiver);
+            
+            applyTrims();
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);
