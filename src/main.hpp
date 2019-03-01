@@ -58,6 +58,7 @@ namespace hf {
               bool _hasPositioningBoard = false;
               bool _isMosquito90 = false;
               bool _calibrateESC = false;
+              bool _txCalibrated = false;
               // Connection status (false unless proven otherwise)
               bool _positionBoardConnected = false;
               // Rate PID params
@@ -98,6 +99,7 @@ namespace hf {
                   _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
                   _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
                   _calibrateESC = (config >> CALIBRATE_ESC) & 1;
+                  _txCalibrated = (config >> TX_CALIBRATED) & 1;
                   // Load Rate PID parameters (each float is 4 bytes)
                   EEPROM.get(PID_CONSTANTS, _gyroRollPitchP);
                   EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollPitchI);
@@ -257,7 +259,8 @@ namespace hf {
                 loadParameters();
                 // begin the serial port for the ESP32
                 Serial4.begin(115200);
-
+                
+                rc.setCalibrationStatus(_txCalibrated);
                 // Trim receiver via software
                 trimReceiver();
 

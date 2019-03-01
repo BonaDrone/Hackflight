@@ -289,6 +289,7 @@ namespace hf {
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
             static const uint8_t CALIBRATE_ESC     = 2;
+            static const uint8_t TX_CALIBRATED     = 3;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -553,6 +554,8 @@ namespace hf {
                 EEPROM.put(TRANSMITER_TRIMS + 10 * sizeof(float), _tx_calibration._max[3]);
                 // Mark calibration as successful
                 _tx_calibration._rcCalibrationStatus = 1;
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
                 // // XXX Debug calibration results
                 // Serial.print(_tx_calibration._center[0], 8);
                 // Serial.print(",");

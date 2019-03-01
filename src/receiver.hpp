@@ -53,6 +53,7 @@ namespace hf {
         const float THROTTLE_MID      = 0.00f;
         const float THROTTLE_EXPO     = 0.20f;
         
+        bool _calibrated = false;
         // Arrays to trim demands 
         float M_POS[4];
         float N_POS[4];
@@ -77,7 +78,7 @@ namespace hf {
 
         void applyTrims(bool calibrating)
         {
-            if (calibrating) return;
+            if (calibrating || !_calibrated) return;
  
             for (int channel=0; channel<4; channel++)
             {
@@ -286,6 +287,11 @@ namespace hf {
             N_POS[channel] = n_pos;
             M_NEG[channel] = m_neg;
             N_NEG[channel] = n_neg;
+        }
+        
+        void setCalibrationStatus(bool calibrated)
+        {
+            _calibrated = calibrated;
         }
         
         virtual void pollForFrame(void) {}
