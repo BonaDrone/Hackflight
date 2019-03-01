@@ -40,3 +40,12 @@ typedef struct {
 
 } state_t;
 
+typedef struct {
+    bool _endStage1 = false;
+    bool _endStage2 = false;
+    uint8_t _rcCalibrationStatus = 0;
+    float _center[3] = {0, 0, 0};   // R, P, Y
+    float _min[4] = {0, 0, 0, 0};   // T, R, P, Y
+    float _max[4] = {0, 0, 0, 0};   // T, R, P, Y
+} tx_calibration_t;
+
