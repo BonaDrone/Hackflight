@@ -434,6 +434,16 @@ namespace hf {
                 
             }
             
+            virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage) override
+            {
+              _state.voltage = batteryVoltage;
+            }
+            
+            virtual void handle_GET_BATTERY_VOLTAGE_Request(float & batteryVoltage) override
+            {
+                batteryVoltage = _state.voltage;
+            }
+            
             virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4) override
             {
                   m1 = _mixer->motorsDisarmed[0];
