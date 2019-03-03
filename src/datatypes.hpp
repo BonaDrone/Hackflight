@@ -44,7 +44,7 @@ typedef struct {
     float positionY;
     float velocityForward;  
     float velocityRightward;
-    float voltage; 
+    float batteryVoltage; 
 
 } state_t;
 
