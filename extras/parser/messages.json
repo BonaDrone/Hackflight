@@ -229,6 +229,16 @@
    {"comment": "Specify whether the positioning board is present or not"},
    {"red": "byte"},
    {"green": "byte"},
-   {"blue": "byte"}]
+   {"blue": "byte"}],
+   
+   "SET_BATTERY_VOLTAGE":
+   [{"ID": 228},
+    {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
+    {"batteryVoltage": "float"}],
+    
+    "GET_BATTERY_VOLTAGE":
+    [{"ID": 125},
+     {"comment": "Get the current battery voltage"},
+     {"voltage": "float"}]
 
 }
