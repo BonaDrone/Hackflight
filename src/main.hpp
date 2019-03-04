@@ -58,6 +58,7 @@ namespace hf {
               bool _hasPositioningBoard = false;
               bool _isMosquito90 = false;
               bool _calibrateESC = false;
+              bool _txCalibrated = false;
               // Connection status (false unless proven otherwise)
               bool _positionBoardConnected = false;
               // Rate PID params
@@ -79,6 +80,10 @@ namespace hf {
               float _rx;
               float _ry;
               float _rz;
+              // transmitter trims
+              float _min[4] = {0,0,0,0}; 
+              float _center[3] = {0,0,0}; 
+              float _max[4] = {0,0,0,0}; 
 
               // Required objects to run Hackflight
               hf::Hackflight h;
@@ -94,6 +99,7 @@ namespace hf {
                   _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
                   _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
                   _calibrateESC = (config >> CALIBRATE_ESC) & 1;
+                  _txCalibrated = (config >> TX_CALIBRATED) & 1;
                   // Load Rate PID parameters (each float is 4 bytes)
                   EEPROM.get(PID_CONSTANTS, _gyroRollPitchP);
                   EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollPitchI);
@@ -110,6 +116,17 @@ namespace hf {
                   EEPROM.get(RANGE_PARAMS, _rx);
                   EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
                   EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
+                  EEPROM.get(TRANSMITER_TRIMS, _min[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 1 * sizeof(float), _max[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 2 * sizeof(float), _min[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 3 * sizeof(float), _center[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 4 * sizeof(float), _max[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 5 * sizeof(float), _min[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 6 * sizeof(float), _center[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 7 * sizeof(float), _max[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 8 * sizeof(float), _min[3]);
+                  EEPROM.get(TRANSMITER_TRIMS + 9 * sizeof(float), _center[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 10 * sizeof(float), _max[3]);
               }
               
               void calibrateESCsStandard(void)
@@ -214,6 +231,23 @@ namespace hf {
                   digitalWrite(LED_G, HIGH);
               }
 
+              void trimReceiver(void)
+              {
+                  // Set trims for R, P, Y
+                  for (int k=0; k<3; k++)
+                  {
+                    float m_pos = 1.0 / (_max[k+1] - _center[k]); 
+                    float n_pos =  - (m_pos * _center[k]);
+                    float m_neg = - 1.0 / (_min[k+1] - _center[k]); 
+                    float n_neg =  - (m_neg * _center[k]);
+                    rc.setTrim(m_pos, n_pos, m_neg, n_neg, k+1);
+                  }
+                  // Set Throttle trims
+                  float m = 2.0 / (_max[0] - _min[0]);
+                  float n = 1.0 - m*_max[0];
+                  rc.setTrim(m, n, m, n, 0);
+              }
+
         protected:
 
 
@@ -225,11 +259,10 @@ namespace hf {
                 loadParameters();
                 // begin the serial port for the ESP32
                 Serial4.begin(115200);
-
+                
+                rc.setCalibrationStatus(_txCalibrated);
                 // Trim receiver via software
-                rc.setTrimRoll(-0.0030506f);
-                rc.setTrimPitch(-0.0372178f);
-                rc.setTrimYaw(-0.0384381f);
+                trimReceiver();
 
                 // Instantiate controllers after loading parameters
                 hf::Rate * ratePid = new hf::Rate(

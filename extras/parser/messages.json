@@ -231,6 +231,16 @@
    {"green": "byte"},
    {"blue": "byte"}],
    
+  "RC_CALIBRATION":
+  [{"ID": 214},
+   {"comment": "Calibrate the transmitter"},
+   {"stage": "byte"}],
+
+  "RC_CALIBRATION_STATUS":
+  [{"ID": 119},
+   {"comment": "Return the status of the transmitter calibration"},
+   {"status": "byte"}],
+  
   "SET_RANGE_PARAMETERS":
   [{"ID": 221},
    {"comment": "Range calibration parameters, which is the translation from IMU to range frames"},

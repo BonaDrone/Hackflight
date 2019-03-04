@@ -49,12 +49,15 @@ namespace hf {
 
         private: 
 
+            // status variables
             // XXX use a proper version formating
             uint8_t _firmwareVersion = 1;
             bool _isMosquito90;
             bool _hasPositioningBoard;
             bool _positionBoardConnected;
-
+            // transmitter calibration
+            tx_calibration_t _tx_calibration;
+            
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
             Receiver   * _receiver;
@@ -280,10 +283,13 @@ namespace hf {
             static const uint8_t N_PID_CONSTANTS   = 16;
             static const uint8_t RANGE_PARAMS      = PID_CONSTANTS + N_PID_CONSTANTS * sizeof(float);
             static const uint8_t N_RANGE_PARAMS    = 3;
+            static const uint8_t TRANSMITER_TRIMS  = RANGE_PARAMS + N_RANGE_PARAMS * sizeof(float);
+            static const uint8_t N_TRIMS           = 11;
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
             static const uint8_t CALIBRATE_ESC     = 2;
+            static const uint8_t TX_CALIBRATED     = 3;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -464,7 +470,101 @@ namespace hf {
             {
                 positionBoardConnected = _positionBoardConnected;
             }
+            
+            virtual void handle_RC_CALIBRATION_Request(uint8_t stage) override
+            {
+                switch (stage) {
+                  case 0:
+                    {
+                      // Calibration logic of stage 1: T min and R, P, Y center values
+                      _tx_calibration._endStage2 = true;
+                      _tx_calibration._endStage1 = false;
+                      int iters = 0;
+                      while (!_tx_calibration._endStage1)
+                      {
+                          // Check whether receiver data is available
+                          _receiver->pollForFrame();
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
+                          if (newData)
+                          {
+                              // Update values
+                              float lastVal = _receiver->getRawval(0);
+                              // Throttle
+                              _tx_calibration._min[0] = (lastVal < _tx_calibration._min[0]) ? lastVal : _tx_calibration._min[0];
+                              // Roll
+                              _tx_calibration._center[0] = (_receiver->getRawval(1) + iters * _tx_calibration._center[0]) / (iters + 1);
+                              // Pitch
+                              _tx_calibration._center[1] = (_receiver->getRawval(2) + iters * _tx_calibration._center[1]) / (iters + 1);
+                              // Yaw
+                              _tx_calibration._center[2] = (_receiver->getRawval(3) + iters * _tx_calibration._center[2]) / (iters + 1);
+                              iters += 1;
+                          }
+                          // Store updated values in EEPROM
+                          EEPROM.put(TRANSMITER_TRIMS, _tx_calibration._min[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 3 * sizeof(float), _tx_calibration._center[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 6 * sizeof(float), _tx_calibration._center[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 9 * sizeof(float), _tx_calibration._center[2]);
+                          
+                          doSerialComms();
+                      }
+                    }
+                    break;
+                  case 1:
+                    {
+                      // Calibration logic of stage 2: T max and R, P, Y min and max
+                      _tx_calibration._endStage1 = true;
+                      _tx_calibration._endStage2 = false;
+                      while (!_tx_calibration._endStage2)
+                      {
+                          // Check whether receiver data is available
+                          _receiver->pollForFrame();
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
+                          if (newData)
+                          {
+                              // Update max of T, R, P, Y and min of R, P, Y
+                              for (int k=0; k<4; k++)
+                              {
+                                  float lastVal = _receiver->getRawval(k);
+                                  _tx_calibration._max[k] = (lastVal > _tx_calibration._max[k]) ? lastVal : _tx_calibration._max[k];
+                                  // Update min values of R, P, Y
+                                  if (k!=0)
+                                  {
+                                      _tx_calibration._min[k] = (lastVal < _tx_calibration._min[k]) ? lastVal : _tx_calibration._min[k];
+                                  }
+                              }
+                          }
+                          // Store updated values in EEPROM
+                          EEPROM.put(TRANSMITER_TRIMS + 1 * sizeof(float), _tx_calibration._max[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 2 * sizeof(float), _tx_calibration._min[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 4 * sizeof(float), _tx_calibration._max[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 5 * sizeof(float), _tx_calibration._min[2]);
+                          EEPROM.put(TRANSMITER_TRIMS + 7 * sizeof(float), _tx_calibration._max[2]);
+                          EEPROM.put(TRANSMITER_TRIMS + 8 * sizeof(float), _tx_calibration._min[3]);
+                          EEPROM.put(TRANSMITER_TRIMS + 10 * sizeof(float), _tx_calibration._max[3]);
+                          
+                          doSerialComms();
+                      }
 
+                    }
+                    break;
+                  case 2:
+                    {
+                      // Calibration logic of stage 3: End calibration
+                      _tx_calibration._endStage1 = true;
+                      _tx_calibration._endStage2 = true;
+                      // Mark calibration as successful
+                      _tx_calibration._rcCalibrationStatus = 1;
+                      uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                      EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
+                    }
+                    break;
+                }
+            }
+            
+            virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
+            {
+                status = _tx_calibration._rcCalibrationStatus;
+            }
 
         public:
 

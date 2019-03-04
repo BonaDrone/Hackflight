@@ -38,7 +38,7 @@ namespace hf {
             static const uint8_t MAXMSG = 255;
             
             // Number of EEPROM reserved slots for parameters
-            static const int PARAMETER_SLOTS = 100;
+            static const int PARAMETER_SLOTS = 150;
 
         private:
 
@@ -280,6 +280,7 @@ namespace hf {
                             _checksum ^= c;
                             _inBuf[_offset++] = c;
                         } else  {
+                            _state = IDLE;
                             if (_checksum == c) {        // compare calculated and transferred _checksum
                                 if (_direction == 0) {
                                     dispatchRequestMessage();
@@ -288,7 +289,6 @@ namespace hf {
                                     dispatchDataMessage();
                                 }
                             }
-                            _state = IDLE;
                         }
 
                 } // switch (_state)
@@ -767,6 +767,24 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
+                    case 214:
+                    {
+                        uint8_t stage = 0;
+                        memcpy(&stage,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_RC_CALIBRATION_Request(stage);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 119:
+                    {
+                        uint8_t status = 0;
+                        handle_RC_CALIBRATION_STATUS_Request(status);
+                        prepareToSendBytes(1);
+                        sendByte(status);
+                        serialize8(_checksum);
+                        } break;
+
                     case 221:
                     {
                         float rx = 0;
@@ -987,6 +1005,12 @@ namespace hf {
                     {
                         uint8_t version = getArgument(0);
                         handle_FIRMWARE_VERSION_Data(version);
+                        } break;
+
+                    case 119:
+                    {
+                        uint8_t status = getArgument(0);
+                        handle_RC_CALIBRATION_STATUS_Data(status);
                         } break;
 
                 }
@@ -1466,6 +1490,26 @@ namespace hf {
                 (void)red;
                 (void)green;
                 (void)blue;
+            }
+
+            virtual void handle_RC_CALIBRATION_Request(uint8_t  stage)
+            {
+                (void)stage;
+            }
+
+            virtual void handle_RC_CALIBRATION_Data(uint8_t  stage)
+            {
+                (void)stage;
+            }
+
+            virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status)
+            {
+                (void)status;
+            }
+
+            virtual void handle_RC_CALIBRATION_STATUS_Data(uint8_t & status)
+            {
+                (void)status;
             }
 
             virtual void handle_SET_RANGE_PARAMETERS_Request(float  rx, float  ry, float  rz)
@@ -2415,6 +2459,48 @@ namespace hf {
                 bytes[8] = CRC8(&bytes[3], 5);
 
                 return 9;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION(uint8_t bytes[], uint8_t  stage)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 214;
+
+                memcpy(&bytes[5], &stage, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION_STATUS_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 119;
+                bytes[5] = 119;
+
+                return 6;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION_STATUS(uint8_t bytes[], uint8_t  status)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 119;
+
+                memcpy(&bytes[5], &status, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
             static uint8_t serialize_SET_RANGE_PARAMETERS(uint8_t bytes[], float  rx, float  ry, float  rz)
