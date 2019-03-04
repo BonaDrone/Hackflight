@@ -479,7 +479,7 @@ namespace hf {
                       // Calibration logic of stage 1: T min and R, P, Y center values
                       _tx_calibration._endStage2 = true;
                       _tx_calibration._endStage1 = false;
-                      int i = 0;
+                      int iters = 0;
                       while (!_tx_calibration._endStage1)
                       {
                           // Check whether receiver data is available
@@ -487,20 +487,25 @@ namespace hf {
                           bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
                           if (newData)
                           {
-                              _tx_calibration._min[0] += _receiver->getRawval(0);        // T
-                              _tx_calibration._center[0] += _receiver->getRawval(1);     // R
-                              _tx_calibration._center[1] += _receiver->getRawval(2);     // P
-                              _tx_calibration._center[2] += _receiver->getRawval(3);     // Y
-                              i += 1;
+                              // Update values
+                              float lastVal = _receiver->getRawval(0);
+                              // Throttle
+                              _tx_calibration._min[0] = (lastVal < _tx_calibration._min[0]) ? lastVal : _tx_calibration._min[0];
+                              // Roll
+                              _tx_calibration._center[0] = (_receiver->getRawval(1) + iters * _tx_calibration._center[0]) / (iters + 1);
+                              // Pitch
+                              _tx_calibration._center[1] = (_receiver->getRawval(2) + iters * _tx_calibration._center[1]) / (iters + 1);
+                              // Yaw
+                              _tx_calibration._center[2] = (_receiver->getRawval(3) + iters * _tx_calibration._center[2]) / (iters + 1);
+                              iters += 1;
                           }
+                          // Store updated values in EEPROM
+                          EEPROM.put(TRANSMITER_TRIMS, _tx_calibration._min[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 3 * sizeof(float), _tx_calibration._center[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 6 * sizeof(float), _tx_calibration._center[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 9 * sizeof(float), _tx_calibration._center[2]);
+                          
                           doSerialComms();
-                      }
-
-                      _tx_calibration._min[0] = _tx_calibration._min[0] / i;
-
-                      for (int k=0; k<3; k++)
-                      {
-                          _tx_calibration._center[k] = _tx_calibration._center[k] / i;
                       }
                     }
                     break;
@@ -511,25 +516,35 @@ namespace hf {
                       _tx_calibration._endStage2 = false;
                       while (!_tx_calibration._endStage2)
                       {
-                        // Check whether receiver data is available
-                        _receiver->pollForFrame();
-                        bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
-                        if (newData)
-                        {
-                            // Update max of T, R, P, Y and min of R, P, Y
-                            for (int k=0; k<4; k++)
-                            {
-                              float lastVal = _receiver->getRawval(k);
-                              _tx_calibration._max[k] = (lastVal > _tx_calibration._max[k]) ? lastVal : _tx_calibration._max[k];
-                              // Update min values of R, P, Y
-                              if (k!=0)
+                          // Check whether receiver data is available
+                          _receiver->pollForFrame();
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
+                          if (newData)
+                          {
+                              // Update max of T, R, P, Y and min of R, P, Y
+                              for (int k=0; k<4; k++)
                               {
-                                  _tx_calibration._min[k] = (lastVal < _tx_calibration._min[k]) ? lastVal : _tx_calibration._min[k];
+                                  float lastVal = _receiver->getRawval(k);
+                                  _tx_calibration._max[k] = (lastVal > _tx_calibration._max[k]) ? lastVal : _tx_calibration._max[k];
+                                  // Update min values of R, P, Y
+                                  if (k!=0)
+                                  {
+                                      _tx_calibration._min[k] = (lastVal < _tx_calibration._min[k]) ? lastVal : _tx_calibration._min[k];
+                                  }
                               }
-                            }
-                        }
-                        doSerialComms();
+                          }
+                          // Store updated values in EEPROM
+                          EEPROM.put(TRANSMITER_TRIMS + 1 * sizeof(float), _tx_calibration._max[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 2 * sizeof(float), _tx_calibration._min[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 4 * sizeof(float), _tx_calibration._max[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 5 * sizeof(float), _tx_calibration._min[2]);
+                          EEPROM.put(TRANSMITER_TRIMS + 7 * sizeof(float), _tx_calibration._max[2]);
+                          EEPROM.put(TRANSMITER_TRIMS + 8 * sizeof(float), _tx_calibration._min[3]);
+                          EEPROM.put(TRANSMITER_TRIMS + 10 * sizeof(float), _tx_calibration._max[3]);
+                          
+                          doSerialComms();
                       }
+
                     }
                     break;
                   case 2:
@@ -537,47 +552,13 @@ namespace hf {
                       // Calibration logic of stage 3: End calibration
                       _tx_calibration._endStage1 = true;
                       _tx_calibration._endStage2 = true;
+                      // Mark calibration as successful
+                      _tx_calibration._rcCalibrationStatus = 1;
+                      uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                      EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
                     }
                     break;
                 }
-                // Store trims
-                EEPROM.put(TRANSMITER_TRIMS, _tx_calibration._min[0]);
-                EEPROM.put(TRANSMITER_TRIMS + 1 * sizeof(float), _tx_calibration._max[0]);
-                EEPROM.put(TRANSMITER_TRIMS + 2 * sizeof(float), _tx_calibration._min[1]);
-                EEPROM.put(TRANSMITER_TRIMS + 3 * sizeof(float), _tx_calibration._center[0]);
-                EEPROM.put(TRANSMITER_TRIMS + 4 * sizeof(float), _tx_calibration._max[1]);
-                EEPROM.put(TRANSMITER_TRIMS + 5 * sizeof(float), _tx_calibration._min[2]);
-                EEPROM.put(TRANSMITER_TRIMS + 6 * sizeof(float), _tx_calibration._center[1]);
-                EEPROM.put(TRANSMITER_TRIMS + 7 * sizeof(float), _tx_calibration._max[2]);
-                EEPROM.put(TRANSMITER_TRIMS + 8 * sizeof(float), _tx_calibration._min[3]);
-                EEPROM.put(TRANSMITER_TRIMS + 9 * sizeof(float), _tx_calibration._center[2]);
-                EEPROM.put(TRANSMITER_TRIMS + 10 * sizeof(float), _tx_calibration._max[3]);
-                // Mark calibration as successful
-                _tx_calibration._rcCalibrationStatus = 1;
-                uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
-                // // XXX Debug calibration results
-                // Serial.print(_tx_calibration._center[0], 8);
-                // Serial.print(",");
-                // Serial.print(_tx_calibration._center[1], 8);
-                // Serial.print(",");
-                // Serial.println(_tx_calibration._center[2], 8);
-                // 
-                // Serial.print(_tx_calibration._min[0], 8);
-                // Serial.print(",");
-                // Serial.print(_tx_calibration._min[1], 8);
-                // Serial.print(",");
-                // Serial.print(_tx_calibration._min[2], 8);
-                // Serial.print(",");
-                // Serial.println(_tx_calibration._min[3], 8);
-                // 
-                // Serial.print(_tx_calibration._max[0], 8);
-                // Serial.print(",");
-                // Serial.print(_tx_calibration._max[1], 8);
-                // Serial.print(",");
-                // Serial.print(_tx_calibration._max[2], 8);
-                // Serial.print(",");
-                // Serial.println(_tx_calibration._max[3], 8);
             }
             
             virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
