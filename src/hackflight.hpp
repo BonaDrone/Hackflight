@@ -81,7 +81,7 @@ namespace hf {
             bool _lowBattery;
             
             // XXX Store it as an MSP parameter
-            const float _BAT_MIN = 5; // Minimum voltage for 1S Battery
+            const float _BAT_MIN = 3.3; // Minimum voltage for 1S Battery
 
             // Support for headless mode
             float _yawInitial;
@@ -105,13 +105,13 @@ namespace hf {
               if (_board->getTime() - lastTime > 0.5)
               {
                 // Look is the battery is belowe the limit
-                if (_state.batteryVoltage < _BAT_MIN)
+                if (_state.batteryVoltage < _BAT_MIN && _state.batteryVoltage > 2.5)
                 {
                   // Save the first time it detects low battery
                   lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
                   
                   // Low battery if there has been low battery for more than 5s
-                  // XXX it might be necessary to trigger the low battery action from hereº
+                  // XXX it might be necessary to trigger the low battery action from here
                   _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
                   
                   // ---- Provisional
@@ -128,9 +128,10 @@ namespace hf {
                 {
                   isLastLowBattery = false;
                 }
+                lastTime = _board->getTime();
               }
                             
-              lastTime = _board->getTime();
+              
             }
             
             void checkQuaternion(void)
