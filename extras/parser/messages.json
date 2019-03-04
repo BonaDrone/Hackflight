@@ -164,6 +164,26 @@
    {"comment": "begin of mission codes flag"},
    {"flag": "byte"}],
 
+  "ESC_CALIBRATION":
+  [{"ID": 24},
+   {"comment": "Calibrate the ESCs with the Standard or MultiShot protocol"},
+   {"protocol": "byte"}],
+
+  "MOSQUITO_VERSION":
+  [{"ID": 25},
+   {"comment": "Return the type of Mosquito (90 or 150)"},
+   {"mosquitoVersion": "byte"}],
+  
+  "POSITION_BOARD":
+  [{"ID": 26},
+   {"comment": "Return if position board parameter is set to True or False"},
+   {"hasPositionBoard": "byte"}],
+
+  "POSITION_BOARD_CONNECTED":
+  [{"ID": 27},
+   {"comment": "Return if position board is connected"},
+   {"positionBoardConnected": "byte"}],
+
   "WP_MISSION_BEGIN":
   [{"ID": 30},
    {"comment": "Start mission execution"},
@@ -204,6 +224,33 @@
    {"comment": "Specify whether the positioning board is present or not"},
    {"hasBoard": "byte"}],
    
+  "SET_LEDS":
+  [{"ID": 227},
+   {"comment": "Specify whether the positioning board is present or not"},
+   {"red": "byte"},
+   {"green": "byte"},
+   {"blue": "byte"}],
+   
+  "RC_CALIBRATION":
+  [{"ID": 214},
+   {"comment": "Calibrate the transmitter"},
+   {"stage": "byte"}],
+
+  "RC_CALIBRATION_STATUS":
+  [{"ID": 119},
+   {"comment": "Return the status of the transmitter calibration"},
+   {"status": "byte"}],
+   
+  "SET_BATTERY_VOLTAGE":
+  [{"ID": 228},
+   {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
+   {"batteryVoltage": "float"}],
+    
+  "GET_BATTERY_VOLTAGE":
+  [{"ID": 125},
+   {"comment": "Get the current battery voltage"},
+   {"voltage": "float"}],
+  
   "SET_RANGE_PARAMETERS":
   [{"ID": 221},
    {"comment": "Range calibration parameters, which is the translation from IMU to range frames"},

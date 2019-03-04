@@ -69,10 +69,8 @@ namespace hf {
 
         protected:
             // M 150
-            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
             // M 90
             //const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
-
             virtual void writeMotor(uint8_t index, float value) = 0;
 
             virtual bool  getQuaternion(float quat[4]) override 
@@ -159,6 +157,8 @@ namespace hf {
             const uint16_t PWM_MAX = 2000;
 
         protected:
+            
+            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
 
             virtual void writeMotor(uint8_t index, float value) override
             {
@@ -166,7 +166,7 @@ namespace hf {
             }
 
         public:
-
+            
             BonadroneStandard(void) : Bonadrone()
             {
                 for (uint8_t k=0; k<4; ++k) {
@@ -186,6 +186,8 @@ namespace hf {
             const uint16_t PWM_MAX = 500;
 
         protected:
+            
+            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
 
             virtual void writeMotor(uint8_t index, float value) override
             {
@@ -194,9 +196,8 @@ namespace hf {
                 analogWrite(MOTOR_PINS[index], (uint16_t)(PWM_MIN+value*(PWM_MAX-PWM_MIN)));
             }
 
-
         public:
-
+          
             BonadroneMultiShot(void) : Bonadrone()
             {
                 for (uint8_t k=0; k<4; ++k) {
@@ -212,6 +213,8 @@ namespace hf {
 
         protected:
 
+            const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
+
             virtual void writeMotor(uint8_t index, float value) override
             {
                 analogWrite(MOTOR_PINS[index], (uint8_t)(value * 255));
@@ -219,7 +222,7 @@ namespace hf {
 
 
         public:
-
+            
             BonadroneBrushed(void) : Bonadrone()
         {
             for (int k=0; k<4; ++k) {

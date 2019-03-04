@@ -77,21 +77,16 @@ namespace hf {
 
             OpticalFlow(void) : PeripheralSensor(false, true) {}
 
-            void begin(void)
+            bool begin(void)
             {
+                bool connected = true;
                 if (!_flowSensor.begin()) {
-                    while (true) {
-                        Serial.println("Initialization of the flow sensor failed");
-                        delay(500);
-                    }
+                  connected = false;
                 }
-                // _lpDeltaX.init();
-                // _lpDeltaY.init();
+                return connected;
             }
-            
             virtual bool getJacobianObservation(float * H, float * x) override
             {
-                
                 float z;
                 // Saturate z estimation to avoid singularities
                 if (x[2] < 0.1)

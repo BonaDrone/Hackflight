@@ -49,9 +49,15 @@ namespace hf {
 
         private: 
 
+            // status variables
             // XXX use a proper version formating
-            uint8_t _firmwareVersion = 0;
-
+            uint8_t _firmwareVersion = 1;
+            bool _isMosquito90;
+            bool _hasPositioningBoard;
+            bool _positionBoardConnected;
+            // transmitter calibration
+            tx_calibration_t _tx_calibration;
+            
             // Passed to Hackflight::init() for a particular build
             Board      * _board;
             Receiver   * _receiver;
@@ -83,6 +89,10 @@ namespace hf {
             // Safety
             bool _safeToArm;
             bool _failsafe;
+            bool _lowBattery;
+            
+            // XXX Store it as an MSP parameter
+            const float _BAT_MIN = 3.3; // Minimum voltage for 1S Battery
 
             // Support for headless mode
             float _yawInitial;
@@ -91,7 +101,50 @@ namespace hf {
             {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
             }
-
+            
+            void checkBattery()
+            {
+              // Frequency management
+              static float lastTime = 0.0;
+              
+              // Battery management
+              static float lastTimeLowBattery = 0.0;
+              static float lastBatteryVoltage = 0.0;
+              static bool  isLastLowBattery = false;
+              
+              // Check battery with a freq. of 2Hz
+              if (_board->getTime() - lastTime > 0.5)
+              {
+                // Look if the battery is below the limit
+                if (_state.batteryVoltage < _BAT_MIN && _state.batteryVoltage > 2.5)
+                {
+                  // Save the first time it detects low battery
+                  lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
+                  
+                  // Low battery if there has been low battery for more than 5s
+                  // XXX it might be necessary to trigger the low battery action from here
+                  _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
+                  
+                  // ---- Provisional
+                  if (_lowBattery)
+                  {
+                    pinMode(25, OUTPUT);
+                    digitalWrite(25, LOW);
+                  }
+                  // ---- Provisional
+                  
+                  isLastLowBattery = true;
+                }
+                else
+                {
+                  isLastLowBattery = false;
+                }
+                lastTime = _board->getTime();
+              }
+                            
+              
+            }
+            
             void updateControlSignal(void)
             { 
                 // For PID control, start with demands from receiver
@@ -278,9 +331,13 @@ namespace hf {
             static const uint8_t N_PID_CONSTANTS   = 16;
             static const uint8_t RANGE_PARAMS      = PID_CONSTANTS + N_PID_CONSTANTS * sizeof(float);
             static const uint8_t N_RANGE_PARAMS    = 3;
+            static const uint8_t TRANSMITER_TRIMS  = RANGE_PARAMS + N_RANGE_PARAMS * sizeof(float);
+            static const uint8_t N_TRIMS           = 11;
             // booleans values are stored as the bits of the byte at address 0
             static const uint8_t MOSQUITO_VERSION  = 0;
             static const uint8_t POSITIONING_BOARD = 1;
+            static const uint8_t CALIBRATE_ESC     = 2;
+            static const uint8_t TX_CALIBRATED     = 3;
 
 
             virtual void handle_SET_ARMED_Request(uint8_t  flag)
@@ -293,6 +350,23 @@ namespace hf {
                 else {          // got disarming command: always disarm
                     _state.armed = false;
                 }
+            }
+
+            virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
+            {
+                uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                EEPROM.put(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
+            }
+
+            virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue) override
+            {
+                // XXX Do not store led pins as hardcoded values
+                pinMode(25, OUTPUT);
+                pinMode(26, OUTPUT);
+                pinMode(38, OUTPUT);
+                red ? digitalWrite(25, LOW) : digitalWrite(25, HIGH);
+                green ? digitalWrite(26, LOW) : digitalWrite(26, HIGH);
+                blue ? digitalWrite(38, LOW) : digitalWrite(38, HIGH);
             }
 
             virtual void handle_RC_NORMAL_Request(float & c1, float & c2, float & c3, float & c4, float & c5, float & c6) override
@@ -370,8 +444,10 @@ namespace hf {
                 if (version)
                 {
                   EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                  _isMosquito90 = true;
                 } else {
                   EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                  _isMosquito90 = false;
                 }
             }
             
@@ -381,8 +457,10 @@ namespace hf {
                 if (hasBoard)
                 {
                   EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                  _hasPositioningBoard = true;
                 } else {
                   EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                  _hasPositioningBoard = false;
                 }
             }
             
@@ -416,6 +494,134 @@ namespace hf {
               EEPROM.put(RANGE_PARAMS, rx);
               EEPROM.put(RANGE_PARAMS + 1 * sizeof(float), ry);
               EEPROM.put(RANGE_PARAMS + 2 * sizeof(float), rz);
+            }
+            
+            virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage) override
+            {
+              _state.batteryVoltage = batteryVoltage;
+            }
+            
+            virtual void handle_GET_BATTERY_VOLTAGE_Request(float & batteryVoltage) override
+            {
+                batteryVoltage = _state.batteryVoltage;
+            }
+            
+            virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4) override
+            {
+                  m1 = _mixer->motorsDisarmed[0];
+                  m2 = _mixer->motorsDisarmed[1];
+                  m3 = _mixer->motorsDisarmed[2];
+                  m4 = _mixer->motorsDisarmed[3];
+            }
+            
+            virtual void handle_MOSQUITO_VERSION_Request(uint8_t & mosquitoVersion) override
+            {
+                mosquitoVersion = _isMosquito90;
+            }
+            
+            virtual void handle_POSITION_BOARD_Request(uint8_t & hasPositionBoard) override
+            {
+                hasPositionBoard = _hasPositioningBoard;
+            }
+            
+            virtual void handle_POSITION_BOARD_CONNECTED_Request(uint8_t & positionBoardConnected) override
+            {
+                positionBoardConnected = _positionBoardConnected;
+            }
+            
+            virtual void handle_RC_CALIBRATION_Request(uint8_t stage) override
+            {
+                switch (stage) {
+                  case 0:
+                    {
+                      // Calibration logic of stage 1: T min and R, P, Y center values
+                      _tx_calibration._endStage2 = true;
+                      _tx_calibration._endStage1 = false;
+                      int iters = 0;
+                      while (!_tx_calibration._endStage1)
+                      {
+                          // Check whether receiver data is available
+                          _receiver->pollForFrame();
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
+                          if (newData)
+                          {
+                              // Update values
+                              float lastVal = _receiver->getRawval(0);
+                              // Throttle
+                              _tx_calibration._min[0] = (lastVal < _tx_calibration._min[0]) ? lastVal : _tx_calibration._min[0];
+                              // Roll
+                              _tx_calibration._center[0] = (_receiver->getRawval(1) + iters * _tx_calibration._center[0]) / (iters + 1);
+                              // Pitch
+                              _tx_calibration._center[1] = (_receiver->getRawval(2) + iters * _tx_calibration._center[1]) / (iters + 1);
+                              // Yaw
+                              _tx_calibration._center[2] = (_receiver->getRawval(3) + iters * _tx_calibration._center[2]) / (iters + 1);
+                              iters += 1;
+                          }
+                          // Store updated values in EEPROM
+                          EEPROM.put(TRANSMITER_TRIMS, _tx_calibration._min[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 3 * sizeof(float), _tx_calibration._center[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 6 * sizeof(float), _tx_calibration._center[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 9 * sizeof(float), _tx_calibration._center[2]);
+                          
+                          doSerialComms();
+                      }
+                    }
+                    break;
+                  case 1:
+                    {
+                      // Calibration logic of stage 2: T max and R, P, Y min and max
+                      _tx_calibration._endStage1 = true;
+                      _tx_calibration._endStage2 = false;
+                      while (!_tx_calibration._endStage2)
+                      {
+                          // Check whether receiver data is available
+                          _receiver->pollForFrame();
+                          bool newData = _receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial, true);
+                          if (newData)
+                          {
+                              // Update max of T, R, P, Y and min of R, P, Y
+                              for (int k=0; k<4; k++)
+                              {
+                                  float lastVal = _receiver->getRawval(k);
+                                  _tx_calibration._max[k] = (lastVal > _tx_calibration._max[k]) ? lastVal : _tx_calibration._max[k];
+                                  // Update min values of R, P, Y
+                                  if (k!=0)
+                                  {
+                                      _tx_calibration._min[k] = (lastVal < _tx_calibration._min[k]) ? lastVal : _tx_calibration._min[k];
+                                  }
+                              }
+                          }
+                          // Store updated values in EEPROM
+                          EEPROM.put(TRANSMITER_TRIMS + 1 * sizeof(float), _tx_calibration._max[0]);
+                          EEPROM.put(TRANSMITER_TRIMS + 2 * sizeof(float), _tx_calibration._min[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 4 * sizeof(float), _tx_calibration._max[1]);
+                          EEPROM.put(TRANSMITER_TRIMS + 5 * sizeof(float), _tx_calibration._min[2]);
+                          EEPROM.put(TRANSMITER_TRIMS + 7 * sizeof(float), _tx_calibration._max[2]);
+                          EEPROM.put(TRANSMITER_TRIMS + 8 * sizeof(float), _tx_calibration._min[3]);
+                          EEPROM.put(TRANSMITER_TRIMS + 10 * sizeof(float), _tx_calibration._max[3]);
+                          
+                          doSerialComms();
+                      }
+
+                    }
+                    break;
+                  case 2:
+                    {
+                      // Calibration logic of stage 3: End calibration
+                      _tx_calibration._endStage1 = true;
+                      _tx_calibration._endStage2 = true;
+                      // Mark calibration as successful
+                      _tx_calibration._rcCalibrationStatus = 1;
+                      uint8_t config = EEPROM.read(GENERAL_CONFIG);
+                      EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
+                    }
+                    break;
+                }
+            }
+            
+            virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status) override
+            {
+                status = _tx_calibration._rcCalibrationStatus;
             }
 
         public:
@@ -468,7 +674,15 @@ namespace hf {
 
                 // Setup failsafe
                 _failsafe = false;
+                _lowBattery = false;
             } // init
+
+            void setParams(bool hasPositionBoard, bool isMosquito90, bool positionBoardConnected)
+            {
+                _hasPositioningBoard = hasPositionBoard;
+                _isMosquito90 = isMosquito90;
+                _positionBoardConnected = positionBoardConnected;
+            }
 
             void addSensor(PeripheralSensor * sensor) 
             {
@@ -490,6 +704,9 @@ namespace hf {
 
             void update(void)
             {
+                // Check Battery
+                checkBattery();
+                
                 // Check planner
                 checkPlanner();
                 // Grab control signal if available

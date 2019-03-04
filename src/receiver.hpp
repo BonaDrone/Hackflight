@@ -52,6 +52,13 @@ namespace hf {
         const float CYCLIC_RATE       = 0.90f;
         const float THROTTLE_MID      = 0.00f;
         const float THROTTLE_EXPO     = 0.20f;
+        
+        bool _calibrated = false;
+        // Arrays to trim demands 
+        float M_POS[4];
+        float N_POS[4];
+        float M_NEG[4];
+        float N_NEG[4];
 
         float adjustCommand(float command, uint8_t channel)
         {
@@ -67,6 +74,22 @@ namespace hf {
         float applyCyclicFunction(float command)
         {
             return rcFun(command, CYCLIC_EXPO, CYCLIC_RATE);
+        }
+
+        void applyTrims(bool calibrating)
+        {
+            if (calibrating || !_calibrated) return;
+ 
+            for (int channel=0; channel<4; channel++)
+            {
+                float val = rawvals[_channelMap[channel]];
+                if (val < 0)
+                {
+                    rawvals[_channelMap[channel]] = M_NEG[channel] * val + N_NEG[channel];
+                } else {
+                    rawvals[_channelMap[channel]] = M_POS[channel] * val + N_POS[channel];                  
+                }
+            }
         }
 
         float makePositiveCommand(uint8_t channel)
@@ -170,13 +193,15 @@ namespace hf {
         {
         }
 
-        bool getDemands(float yawAngle)
+        bool getDemands(float yawAngle, bool calibrating = false)
         {
             // Wait till there's a new frame
             if (!gotNewFrame() && !_gotNewFrame) return false;
 
             // Read raw channel values
             readRawvals(_bypassReceiver);
+            
+            applyTrims(calibrating);
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);
@@ -255,6 +280,21 @@ namespace hf {
         {
             _trimYaw = trim;
         }
+        
+        void setTrim(float m_pos, float n_pos, float m_neg, float n_neg, int channel)
+        {
+            M_POS[channel] = m_pos;
+            N_POS[channel] = n_pos;
+            M_NEG[channel] = m_neg;
+            N_NEG[channel] = n_neg;
+        }
+        
+        void setCalibrationStatus(bool calibrated)
+        {
+            _calibrated = calibrated;
+        }
+        
+        virtual void pollForFrame(void) {}
         
         // Setters and getters of the attributes required to be able to use the
         // ESP32 and MSP messages as a receiver. For now, we offer this possibility
