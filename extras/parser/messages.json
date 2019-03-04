@@ -240,6 +240,16 @@
   [{"ID": 119},
    {"comment": "Return the status of the transmitter calibration"},
    {"status": "byte"}],
+   
+  "SET_BATTERY_VOLTAGE":
+  [{"ID": 228},
+   {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
+   {"batteryVoltage": "float"}],
+    
+  "GET_BATTERY_VOLTAGE":
+  [{"ID": 125},
+   {"comment": "Get the current battery voltage"},
+   {"voltage": "float"}],
   
   "SET_RANGE_PARAMETERS":
   [{"ID": 221},

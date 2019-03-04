@@ -37,6 +37,7 @@ typedef struct {
     hf::eskf_state_t * UAVState;
     bool  armed;
     bool  executingMission;
+    float batteryVoltage; 
 
 } state_t;
 

@@ -17,6 +17,7 @@
 * #55 Enable setting LEDs on/off with an MSP message
 * #68 Motor pins are set according to the specified Mosquito version
 * #70 Transmitter calibration
+* #73 Battery monitoring and low battery trigger 
 
 ### Changed
 

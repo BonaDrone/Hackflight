@@ -89,6 +89,10 @@ namespace hf {
             // Safety
             bool _safeToArm;
             bool _failsafe;
+            bool _lowBattery;
+            
+            // XXX Store it as an MSP parameter
+            const float _BAT_MIN = 3.3; // Minimum voltage for 1S Battery
 
             // Support for headless mode
             float _yawInitial;
@@ -97,7 +101,50 @@ namespace hf {
             {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
             }
-
+            
+            void checkBattery()
+            {
+              // Frequency management
+              static float lastTime = 0.0;
+              
+              // Battery management
+              static float lastTimeLowBattery = 0.0;
+              static float lastBatteryVoltage = 0.0;
+              static bool  isLastLowBattery = false;
+              
+              // Check battery with a freq. of 2Hz
+              if (_board->getTime() - lastTime > 0.5)
+              {
+                // Look if the battery is below the limit
+                if (_state.batteryVoltage < _BAT_MIN && _state.batteryVoltage > 2.5)
+                {
+                  // Save the first time it detects low battery
+                  lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
+                  
+                  // Low battery if there has been low battery for more than 5s
+                  // XXX it might be necessary to trigger the low battery action from here
+                  _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
+                  
+                  // ---- Provisional
+                  if (_lowBattery)
+                  {
+                    pinMode(25, OUTPUT);
+                    digitalWrite(25, LOW);
+                  }
+                  // ---- Provisional
+                  
+                  isLastLowBattery = true;
+                }
+                else
+                {
+                  isLastLowBattery = false;
+                }
+                lastTime = _board->getTime();
+              }
+                            
+              
+            }
+            
             void updateControlSignal(void)
             { 
                 // For PID control, start with demands from receiver
@@ -448,6 +495,16 @@ namespace hf {
               EEPROM.put(RANGE_PARAMS + 2 * sizeof(float), rz);
             }
             
+            virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage) override
+            {
+              _state.batteryVoltage = batteryVoltage;
+            }
+            
+            virtual void handle_GET_BATTERY_VOLTAGE_Request(float & batteryVoltage) override
+            {
+                batteryVoltage = _state.batteryVoltage;
+            }
+            
             virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4) override
             {
                   m1 = _mixer->motorsDisarmed[0];
@@ -616,6 +673,7 @@ namespace hf {
 
                 // Setup failsafe
                 _failsafe = false;
+                _lowBattery = false;
             } // init
 
             void setParams(bool hasPositionBoard, bool isMosquito90, bool positionBoardConnected)
@@ -645,6 +703,9 @@ namespace hf {
 
             void update(void)
             {
+                // Check Battery
+                checkBattery();
+                
                 // Check planner
                 checkPlanner();
                 // Grab control signal if available
