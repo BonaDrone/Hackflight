@@ -104,7 +104,7 @@ namespace hf {
               // Check battery with a freq. of 2Hz
               if (_board->getTime() - lastTime > 0.5)
               {
-                // Look is the battery is belowe the limit
+                // Look if the battery is below the limit
                 if (_state.batteryVoltage < _BAT_MIN && _state.batteryVoltage > 2.5)
                 {
                   // Save the first time it detects low battery
