@@ -37,3 +37,5 @@
 * #49 Optical Flow connection pin
 * #51 Modify parameters at runtime (Mosquito version and Position Board presence)
 * #52 ESC calibration procedure
+* #77 Indexing of the Optical Flow's covariance matrix
+* #77 Inclusion of the Optical Flow in the ESKF sensor array
