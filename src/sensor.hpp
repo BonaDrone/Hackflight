@@ -27,12 +27,13 @@ namespace hf {
     class Sensor {
 
         friend class Hackflight;
+        friend class ESKF;
 
         protected:
 
-        virtual void modifyState(state_t & state, float time) = 0;
+        virtual void modifyState(eskf_state_t & state, float time) {(void)state; (void)time;}
 
-        virtual bool ready(float time) = 0;
+        virtual bool ready(float time) {(void)time;}
 
     };  // class Sensor
 

@@ -38,7 +38,7 @@ namespace hf {
             static const uint8_t MAXMSG = 255;
             
             // Number of EEPROM reserved slots for parameters
-            static const int PARAMETER_SLOTS = 100;
+            static const int PARAMETER_SLOTS = 150;
 
         private:
 
@@ -280,6 +280,7 @@ namespace hf {
                             _checksum ^= c;
                             _inBuf[_offset++] = c;
                         } else  {
+                            _state = IDLE;
                             if (_checksum == c) {        // compare calculated and transferred _checksum
                                 if (_direction == 0) {
                                     dispatchRequestMessage();
@@ -288,7 +289,6 @@ namespace hf {
                                     dispatchDataMessage();
                                 }
                             }
-                            _state = IDLE;
                         }
 
                 } // switch (_state)
@@ -767,49 +767,55 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
+                    case 214:
+                    {
+                        uint8_t stage = 0;
+                        memcpy(&stage,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_RC_CALIBRATION_Request(stage);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 119:
+                    {
+                        uint8_t status = 0;
+                        handle_RC_CALIBRATION_STATUS_Request(status);
+                        prepareToSendBytes(1);
+                        sendByte(status);
+                        serialize8(_checksum);
+                        } break;
+
                     case 228:
                     {
-                        uint8_t c1 = 0;
-                        memcpy(&c1,  &_inBuf[0], sizeof(uint8_t));
+                        float batteryVoltage = 0;
+                        memcpy(&batteryVoltage,  &_inBuf[0], sizeof(float));
 
-                        uint8_t c2 = 0;
-                        memcpy(&c2,  &_inBuf[1], sizeof(uint8_t));
-
-                        uint8_t c3 = 0;
-                        memcpy(&c3,  &_inBuf[2], sizeof(uint8_t));
-
-                        uint8_t c4 = 0;
-                        memcpy(&c4,  &_inBuf[3], sizeof(uint8_t));
-
-                        handle_CHECK_PASSWORD_Request(c1, c2, c3, c4);
+                        handle_SET_BATTERY_VOLTAGE_Request(batteryVoltage);
                         acknowledgeResponse();
                         } break;
 
-                    case 229:
+                    case 125:
                     {
-                        uint8_t c1 = 0;
-                        memcpy(&c1,  &_inBuf[0], sizeof(uint8_t));
-
-                        uint8_t c2 = 0;
-                        memcpy(&c2,  &_inBuf[1], sizeof(uint8_t));
-
-                        uint8_t c3 = 0;
-                        memcpy(&c3,  &_inBuf[2], sizeof(uint8_t));
-
-                        uint8_t c4 = 0;
-                        memcpy(&c4,  &_inBuf[3], sizeof(uint8_t));
-
-                        handle_SET_PASSWORD_Request(c1, c2, c3, c4);
-                        acknowledgeResponse();
-                        } break;
-
-                    case 127:
-                    {
-                        uint8_t validPassword = 0;
-                        handle_PASSWORD_VALIDATED_Request(validPassword);
-                        prepareToSendBytes(1);
-                        sendByte(validPassword);
+                        float voltage = 0;
+                        handle_GET_BATTERY_VOLTAGE_Request(voltage);
+                        prepareToSendFloats(1);
+                        sendFloat(voltage);
                         serialize8(_checksum);
+                        } break;
+
+                    case 221:
+                    {
+                        float rx = 0;
+                        memcpy(&rx,  &_inBuf[0], sizeof(float));
+
+                        float ry = 0;
+                        memcpy(&ry,  &_inBuf[4], sizeof(float));
+
+                        float rz = 0;
+                        memcpy(&rz,  &_inBuf[8], sizeof(float));
+
+                        handle_SET_RANGE_PARAMETERS_Request(rx, ry, rz);
+                        acknowledgeResponse();
                         } break;
 
                 }
@@ -1019,10 +1025,16 @@ namespace hf {
                         handle_FIRMWARE_VERSION_Data(version);
                         } break;
 
-                    case 127:
+                    case 119:
                     {
-                        uint8_t validPassword = getArgument(0);
-                        handle_PASSWORD_VALIDATED_Data(validPassword);
+                        uint8_t status = getArgument(0);
+                        handle_RC_CALIBRATION_STATUS_Data(status);
+                        } break;
+
+                    case 125:
+                    {
+                        float voltage = getArgument(0);
+                        handle_GET_BATTERY_VOLTAGE_Data(voltage);
                         } break;
 
                 }
@@ -1504,46 +1516,58 @@ namespace hf {
                 (void)blue;
             }
 
-            virtual void handle_CHECK_PASSWORD_Request(uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4)
+            virtual void handle_RC_CALIBRATION_Request(uint8_t  stage)
             {
-                (void)c1;
-                (void)c2;
-                (void)c3;
-                (void)c4;
+                (void)stage;
             }
 
-            virtual void handle_CHECK_PASSWORD_Data(uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4)
+            virtual void handle_RC_CALIBRATION_Data(uint8_t  stage)
             {
-                (void)c1;
-                (void)c2;
-                (void)c3;
-                (void)c4;
+                (void)stage;
             }
 
-            virtual void handle_SET_PASSWORD_Request(uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4)
+            virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status)
             {
-                (void)c1;
-                (void)c2;
-                (void)c3;
-                (void)c4;
+                (void)status;
             }
 
-            virtual void handle_SET_PASSWORD_Data(uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4)
+            virtual void handle_RC_CALIBRATION_STATUS_Data(uint8_t & status)
             {
-                (void)c1;
-                (void)c2;
-                (void)c3;
-                (void)c4;
+                (void)status;
             }
 
-            virtual void handle_PASSWORD_VALIDATED_Request(uint8_t & validPassword)
+            virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage)
             {
-                (void)validPassword;
+                (void)batteryVoltage;
             }
 
-            virtual void handle_PASSWORD_VALIDATED_Data(uint8_t & validPassword)
+            virtual void handle_SET_BATTERY_VOLTAGE_Data(float  batteryVoltage)
             {
-                (void)validPassword;
+                (void)batteryVoltage;
+            }
+
+            virtual void handle_GET_BATTERY_VOLTAGE_Request(float & voltage)
+            {
+                (void)voltage;
+            }
+
+            virtual void handle_GET_BATTERY_VOLTAGE_Data(float & voltage)
+            {
+                (void)voltage;
+            }
+
+            virtual void handle_SET_RANGE_PARAMETERS_Request(float  rx, float  ry, float  rz)
+            {
+                (void)rx;
+                (void)ry;
+                (void)rz;
+            }
+
+            virtual void handle_SET_RANGE_PARAMETERS_Data(float  rx, float  ry, float  rz)
+            {
+                (void)rx;
+                (void)ry;
+                (void)rz;
             }
 
         public:
@@ -2481,7 +2505,49 @@ namespace hf {
                 return 9;
             }
 
-            static uint8_t serialize_CHECK_PASSWORD(uint8_t bytes[], uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4)
+            static uint8_t serialize_RC_CALIBRATION(uint8_t bytes[], uint8_t  stage)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 214;
+
+                memcpy(&bytes[5], &stage, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION_STATUS_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 119;
+                bytes[5] = 119;
+
+                return 6;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION_STATUS(uint8_t bytes[], uint8_t  status)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 119;
+
+                memcpy(&bytes[5], &status, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_BATTERY_VOLTAGE(uint8_t bytes[], float  batteryVoltage)
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
@@ -2489,59 +2555,55 @@ namespace hf {
                 bytes[3] = 4;
                 bytes[4] = 228;
 
-                memcpy(&bytes[5], &c1, sizeof(uint8_t));
-                memcpy(&bytes[6], &c2, sizeof(uint8_t));
-                memcpy(&bytes[7], &c3, sizeof(uint8_t));
-                memcpy(&bytes[8], &c4, sizeof(uint8_t));
+                memcpy(&bytes[5], &batteryVoltage, sizeof(float));
 
                 bytes[9] = CRC8(&bytes[3], 6);
 
                 return 10;
             }
 
-            static uint8_t serialize_SET_PASSWORD(uint8_t bytes[], uint8_t  c1, uint8_t  c2, uint8_t  c3, uint8_t  c4)
-            {
-                bytes[0] = 36;
-                bytes[1] = 77;
-                bytes[2] = 62;
-                bytes[3] = 4;
-                bytes[4] = 229;
-
-                memcpy(&bytes[5], &c1, sizeof(uint8_t));
-                memcpy(&bytes[6], &c2, sizeof(uint8_t));
-                memcpy(&bytes[7], &c3, sizeof(uint8_t));
-                memcpy(&bytes[8], &c4, sizeof(uint8_t));
-
-                bytes[9] = CRC8(&bytes[3], 6);
-
-                return 10;
-            }
-
-            static uint8_t serialize_PASSWORD_VALIDATED_Request(uint8_t bytes[])
+            static uint8_t serialize_GET_BATTERY_VOLTAGE_Request(uint8_t bytes[])
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
                 bytes[2] = 60;
                 bytes[3] = 0;
-                bytes[4] = 127;
-                bytes[5] = 127;
+                bytes[4] = 125;
+                bytes[5] = 125;
 
                 return 6;
             }
 
-            static uint8_t serialize_PASSWORD_VALIDATED(uint8_t bytes[], uint8_t  validPassword)
+            static uint8_t serialize_GET_BATTERY_VOLTAGE(uint8_t bytes[], float  voltage)
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
                 bytes[2] = 62;
-                bytes[3] = 1;
-                bytes[4] = 127;
+                bytes[3] = 4;
+                bytes[4] = 125;
 
-                memcpy(&bytes[5], &validPassword, sizeof(uint8_t));
+                memcpy(&bytes[5], &voltage, sizeof(float));
 
-                bytes[6] = CRC8(&bytes[3], 3);
+                bytes[9] = CRC8(&bytes[3], 6);
 
-                return 7;
+                return 10;
+            }
+
+            static uint8_t serialize_SET_RANGE_PARAMETERS(uint8_t bytes[], float  rx, float  ry, float  rz)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 12;
+                bytes[4] = 221;
+
+                memcpy(&bytes[5], &rx, sizeof(float));
+                memcpy(&bytes[9], &ry, sizeof(float));
+                memcpy(&bytes[13], &rz, sizeof(float));
+
+                bytes[17] = CRC8(&bytes[3], 14);
+
+                return 18;
             }
 
     }; // class MspParser

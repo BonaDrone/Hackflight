@@ -4,7 +4,8 @@
    runs it. It acts as a wrapper that automatically creates the correct Hackflight
    instance as a function of the stored parameters.  
 
-   Copyright (c) 2018 Juan Gallostra & Simon D. Levy
+   Copyright (c) 2019 BonaDrone (www.bonadrone.com)
+   Developed by: Pep Marti-Saumell (jmarti<at>bonadrone.com>) & Juan Gallostra Acin (jgallostra<at>bonadrone.com)
 
    This file is part of Hackflight.
 
@@ -57,6 +58,7 @@ namespace hf {
               bool _hasPositioningBoard = false;
               bool _isMosquito90 = false;
               bool _calibrateESC = false;
+              bool _txCalibrated = false;
               // Connection status (false unless proven otherwise)
               bool _positionBoardConnected = false;
               // Rate PID params
@@ -76,6 +78,14 @@ namespace hf {
               float _minAltitude;
               // password
               uint8_t _password[4];
+              // range params
+              float _rx;
+              float _ry;
+              float _rz;
+              // transmitter trims
+              float _min[4] = {0,0,0,0}; 
+              float _center[3] = {0,0,0}; 
+              float _max[4] = {0,0,0,0}; 
 
               // Required objects to run Hackflight
               hf::Hackflight h;
@@ -91,6 +101,7 @@ namespace hf {
                   _isMosquito90 = (config >> MOSQUITO_VERSION) & 1;
                   _hasPositioningBoard = (config >> POSITIONING_BOARD) & 1;
                   _calibrateESC = (config >> CALIBRATE_ESC) & 1;
+                  _txCalibrated = (config >> TX_CALIBRATED) & 1;
                   // Load password
                   EEPROM.get(PASSWORD, _password[0]);
                   EEPROM.get(PASSWORD + 1 * sizeof(uint8_t), _password[1]);
@@ -104,12 +115,25 @@ namespace hf {
                   EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), _gyroYawI);
                   EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), _demandsToRate);
                   EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), _levelP);
-                  EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), _altHoldP);
-                  EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), _altHoldVelP);
-                  EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), _altHoldVelI);
-                  EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), _altHoldVelD);
-                  EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), _minAltitude);
-                  
+                  EEPROM.get(PID_CONSTANTS + 7 * sizeof(float), _altHoldP);
+                  EEPROM.get(PID_CONSTANTS + 8 * sizeof(float), _altHoldVelP);
+                  EEPROM.get(PID_CONSTANTS + 9 * sizeof(float), _altHoldVelI);
+                  EEPROM.get(PID_CONSTANTS + 10 * sizeof(float), _altHoldVelD);
+                  EEPROM.get(PID_CONSTANTS + 11 * sizeof(float), _minAltitude);
+                  EEPROM.get(RANGE_PARAMS, _rx);
+                  EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
+                  EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
+                  EEPROM.get(TRANSMITER_TRIMS, _min[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 1 * sizeof(float), _max[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 2 * sizeof(float), _min[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 3 * sizeof(float), _center[0]);
+                  EEPROM.get(TRANSMITER_TRIMS + 4 * sizeof(float), _max[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 5 * sizeof(float), _min[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 6 * sizeof(float), _center[1]);
+                  EEPROM.get(TRANSMITER_TRIMS + 7 * sizeof(float), _max[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 8 * sizeof(float), _min[3]);
+                  EEPROM.get(TRANSMITER_TRIMS + 9 * sizeof(float), _center[2]);
+                  EEPROM.get(TRANSMITER_TRIMS + 10 * sizeof(float), _max[3]);
               }
               
               void calibrateESCsStandard(void)
@@ -214,6 +238,23 @@ namespace hf {
                   digitalWrite(LED_G, HIGH);
               }
 
+              void trimReceiver(void)
+              {
+                  // Set trims for R, P, Y
+                  for (int k=0; k<3; k++)
+                  {
+                    float m_pos = 1.0 / (_max[k+1] - _center[k]); 
+                    float n_pos =  - (m_pos * _center[k]);
+                    float m_neg = - 1.0 / (_min[k+1] - _center[k]); 
+                    float n_neg =  - (m_neg * _center[k]);
+                    rc.setTrim(m_pos, n_pos, m_neg, n_neg, k+1);
+                  }
+                  // Set Throttle trims
+                  float m = 2.0 / (_max[0] - _min[0]);
+                  float n = 1.0 - m*_max[0];
+                  rc.setTrim(m, n, m, n, 0);
+              }
+
         protected:
 
 
@@ -227,14 +268,13 @@ namespace hf {
                 loadParameters();
                 // begin the serial port for the ESP32
                 Serial4.begin(115200);
-
+                
+                rc.setCalibrationStatus(_txCalibrated);
                 // Trim receiver via software
-                rc.setTrimRoll(-0.0030506f);
-                rc.setTrimPitch(-0.0372178f);
-                rc.setTrimYaw(-0.0384381f);
+                trimReceiver();
 
                 // Instantiate controllers after loading parameters
-                hf::Rate ratePid = hf::Rate(
+                hf::Rate * ratePid = new hf::Rate(
                   _gyroRollPitchP,
                   _gyroRollPitchI,
                   _gyroRollPitchD,
@@ -242,26 +282,26 @@ namespace hf {
                   _gyroYawI,
                   _demandsToRate);
 
-                hf::Level level = hf::Level(_levelP);  // Pitch Level P
+                hf::Level * level = new hf::Level(_levelP);  // Pitch Level P
 
                 // Add additional sensors
                 if (_hasPositioningBoard)
                 {
-                    hf::AltitudeHold althold = hf::AltitudeHold(
+                    hf::AltitudeHold * althold = new hf::AltitudeHold(
                         _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
                         _altHoldVelP,   // Altitude Hold Velocity P
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
-                    h.addPidController(&althold, 2);
+                    h.addPidController(althold, 2);
                 }
 
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
-                h.addPidController(&level, 0);
-                
+                h.addPidController(level, 0);
+
                 if (_isMosquito90) {
-                    h.init(new hf::BonadroneBrushed(), &rc, &mixer, &ratePid);
+                    h.init(new hf::BonadroneBrushed(), &rc, &mixer, ratePid);
                 } else {
                     if (_calibrateESC)
                     {
@@ -271,18 +311,21 @@ namespace hf {
                       EEPROM.put(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
                       Serial.println(config);
                     }
-                    h.init(new hf::BonadroneMultiShot(), &rc, &mixer, &ratePid);
+                    h.init(new hf::BonadroneMultiShot(), &rc, &mixer, ratePid);
                 }
                 // Add additional sensors
                 if (_hasPositioningBoard)
                 {
-                    hf::VL53L1X_Rangefinder rangefinder;
-                    bool _rangeConnected = rangefinder.begin();
-                    h.addSensor(&rangefinder);
-                    
-                    hf::OpticalFlow opticalflow;
-                    bool _opticalConnected = opticalflow.begin();
-                    h.addSensor(&opticalflow);
+                    hf::VL53L1X_Rangefinder * rangefinder = new hf::VL53L1X_Rangefinder() ;
+                    bool _rangeConnected = rangefinder->begin();
+                    //rangefinder->setCalibration(_rx, _ry, _rz);
+                    h.addSensor(rangefinder);
+                    h.eskf.addSensorESKF(rangefinder);
+
+                    hf::OpticalFlow * opticalflow = new hf::OpticalFlow();
+                    bool _opticalConnected = opticalflow->begin();
+                    //h.addSensor(&opticalflow);
+                    //h.eskf.addSensorESKF(&opticalflow);
                     
                     _positionBoardConnected = _rangeConnected & _opticalConnected;                 
                 }

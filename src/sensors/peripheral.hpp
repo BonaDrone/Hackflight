@@ -20,13 +20,15 @@
 
 #pragma once
 
-#include "sensor.hpp"
+#include "filters/eskf_sensor.hpp"
 #include "board.hpp"
 
 namespace hf {
 
-    class PeripheralSensor : public Sensor {
+    class PeripheralSensor : public ESKF_Sensor {
 
+    public:
+      PeripheralSensor(bool isEstimation, bool isCorrection) : ESKF_Sensor(isEstimation, isCorrection){}
     };  // class PeripheralSensor
 
 } // namespace

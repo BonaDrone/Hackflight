@@ -48,9 +48,9 @@ namespace hf {
             static const LSM6DSM::Rate_t   AODR   = LSM6DSM::ODR_1660Hz;
             static const LSM6DSM::Rate_t   GODR   = LSM6DSM::ODR_1660Hz;
 
-            // Biases computed by Simon using Juan & Pep's LSM6DSM/Examples/Calibrate sketch
-            float ACCEL_BIAS[3] = {-0.020306,0.008926,0.029526};
-            float GYRO_BIAS[3]  = {0.301350,-0.818594,-0.701652};
+            // Gyro bias will be estimated by the ESKF filter
+            float ACCEL_BIAS[3] = {0.0,0.0,0.0};
+            float GYRO_BIAS[3]  = {0.0,0.0,0.0};
 
 
             // Instance variables -----------------------------------------------------------------------------------
@@ -68,8 +68,10 @@ namespace hf {
             }
 
         protected:
-
-            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
+            // M 150
+            // const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
+            // M 90
+            //const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
 
             virtual void writeMotor(uint8_t index, float value) = 0;
 
@@ -83,17 +85,21 @@ namespace hf {
                 return SoftwareQuaternionBoard::getGyrometer(gyroRates);
             }
 
+            virtual bool  getIMU(float gyroRates[3], float accels[3]) override
+            {
+                return SoftwareQuaternionBoard::getIMU(gyroRates, accels);
+            }
+
+            virtual bool  getAccelerometer(float accelGs[3]) override
+            {
+                return SoftwareQuaternionBoard::getAccelerometer(accelGs);
+            }
+
             bool imuRead(void)
             {
                 if (_lsm6dsm.checkNewData()) {
 
                     _lsm6dsm.readData(_ax, _ay, _az, _gx, _gy, _gz);
-
-                    // Negate to support board orientation
-                    _ax = -_ax;
-                    _gy = -_gy;
-                    _gz = -_gz;
-
                     return true;
 
                 } 
@@ -136,10 +142,9 @@ namespace hf {
 
                 delay(100);
 
-                // Calibrate IMU on startup
-                _lsm6dsm.calibrate(GYRO_BIAS, ACCEL_BIAS);
                 // Clear the interrupt
                 _lsm6dsm.clearInterrupt();
+
                 setLed(false);
             }
 
@@ -154,6 +159,8 @@ namespace hf {
             const uint16_t PWM_MAX = 2000;
 
         protected:
+            
+            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
 
             virtual void writeMotor(uint8_t index, float value) override
             {
@@ -161,7 +168,7 @@ namespace hf {
             }
 
         public:
-
+            
             BonadroneStandard(void) : Bonadrone()
             {
                 for (uint8_t k=0; k<4; ++k) {
@@ -181,6 +188,8 @@ namespace hf {
             const uint16_t PWM_MAX = 500;
 
         protected:
+            
+            const uint8_t MOTOR_PINS[4] = {3, 4, 5, 6};
 
             virtual void writeMotor(uint8_t index, float value) override
             {
@@ -190,7 +199,7 @@ namespace hf {
             }
 
         public:
-
+          
             BonadroneMultiShot(void) : Bonadrone()
             {
                 for (uint8_t k=0; k<4; ++k) {
@@ -206,6 +215,8 @@ namespace hf {
 
         protected:
 
+            const uint8_t MOTOR_PINS[4] = {39, 30, 40, 31};
+
             virtual void writeMotor(uint8_t index, float value) override
             {
                 analogWrite(MOTOR_PINS[index], (uint8_t)(value * 255));
@@ -213,7 +224,7 @@ namespace hf {
 
 
         public:
-
+            
             BonadroneBrushed(void) : Bonadrone()
         {
             for (int k=0; k<4; ++k) {

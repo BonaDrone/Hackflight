@@ -38,7 +38,7 @@ namespace hf {
             static const uint8_t MAXMSG = 255;
             
             // Number of EEPROM reserved slots for parameters
-            static const int PARAMETER_SLOTS = 100;
+            static const int PARAMETER_SLOTS = 150;
 
         private:
 
@@ -280,6 +280,7 @@ namespace hf {
                             _checksum ^= c;
                             _inBuf[_offset++] = c;
                         } else  {
+                            _state = IDLE;
                             if (_checksum == c) {        // compare calculated and transferred _checksum
                                 if (_direction == 0) {
                                     dispatchRequestMessage();
@@ -288,7 +289,6 @@ namespace hf {
                                     dispatchDataMessage();
                                 }
                             }
-                            _state = IDLE;
                         }
 
                 } // switch (_state)
