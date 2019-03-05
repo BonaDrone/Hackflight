@@ -24,6 +24,7 @@
 
 * #43 Update file headers
 * #75 Refactor tasks in main loop
+* #76 Improve Rate and Level controllers 
 
 ### Removed
 
