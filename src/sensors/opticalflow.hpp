@@ -214,7 +214,7 @@ namespace hf {
             virtual void getCovarianceCorrection(float * R) override
             {
               R[0] = 5.0;
-              R[3] = 5.0;
+              R[4] = 5.0;
             }
             
             virtual void getMeasures(eskf_state_t & state) override
