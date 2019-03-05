@@ -315,8 +315,8 @@ namespace hf {
 
                     hf::OpticalFlow * opticalflow = new hf::OpticalFlow();
                     bool _opticalConnected = opticalflow->begin();
-                    //h.addSensor(&opticalflow);
-                    //h.eskf.addSensorESKF(&opticalflow);
+                    h.addSensor(opticalflow);
+                    h.eskf.addSensorESKF(opticalflow);
                     
                     _positionBoardConnected = _rangeConnected & _opticalConnected;                 
                 }
