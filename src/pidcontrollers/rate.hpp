@@ -91,6 +91,11 @@ namespace hf {
               _bigGyroRate = degreesToRadians(BIG_GYRO_DEGREES_PER_SECOND);
               maxArmingAngle = degreesToRadians(MAX_ARMING_ANGLE_DEGREES);
 
+              // Initialize offset errors
+              _offsetError[0] = 0.0; // Roll
+              _offsetError[1] = 0.0; // Pitch
+              _offsetError[2] = 0.0;  // Yaw
+
               // Initialize gyro error integral
               resetIntegral();
             }
@@ -171,15 +176,7 @@ namespace hf {
                 _IConstants[1] = gyroPitchI;
                 _DConstants[0] = gyroRollD;
                 _DConstants[1] = gyroPitchD;
-                
-                // Balance Mosquito 90
-                // _offsetError[0] = 0.5; // Roll
-                // _offsetError[1] = -0.6; // Pitch
-                // _offsetError[2] = 0.0;  // Yaw
-                // 
-                _offsetError[0] = 0.0; // Roll
-                _offsetError[1] = 0.0; // Pitch
-                _offsetError[2] = 0.0;  // Yaw
+
             }
             
             Rate(float gyroRollPitchP, float gyroRollPitchI, float gyroRollPitchD,
@@ -196,15 +193,6 @@ namespace hf {
                 _IConstants[1] = gyroRollPitchI;
                 _DConstants[0] = gyroRollPitchD;
                 _DConstants[1] = gyroRollPitchD;
-                
-                // Balance Mosquito 90
-                // _offsetError[0] = 0.5; // Roll
-                // _offsetError[1] = -0.6; // Pitch
-                // _offsetError[2] = 0.0;  // Yaw
-                // 
-                _offsetError[0] = 0.0; // Roll
-                _offsetError[1] = 0.0; // Pitch
-                _offsetError[2] = 0.0;  // Yaw
             }
 
             bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
