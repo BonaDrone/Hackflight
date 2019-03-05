@@ -231,14 +231,31 @@
    {"green": "byte"},
    {"blue": "byte"}],
    
-   "SET_BATTERY_VOLTAGE":
-   [{"ID": 228},
-    {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
-    {"batteryVoltage": "float"}],
+  "RC_CALIBRATION":
+  [{"ID": 214},
+   {"comment": "Calibrate the transmitter"},
+   {"stage": "byte"}],
+
+  "RC_CALIBRATION_STATUS":
+  [{"ID": 119},
+   {"comment": "Return the status of the transmitter calibration"},
+   {"status": "byte"}],
+   
+  "SET_BATTERY_VOLTAGE":
+  [{"ID": 228},
+   {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
+   {"batteryVoltage": "float"}],
     
-    "GET_BATTERY_VOLTAGE":
-    [{"ID": 125},
-     {"comment": "Get the current battery voltage"},
-     {"voltage": "float"}]
+  "GET_BATTERY_VOLTAGE":
+  [{"ID": 125},
+   {"comment": "Get the current battery voltage"},
+   {"voltage": "float"}],
+  
+  "SET_RANGE_PARAMETERS":
+  [{"ID": 221},
+   {"comment": "Range calibration parameters, which is the translation from IMU to range frames"},
+   {"rx": "float"},
+   {"ry": "float"},
+   {"rz": "float"}]
 
 }

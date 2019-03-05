@@ -47,7 +47,7 @@ namespace hf {
 
         protected:
 
-            virtual void modifyState(state_t & state, float time) override
+            virtual void modifyState(eskf_state_t & state, float time) override
             {
                 // Here is where you'd do sensor fusion
                 (void)state;
