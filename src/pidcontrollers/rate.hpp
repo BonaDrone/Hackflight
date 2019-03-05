@@ -47,11 +47,6 @@ namespace hf {
 
         private: 
 
-            float degreesToRadians(float deg)
-            {
-                return M_PI * deg / 180.;
-            }
-
             // Arbitrary constants
             const float GYRO_WINDUP_MAX             = 2.5f;
             const float BIG_GYRO_DEGREES_PER_SECOND = 180.0f; 
@@ -59,6 +54,49 @@ namespace hf {
             const float MAX_ARMING_ANGLE_DEGREES    = 25.0f;
 
             float _bigGyroRate;
+            
+            float _lastGyro[2];
+            float _gyroDeltaError1[2]; 
+            float _gyroDeltaError2[2];
+            float _errorGyroI[3];
+
+            // Arrays of PID constants for pitch and roll
+            float _PConstants[2];
+            float _IConstants[2];
+            float _DConstants[2];
+            // Yaw PID constants set in constructor
+           float _gyroYawP; 
+           float _gyroYawI;
+            
+            // Array for rates offset to balance unbalanced quads
+            float _offsetError[3];
+            
+            float degreesToRadians(float deg)
+            {
+                return M_PI * deg / 180.;
+            }
+
+            void init(void)
+            {
+                // Zero-out previous values for D term
+                for (uint8_t axis=0; axis<2; ++axis) {
+                    _lastGyro[axis] = 0;
+                    _gyroDeltaError1[axis] = 0;
+                    _gyroDeltaError2[axis] = 0;
+                }
+
+                // Convert degree parameters to radians for use later
+                _bigGyroRate = degreesToRadians(BIG_GYRO_DEGREES_PER_SECOND);
+                maxArmingAngle = degreesToRadians(MAX_ARMING_ANGLE_DEGREES);
+
+                // Initialize offset errors
+                _offsetError[0] = 0.0; // Roll
+                _offsetError[1] = 0.0; // Pitch
+                _offsetError[2] = 0.0;  // Yaw
+
+                // Initialize gyro error integral
+                resetIntegral();
+            }
 
             float computeITermGyro(float error, float rateI, float rcCommand, float gyro[3], float deltat, uint8_t axis)
             {
@@ -73,45 +111,6 @@ namespace hf {
                                 
                 return (_errorGyroI[axis] * rateI);
             }
-
-             // PID constants set in constructor
-            float _gyroYawP; 
-            float _gyroYawI;
-
-            void init(void)
-            {
-              // Zero-out previous values for D term
-              for (uint8_t axis=0; axis<2; ++axis) {
-                  _lastGyro[axis] = 0;
-                  _gyroDeltaError1[axis] = 0;
-                  _gyroDeltaError2[axis] = 0;
-              }
-
-              // Convert degree parameters to radians for use later
-              _bigGyroRate = degreesToRadians(BIG_GYRO_DEGREES_PER_SECOND);
-              maxArmingAngle = degreesToRadians(MAX_ARMING_ANGLE_DEGREES);
-
-              // Initialize offset errors
-              _offsetError[0] = 0.0; // Roll
-              _offsetError[1] = 0.0; // Pitch
-              _offsetError[2] = 0.0;  // Yaw
-
-              // Initialize gyro error integral
-              resetIntegral();
-            }
-
-            float _lastGyro[2];
-            float _gyroDeltaError1[2]; 
-            float _gyroDeltaError2[2];
-            float _errorGyroI[3];
-
-            // Arrays of PID constants for pitch and roll
-            float _PConstants[2];
-            float _IConstants[2];
-            float _DConstants[2];
-            
-            // Array for rates offset to balance unbalanced quads
-            float _offsetError[3];
 
             // Computes PID for pitch or roll
             float computeCyclicPid(float rcCommand, float gyro[3], float deltat, uint8_t imuAxis)
@@ -132,7 +131,6 @@ namespace hf {
                 return computePid(_PConstants[imuAxis], _PTerm[imuAxis], ITerm, DTerm, gyro, _offsetError[imuAxis], imuAxis);
             } 
 
-            
             float computePid(float rateP, float PTerm, float ITerm, float DTerm, float gyro[3], float offset, uint8_t axis)
             {
                 PTerm = (PTerm * _demandsToRate - gyro[axis] + offset) * rateP;
