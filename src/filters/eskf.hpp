@@ -103,20 +103,27 @@ namespace hf {
           eskfp.tmp7 = dptr;
           dptr += ne*ne;
           eskfp.tmp8 = dptr;
+          dptr += m*m;
+          eskfp.tmp9 = dptr;
+          
       }
       
       void synchState(void)
       {
           // Update euler angles
-          float q[4] = {eskf.x[2], eskf.x[3], eskf.x[4], eskf.x[5]};
+          float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
           Quaternion::computeEulerAngles(q, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
           // update vertical position and velocity
-          state.position[2] = eskf.x[0];
-          state.linearVelocities[2] = eskf.x[1];
+          state.position[0] = eskf.x[0];
+          state.position[1] = eskf.x[1];
+          state.position[2] = eskf.x[2];
+          state.linearVelocities[0] = eskf.x[3];
+          state.linearVelocities[1] = eskf.x[4];
+          state.linearVelocities[2] = eskf.x[5];
       }
 
     public:
@@ -138,89 +145,54 @@ namespace hf {
           zeros(eskfp.H, observations, errorStates);
           
           // initial state
-          eskfp.x[0] = 0.0; // vertical position
-          eskfp.x[1] = 0.0; // vertical velocity
-          eskfp.x[2] = 1.0; // orientation (quaternion)
-          eskfp.x[3] = 0.0;
+          eskfp.x[0] = 0.0; // position
+          eskfp.x[1] = 0.0; 
+          eskfp.x[2] = 0.0;
+          eskfp.x[3] = 0.0; // velocity
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
-          eskfp.x[6] = 0.0; // gyro bias
+          eskfp.x[6] = 1.0; // orientation
           eskfp.x[7] = 0.0;
           eskfp.x[8] = 0.0;
+          eskfp.x[9] = 0.0;
+          eskfp.x[10] = 0.0; // accel bias
+          eskfp.x[11] = 0.0;
+          eskfp.x[12] = 0.3;
+          eskfp.x[13] = 0.0; // gyro bias
+          eskfp.x[14] = 0.0;
+          eskfp.x[15] = 0.0;
           
+          // Since P has already been zero-ed only elements != 0 have to be set
           // 1 column
-          eskfp.P[0] =  1.0;
-          eskfp.P[8] =  0.0;
-          eskfp.P[16] =  0.0;
-          eskfp.P[24] =  0.0;
-          eskfp.P[32] =  0.0;
-          eskfp.P[40] =  0.0;
-          eskfp.P[48] =  0.0;
-          eskfp.P[56] =  0.0;
+          eskfp.P[0] = 0.0;
           // 2 column
-          eskfp.P[1] =  0.0;
-          eskfp.P[9] =  1.0;
-          eskfp.P[17] =  0.0;
-          eskfp.P[25] =  0.0;
-          eskfp.P[33] =  0.0;
-          eskfp.P[41] =  0.0;
-          eskfp.P[49] =  0.0;
-          eskfp.P[57] =  0.0;
+          eskfp.P[16] = 0.0;
           // 3 column
-          eskfp.P[2] = 0.0;
-          eskfp.P[10] = 0.0;
-          eskfp.P[18] = 1.0;
-          eskfp.P[26] = 0.0;
-          eskfp.P[34] = 0.0;
-          eskfp.P[42] = 0.0;
-          eskfp.P[50] = 0.0;
-          eskfp.P[58] = 0.0;
+          eskfp.P[32] = 0.0;
           // 4 column
-          eskfp.P[3] = 0.0;
-          eskfp.P[11] = 0.0;
-          eskfp.P[19] = 0.0;
-          eskfp.P[27] = 1.0;
-          eskfp.P[35] = 0.0;
-          eskfp.P[43] = 0.0;
-          eskfp.P[51] = 0.0;
-          eskfp.P[59] = 0.0;
+          eskfp.P[48] = 0.0;
           // 5 column
-          eskfp.P[4] = 0.0;
-          eskfp.P[12] = 0.0;
-          eskfp.P[20] = 0.0;
-          eskfp.P[28] = 0.0;
-          eskfp.P[36] = 1.0;
-          eskfp.P[44] = 0.0;
-          eskfp.P[52] = 0.0;
-          eskfp.P[60] = 0.0;
+          eskfp.P[64] = 0.0;
           // 6 column
-          eskfp.P[5] =  0.0;
-          eskfp.P[13] =  0.0;
-          eskfp.P[21] =  0.0;
-          eskfp.P[29] =  0.0;
-          eskfp.P[37] =  0.0;
-          eskfp.P[45] =  1.0;
-          eskfp.P[53] =  0.0;
-          eskfp.P[61] =  0.0;
+          eskfp.P[80] = 0.0;
           // 7 column
-          eskfp.P[6] =  0.0;
-          eskfp.P[14] =  0.0;
-          eskfp.P[22] =  0.0;
-          eskfp.P[30] =  0.0;
-          eskfp.P[38] =  0.0;
-          eskfp.P[46] =  0.0;
-          eskfp.P[54] =  1.0;
-          eskfp.P[62] =  0.0;
+          eskfp.P[96] = 0.01;
           // 8 column
-          eskfp.P[7] =  0.0;
-          eskfp.P[15] =  0.0;
-          eskfp.P[23] =  0.0;
-          eskfp.P[31] =  0.0;
-          eskfp.P[39] =  0.0;
-          eskfp.P[47] =  0.0;
-          eskfp.P[55] =  0.0;
-          eskfp.P[63] =  1.0;
-
+          eskfp.P[112] = 0.01;
+          // 9 column
+          eskfp.P[128] = 0.0;
+          // 10 column
+          eskfp.P[144] = 0.000001;
+          // 11 column
+          eskfp.P[160] = 0.000001;
+          // 12 column
+          eskfp.P[176] = 0.000001;
+          // 13 column
+          eskfp.P[192] = 0.000001;
+          // 14 column
+          eskfp.P[208] = 0.000001;
+          // 15 column
+          eskfp.P[224] = 0.000001;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -255,13 +227,13 @@ namespace hf {
           sensor->getCovarianceEstimation(eskfp.Q);
 
           // Normalize quaternion
-          float quat_tmp[4] = { eskf.fx[2], eskf.fx[3], eskf.fx[4], eskf.fx[5] };
+          float quat_tmp[4] = { eskf.fx[6], eskf.fx[7], eskf.fx[8], eskf.fx[9] };
           float norm_quat_tmp[4];
           norvec(quat_tmp, norm_quat_tmp, 4);
-          eskf.fx[2] = norm_quat_tmp[0];
-          eskf.fx[3] = norm_quat_tmp[1];
-          eskf.fx[4] = norm_quat_tmp[2];
-          eskf.fx[5] = norm_quat_tmp[3];
+          eskf.fx[6] = norm_quat_tmp[0];
+          eskf.fx[7] = norm_quat_tmp[1];
+          eskf.fx[8] = norm_quat_tmp[2];
+          eskf.fx[9] = norm_quat_tmp[3];
           
           // Copy back estimated states into x
           copyvec(eskfp.fx, eskfp.x, nominalStates);
@@ -272,10 +244,27 @@ namespace hf {
           mulmat(eskfp.Fdx, eskfp.P, eskfp.tmp0, errorStates, errorStates, errorStates);
           mulmat(eskfp.tmp0, eskfp.Fdxt, eskfp.tmp6, errorStates, errorStates, errorStates);
           accum(eskfp.tmp6, eskfp.Q, errorStates, errorStates);
+
           makesym(eskfp.tmp6, eskfp.P, errorStates);
+
+          // Serial.print(eskfp.x[0]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[1]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[2]);
+          // Serial.print(",");
+
+          // Serial.print(eskfp.x[3]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[4]);
+          // Serial.print(",");
+          Serial.print(eskfp.x[5]);
+          Serial.print(",");
+          Serial.println(eskfp.x[12]);
 
           /* success */
           synchState();
+
           return 0;
 
       } // update
@@ -295,23 +284,28 @@ namespace hf {
             9. Reset errors
           */
           
-          // zero used matrices
+          // Make all the entries of the used matrices zero
           // This is required because not all sensors have the same number of 
           // observations and matrices are dimensioned so that they can store the
           // max number of observations. When correcting states with a sensor that
           // has less observations we don't want residual values from previous
           // calculations to affect the current correction.
           zeroCorrectMatrices();
-          
-          // Check sensor
-          if (sensor->ready(time)) {
-              // Update state with gyro rates
-              sensor->modifyState(state, time);                    
-          } 
-          
-          sensor->getJacobianObservation(eskfp.H, eskfp.x);
-          sensor->getInnovation(eskfp.hx, eskfp.x);
+
+          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x);
+          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
+          
+          if (!JacobianOk || !InnovationOk)
+          {
+            return 1;
+          }
+
+          // Serial.println("P");
+          // printMatrix(eskfp.P, errorStates, errorStates);
+          
+          // Serial.println("H");
+          // printMatrix(eskfp.H, observations, errorStates);
 
           // Compute gain:
           /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
@@ -320,9 +314,21 @@ namespace hf {
           mulmat(eskfp.H, eskfp.P, eskfp.tmp2, observations, errorStates, errorStates);  // H*P
           mulmat(eskfp.tmp2, eskfp.Ht, eskfp.tmp3, observations, errorStates, observations); // H*P*H'
           accum(eskfp.tmp3, eskfp.R, observations, observations);                 // Z = H*P*H' + R
+
+          makesym(eskfp.tmp3, eskfp.tmp9, observations);
+
+          // Serial.println("Z");
+          // printMatrix(eskfp.tmp9, observations, observations);
+
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
-          if (sensor->Zinverse(eskfp.tmp3, eskfp.tmp4)) return 1; // tmp4 = Z^-1
+          if (sensor->Zinverse(eskfp.tmp9, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
+
+          // Serial.println("Zinv");
+          // printMatrix(eskfp.tmp4, observations, observations);
+
+          // Serial.println("K");
+          // printMatrix(eskfp.K, errorStates, observations);
 
           /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
@@ -334,42 +340,62 @@ namespace hf {
           //sub(eskfp.Pp, eskfp.tmp3, eskfp.tmp0, errorStates);
           //makesym(eskfp.tmp0, eskfp.P, errorStates);
           
-          /* P = (I-KH)*P*(I-KH)' + KZK' */
+          /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(eskfp.K, eskfp.H, eskfp.tmp6, errorStates, observations, errorStates); // K*H
           negate(eskfp.tmp6, errorStates, errorStates); // -K*H
           mat_addeye(eskfp.tmp6, errorStates); // -K*H + I
           transpose(eskfp.tmp6, eskfp.tmp7, errorStates, errorStates); // (-K*H + I)'
           mulmat(eskfp.tmp6, eskfp.P, eskfp.tmp8, errorStates, errorStates, errorStates); // (-K*H + I)*P
-          mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.P, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
-          // Z is stored in eskfp.tmp3 and K in eskfp.K
+          mulmat(eskfp.tmp8, eskfp.tmp7, eskfp.tmp6, errorStates, errorStates, errorStates); // (-K*H + I)*P*(-K*H + I)'
+          // R is stored in eskfp.R and K in eskfp.K
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
-          mulmat(eskfp.tmp3, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // Z*K'
-          mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*Z*K'
-          accum(eskfp.P, eskfp.tmp0, errorStates, errorStates); 
+          mulmat(eskfp.R, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // R*K'
+          mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*R*K'
+          accum(eskfp.tmp6, eskfp.tmp0, errorStates, errorStates); 
+
+          makesym(eskfp.tmp6, eskfp.P, errorStates);
+
+          // Serial.println("P");
+          // printMatrix(eskfp.P, errorStates, errorStates);
           
           /* Error injection */
-          // XXX Quaternion injection as a method
-          float tmp[4];
-          tmp[0] = 1.0;
-          tmp[1] = eskfp.dx[2]/2.0;
-          tmp[2] = eskfp.dx[3]/2.0;
-          tmp[3] = eskfp.dx[4]/2.0;
-          float quat_tmp[4] = {eskfp.x[2], eskfp.x[3], eskfp.x[4], eskfp.x[5]}; 
-          Quaternion::computeqL(eskfp.qL, quat_tmp);
-          mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
-          norvec(eskfp.tmp5, tmp, 4);
-          eskf.x[2] = tmp[0];
-          eskf.x[3] = tmp[1];
-          eskf.x[4] = tmp[2];
-          eskf.x[5] = tmp[3];
-          // Inject rest of errors
-          eskfp.x[0] += eskfp.dx[0];
-          eskfp.x[1] += eskfp.dx[1];
-          eskfp.x[6] += eskfp.dx[5];
-          eskfp.x[7] += eskfp.dx[6];
-          //eskfp.x[8] += eskfp.dx[7];
+          if (sensor->isOpticalFlow())
+          {
+              eskfp.x[0] += eskfp.dx[0]; // position
+              eskfp.x[1] += eskfp.dx[1];
+              eskfp.x[3] += eskfp.dx[3]; // velocity
+              eskfp.x[4] += eskfp.dx[4];
+          } else {
+              // XXX Quaternion injection as a method
+              float tmp[4];
+              tmp[0] = 1.0;
+              tmp[1] = eskfp.dx[6]/2.0;
+              tmp[2] = eskfp.dx[7]/2.0;
+              tmp[3] = eskfp.dx[8]/2.0;
+              float quat_tmp[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]}; 
+              Quaternion::computeqL(eskfp.qL, quat_tmp);
+              mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
+              norvec(eskfp.tmp5, tmp, 4);
+              eskf.x[6] = tmp[0];
+              eskf.x[7] = tmp[1];
+              eskf.x[8] = tmp[2];
+              eskf.x[9] = tmp[3];
+              // Inject rest of errors
+              eskfp.x[0] += eskfp.dx[0]; // position
+              eskfp.x[1] += eskfp.dx[1];
+              eskfp.x[2] += eskfp.dx[2];
+              eskfp.x[3] += eskfp.dx[3]; // velocity
+              eskfp.x[4] += eskfp.dx[4];
+              eskfp.x[5] += eskfp.dx[5];
+              eskfp.x[10] += eskfp.dx[9]; // accel bias
+              eskfp.x[11] += eskfp.dx[10];
+              eskfp.x[12] += eskfp.dx[11];
+              eskfp.x[13] += eskfp.dx[12]; // gyro bias
+              eskfp.x[14] += eskfp.dx[13];
+              eskfp.x[15] += eskfp.dx[14];
 
-          eskfp.x[8] = 0.00; // Brute force yaw bias
+              eskfp.x[15] = 0.00; // Brute force yaw bias to 0
+          }
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
@@ -389,6 +415,23 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
           /* success */
           synchState();
+
+          // Serial.print(eskfp.x[0]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[1]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[2]);
+          // Serial.print(",");
+          
+          // Serial.print(eskfp.x[3]);
+          // Serial.print(",");
+          // Serial.print(eskfp.x[4]);
+          // Serial.print(",");
+          
+          Serial.print(eskfp.x[5]);
+          Serial.print(",");
+          Serial.println(eskfp.x[12]);
+                    
           return 0;
       } // correct
 
@@ -410,6 +453,7 @@ namespace hf {
           zeros(eskfp.tmp6, errorStates, errorStates);
           zeros(eskfp.tmp7, errorStates, errorStates);
           zeros(eskfp.tmp8, errorStates, errorStates);
+          zeros(eskfp.tmp9, observations, observations);
       } // zeroCorrectMatrices
 
       // XXX Debug

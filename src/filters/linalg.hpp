@@ -112,6 +112,18 @@ namespace hf {
           a[j] = 0;
   }
 
+  static void saturate(float * a, float val, int m, int n)
+  {
+      int j;
+      for (j=0; j<m*n; ++j)
+      {
+          if (a[j] > val)
+            a[j] = val;
+          if (a[j] < val)
+            a[j] = -val;
+      }
+  }
+
   /* C <- A * B */
   static void mulmat(float * a, float * b, float * c, int arows, int acols, int bcols)
   {

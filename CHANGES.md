@@ -14,10 +14,16 @@
 * #48 MSP message and methods to calibrate ESCs
 * #50 Check if position board is connected via MSP
 * #45 Allow to set rangefinder parameters with an MSP message
+* #55 Enable setting LEDs on/off with an MSP message
+* #68 Motor pins are set according to the specified Mosquito version
+* #70 Transmitter calibration
+* #73 Battery monitoring and low battery trigger
+* #75 ESKF estimates horizontal positions and velocities as well as accelerometer bias
 
 ### Changed
 
 * #43 Update file headers
+* #75 Refactor tasks in main loop
 
 ### Removed
 

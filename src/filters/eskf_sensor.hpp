@@ -50,9 +50,9 @@ namespace hf {
         virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
-        virtual void getJacobianObservation(float * H, float * x) { (void)H; (void)x; }
+        virtual bool getJacobianObservation(float * H, float * x) { (void)H; (void)x; }
         
-        virtual void getInnovation(float * z, float * x) { (void)z; (void)x; }
+        virtual bool getInnovation(float * z, float * x) { (void)z; (void)x; }
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
         
@@ -62,7 +62,7 @@ namespace hf {
         virtual bool shouldUpdateESKF(float time) { return true; }
         
         // This method might be overriden to return the appropriate inverse of Z
-        virtual int Zinverse(float * Z, float * invZ)
+        virtual bool Zinverse(float * Z, float * invZ)
         {
           float tmp[Mobs];
           if (cholsl(Z, invZ, tmp, Mobs))
@@ -71,6 +71,12 @@ namespace hf {
           }
           return 0;
         }
+        
+        // This method should be overriden if the sensor needs some measures (such as rates) that
+        // are not accessible from the state
+        virtual void getMeasures(eskf_state_t & state) {(void)state;}
+        
+        virtual bool isOpticalFlow(void) { return false; }
 
     }; // class ESKF_Sensor
 
