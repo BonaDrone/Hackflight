@@ -743,6 +743,45 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
+                    case 127:
+                    {
+                        float gyroRollPitchP = 0;
+                        float gyroRollPitchI = 0;
+                        float gyroRollPitchD = 0;
+                        float gyroYawP = 0;
+                        float gyroYawI = 0;
+                        float demandsToRate = 0;
+                        float levelP = 0;
+                        float altHoldP = 0;
+                        float altHoldVelP = 0;
+                        float altHoldVelI = 0;
+                        float altHoldVelD = 0;
+                        float minAltitude = 0;
+                        float param6 = 0;
+                        float param7 = 0;
+                        float param8 = 0;
+                        float param9 = 0;
+                        handle_GET_PID_CONSTANTS_Request(gyroRollPitchP, gyroRollPitchI, gyroRollPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
+                        prepareToSendFloats(16);
+                        sendFloat(gyroRollPitchP);
+                        sendFloat(gyroRollPitchI);
+                        sendFloat(gyroRollPitchD);
+                        sendFloat(gyroYawP);
+                        sendFloat(gyroYawI);
+                        sendFloat(demandsToRate);
+                        sendFloat(levelP);
+                        sendFloat(altHoldP);
+                        sendFloat(altHoldVelP);
+                        sendFloat(altHoldVelI);
+                        sendFloat(altHoldVelD);
+                        sendFloat(minAltitude);
+                        sendFloat(param6);
+                        sendFloat(param7);
+                        sendFloat(param8);
+                        sendFloat(param9);
+                        serialize8(_checksum);
+                        } break;
+
                     case 225:
                     {
                         uint8_t hasBoard = 0;
@@ -1023,6 +1062,27 @@ namespace hf {
                     {
                         uint8_t version = getArgument(0);
                         handle_FIRMWARE_VERSION_Data(version);
+                        } break;
+
+                    case 127:
+                    {
+                        float gyroRollPitchP = getArgument(0);
+                        float gyroRollPitchI = getArgument(1);
+                        float gyroRollPitchD = getArgument(2);
+                        float gyroYawP = getArgument(3);
+                        float gyroYawI = getArgument(4);
+                        float demandsToRate = getArgument(5);
+                        float levelP = getArgument(6);
+                        float altHoldP = getArgument(7);
+                        float altHoldVelP = getArgument(8);
+                        float altHoldVelI = getArgument(9);
+                        float altHoldVelD = getArgument(10);
+                        float minAltitude = getArgument(11);
+                        float param6 = getArgument(12);
+                        float param7 = getArgument(13);
+                        float param8 = getArgument(14);
+                        float param9 = getArgument(15);
+                        handle_GET_PID_CONSTANTS_Data(gyroRollPitchP, gyroRollPitchI, gyroRollPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
                         } break;
 
                     case 119:
@@ -1473,6 +1533,46 @@ namespace hf {
             }
 
             virtual void handle_SET_PID_CONSTANTS_Data(float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                (void)gyroRollPitchP;
+                (void)gyroRollPitchI;
+                (void)gyroRollPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_GET_PID_CONSTANTS_Request(float & gyroRollPitchP, float & gyroRollPitchI, float & gyroRollPitchD, float & gyroYawP, float & gyroYawI, float & demandsToRate, float & levelP, float & altHoldP, float & altHoldVelP, float & altHoldVelI, float & altHoldVelD, float & minAltitude, float & param6, float & param7, float & param8, float & param9)
+            {
+                (void)gyroRollPitchP;
+                (void)gyroRollPitchI;
+                (void)gyroRollPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_GET_PID_CONSTANTS_Data(float & gyroRollPitchP, float & gyroRollPitchI, float & gyroRollPitchD, float & gyroYawP, float & gyroYawI, float & demandsToRate, float & levelP, float & altHoldP, float & altHoldVelP, float & altHoldVelI, float & altHoldVelD, float & minAltitude, float & param6, float & param7, float & param8, float & param9)
             {
                 (void)gyroRollPitchP;
                 (void)gyroRollPitchI;
@@ -2450,6 +2550,48 @@ namespace hf {
                 bytes[2] = 62;
                 bytes[3] = 64;
                 bytes[4] = 224;
+
+                memcpy(&bytes[5], &gyroRollPitchP, sizeof(float));
+                memcpy(&bytes[9], &gyroRollPitchI, sizeof(float));
+                memcpy(&bytes[13], &gyroRollPitchD, sizeof(float));
+                memcpy(&bytes[17], &gyroYawP, sizeof(float));
+                memcpy(&bytes[21], &gyroYawI, sizeof(float));
+                memcpy(&bytes[25], &demandsToRate, sizeof(float));
+                memcpy(&bytes[29], &levelP, sizeof(float));
+                memcpy(&bytes[33], &altHoldP, sizeof(float));
+                memcpy(&bytes[37], &altHoldVelP, sizeof(float));
+                memcpy(&bytes[41], &altHoldVelI, sizeof(float));
+                memcpy(&bytes[45], &altHoldVelD, sizeof(float));
+                memcpy(&bytes[49], &minAltitude, sizeof(float));
+                memcpy(&bytes[53], &param6, sizeof(float));
+                memcpy(&bytes[57], &param7, sizeof(float));
+                memcpy(&bytes[61], &param8, sizeof(float));
+                memcpy(&bytes[65], &param9, sizeof(float));
+
+                bytes[69] = CRC8(&bytes[3], 66);
+
+                return 70;
+            }
+
+            static uint8_t serialize_GET_PID_CONSTANTS_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 127;
+                bytes[5] = 127;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_PID_CONSTANTS(uint8_t bytes[], float  gyroRollPitchP, float  gyroRollPitchI, float  gyroRollPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 64;
+                bytes[4] = 127;
 
                 memcpy(&bytes[5], &gyroRollPitchP, sizeof(float));
                 memcpy(&bytes[9], &gyroRollPitchI, sizeof(float));
