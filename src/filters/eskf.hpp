@@ -254,14 +254,17 @@ namespace hf {
           // Serial.print(eskfp.x[2]);
           // Serial.print(",");
 
-          // Serial.print(eskfp.x[3]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[4]);
-          // Serial.print(",");
-          Serial.print(eskfp.x[5]);
-          Serial.print(",");
-          Serial.println(eskfp.x[12]);
+          // XXX for debuging
+          float world_vels[3] = {eskfp.x[3], eskfp.x[4], eskfp.x[5]};
+          float quat[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]};
+          float vels[3];
+          velocityToIMUFrame(vels, world_vels, quat);
 
+          Serial.print(vels[0], 8);
+          Serial.print(",");
+          Serial.print(vels[1], 8);
+          Serial.print(",");
+          Serial.println(vels[2], 8);
           /* success */
           synchState();
 
@@ -329,9 +332,15 @@ namespace hf {
 
           // Serial.println("K");
           // printMatrix(eskfp.K, errorStates, observations);
+          // 
+          // Serial.println("z");
+          // printMatrix(eskfp.hx, observations, 1);
 
           /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
+          
+          // Serial.println("dx");
+          // printMatrix(eskfp.dx, errorStates, 1);
           
           /* P_k = P_k - K_k Z_k K^T_k  */
           //transpose(eskfp.K, eskfp.Kt, observations, errorStates);
@@ -361,18 +370,21 @@ namespace hf {
           /* Error injection */
           if (sensor->isOpticalFlow())
           {
-              eskfp.x[0] += eskfp.dx[0]; // position
-              eskfp.x[1] += eskfp.dx[1];
-              eskfp.x[3] += eskfp.dx[3]; // velocity
-              eskfp.x[4] += eskfp.dx[4];
+              eskf.x[0] += eskf.dx[0]; // position
+              eskf.x[1] += eskf.dx[1];
+              eskf.x[3] += eskf.dx[3]; // velocity
+              eskf.x[4] += eskf.dx[4];
+              eskf.x[10] += eskf.dx[9];
+              eskf.x[11] += eskf.dx[10];
+              eskf.x[12] += eskf.dx[11];
           } else {
               // XXX Quaternion injection as a method
               float tmp[4];
               tmp[0] = 1.0;
-              tmp[1] = eskfp.dx[6]/2.0;
-              tmp[2] = eskfp.dx[7]/2.0;
-              tmp[3] = eskfp.dx[8]/2.0;
-              float quat_tmp[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]}; 
+              tmp[1] = eskf.dx[6]/2.0;
+              tmp[2] = eskf.dx[7]/2.0;
+              tmp[3] = eskf.dx[8]/2.0;
+              float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
               Quaternion::computeqL(eskfp.qL, quat_tmp);
               mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
               norvec(eskfp.tmp5, tmp, 4);
@@ -381,21 +393,25 @@ namespace hf {
               eskf.x[8] = tmp[2];
               eskf.x[9] = tmp[3];
               // Inject rest of errors
-              eskfp.x[0] += eskfp.dx[0]; // position
-              eskfp.x[1] += eskfp.dx[1];
-              eskfp.x[2] += eskfp.dx[2];
-              eskfp.x[3] += eskfp.dx[3]; // velocity
-              eskfp.x[4] += eskfp.dx[4];
-              eskfp.x[5] += eskfp.dx[5];
-              eskfp.x[10] += eskfp.dx[9]; // accel bias
-              eskfp.x[11] += eskfp.dx[10];
-              eskfp.x[12] += eskfp.dx[11];
-              eskfp.x[13] += eskfp.dx[12]; // gyro bias
-              eskfp.x[14] += eskfp.dx[13];
-              eskfp.x[15] += eskfp.dx[14];
+              eskf.x[0] += eskf.dx[0]; // position
+              eskf.x[1] += eskf.dx[1];
+              eskf.x[2] += eskf.dx[2];
+              eskf.x[3] += eskf.dx[3]; // velocity
+              eskf.x[4] += eskf.dx[4];
+              eskf.x[5] += eskf.dx[5];
+              eskf.x[10] += eskf.dx[9]; // accel bias
+              eskf.x[11] += eskf.dx[10];
+              eskf.x[12] += eskf.dx[11];
+              eskf.x[13] += eskf.dx[12]; // gyro bias
+              eskf.x[14] += eskf.dx[13];
+              eskf.x[15] += eskf.dx[14];
 
-              eskfp.x[15] = 0.00; // Brute force yaw bias to 0
           }
+
+          // eskfp.x[10] = -0.02; // Brute force accel x bias to 0
+          // eskfp.x[11] = -0.02; // Brute force accel y bias to 0
+          eskfp.x[15] = 0.00; // Brute force yaw bias to 0
+
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
@@ -411,27 +427,36 @@ namespace hf {
           // Force its symmetry: P = (P + P')/2
           makesym(eskfp.tmp10, eskfp.P, errorStates);*/
           
+          // Serial.print(eskfp.P[144], 8);
+          // Serial.print(",");
+          // Serial.print(eskfp.P[160], 8);
+          // Serial.print(",");
+          // Serial.print(eskfp.dx[9], 8);
+          // Serial.print(",");
+          // Serial.println(eskfp.dx[10], 8);
+          
           /* reset error state */
           zeros(eskfp.dx, errorStates, 1);
+          
+          // XXX for debuging
+          //fixQuaternion();
+          
           /* success */
           synchState();
 
-          // Serial.print(eskfp.x[0]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[1]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[2]);
-          // Serial.print(",");
-          
-          // Serial.print(eskfp.x[3]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[4]);
-          // Serial.print(",");
-          
-          Serial.print(eskfp.x[5]);
+
+          // XXX for debuging
+          float world_vels[3] = {eskfp.x[3], eskfp.x[4], eskfp.x[5]};
+          float quat[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]};
+          float vels[3];
+          velocityToIMUFrame(vels, world_vels, quat);
+
+          Serial.print(vels[0], 8);
           Serial.print(",");
-          Serial.println(eskfp.x[12]);
-                    
+          Serial.print(vels[1], 8);
+          Serial.print(",");
+          Serial.println(vels[2], 8);
+
           return 0;
       } // correct
 
@@ -475,6 +500,26 @@ namespace hf {
               
             }
           }
+      }
+
+      // XXX for debuging
+      void velocityToIMUFrame(float vels[3], float world_vels[3], float q[4])
+      {
+        float R[9]; // Rot matrix
+        float R_trans[9];
+        R[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
+        R[1] = 2*q[1]*q[2] - 2*q[0]*q[3];
+        R[2] = 2*q[1]*q[3] + 2*q[0]*q[2];
+        R[3] = 2*q[1]*q[2] + 2*q[0]*q[3];
+        R[4] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
+        R[5] = 2*q[2]*q[3] - 2*q[0]*q[1];
+        R[6] = 2*q[1]*q[3] - 2*q[0]*q[2];
+        R[7] = 2*q[2]*q[3] + 2*q[0]*q[1];
+        R[8] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+        
+        transpose(R, R_trans, 3,3);
+        
+        mulvec(R_trans, world_vels, vels, 3, 3);
       }
 
   }; // class ESKF
