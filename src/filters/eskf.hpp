@@ -26,10 +26,10 @@
 #include "eskf_sensor.hpp"
 
 namespace hf {
-  
+
   class ESKF {
     friend class Hackflight;
-    
+
     protected:
       ESKF_Sensor * sensors[256];
       int sensor_count = 0;
@@ -45,7 +45,7 @@ namespace hf {
 
       double t_lastCall;
       double dt;
-      
+
       void eskfp_init(void * eskf, int nn, int ne, int m)
       {
           float * dptr = (float *)eskf;
@@ -55,37 +55,37 @@ namespace hf {
           dptr += ne;
           eskfp.qL = dptr;
           dptr += nn*nn;
-          
+
           eskfp.P = dptr;
           dptr += ne*ne;
           eskfp.Q = dptr;
           dptr += ne*ne;
           eskfp.R = dptr;
           dptr += m*m;
-          
+
           eskfp.K = dptr;
           dptr += ne*m;
           eskfp.Kt = dptr;
           dptr += m*ne;
-          
+
           eskfp.Fdx = dptr;
           dptr += ne*ne;
           eskfp.H = dptr;
           dptr += m*ne;
-          
+
           eskfp.Ht = dptr;
           dptr += ne*m;
           eskfp.Fdxt = dptr;
           dptr += ne*ne;
-          
+
           eskfp.G = dptr;
           dptr += ne*ne;
-          
+
           eskfp.fx = dptr;
           dptr += nn;
           eskfp.hx = dptr;
           dptr += m;
-          
+
           eskfp.tmp0 = dptr;
           dptr += ne*ne;
           eskfp.tmp1 = dptr;
@@ -105,9 +105,9 @@ namespace hf {
           eskfp.tmp8 = dptr;
           dptr += m*m;
           eskfp.tmp9 = dptr;
-          
+
       }
-      
+
       void synchState(void)
       {
           // Update euler angles
@@ -143,10 +143,10 @@ namespace hf {
           zeros(eskfp.K, errorStates, observations);
           zeros(eskfp.Fdx, errorStates, errorStates);
           zeros(eskfp.H, observations, errorStates);
-          
+
           // initial state
           eskfp.x[0] = 0.0; // position
-          eskfp.x[1] = 0.0; 
+          eskfp.x[1] = 0.0;
           eskfp.x[2] = 0.0;
           eskfp.x[3] = 0.0; // velocity
           eskfp.x[4] = 0.0;
@@ -161,7 +161,7 @@ namespace hf {
           eskfp.x[13] = 0.0; // gyro bias
           eskfp.x[14] = 0.0;
           eskfp.x[15] = 0.0;
-          
+
           // Since P has already been zero-ed only elements != 0 have to be set
           // 1 column
           eskfp.P[0] = 0.0;
@@ -199,29 +199,29 @@ namespace hf {
       {
           sensors[sensor_count++] = sensor;
       }
-      
-      int update(ESKF_Sensor * sensor, float time) 
+
+      int update(ESKF_Sensor * sensor, float time)
       {
           /*
           This method should:
             1. Obtain the the error-state Jacobian.
             2. Update the nominal state estimate by integrating it
-            3. From the error-state Jacobian, the process noise and the past 
+            3. From the error-state Jacobian, the process noise and the past
                iteration covariance estimate the current Covariance (and enforce
                its symmetry?)
           */
-                          
+
           // Check sensor
           if (sensor->ready(time)) {
               // Update state with gyro rates
-              sensor->modifyState(state, time);                    
-          } 
-          
+              sensor->modifyState(state, time);
+          }
+
           // Compute deltat
           double t_now = (double)micros();
           dt = (t_now - t_lastCall)/1000000.0f;
           t_lastCall = t_now;
-          
+
           sensor->integrateNominalState(eskfp.fx, eskfp.x, dt);
           sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
@@ -234,10 +234,10 @@ namespace hf {
           eskf.fx[7] = norm_quat_tmp[1];
           eskf.fx[8] = norm_quat_tmp[2];
           eskf.fx[9] = norm_quat_tmp[3];
-          
+
           // Copy back estimated states into x
           copyvec(eskfp.fx, eskfp.x, nominalStates);
-          
+
           // Predict covariance
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
           transpose(eskfp.Fdx, eskfp.Fdxt, errorStates, errorStates);
@@ -271,8 +271,8 @@ namespace hf {
           return 0;
 
       } // update
-      
-      int correct(ESKF_Sensor * sensor, float time) 
+
+      int correct(ESKF_Sensor * sensor, float time)
       {
           /* This method should:
             1. Obtain the Jacobian of the correction measurement model
@@ -280,15 +280,15 @@ namespace hf {
                innovation = measurement - measurement prediction for the estimated state
             3. Obtain the measurement noise
             4. Compute the gain
-            5. Estimate the error-states 
+            5. Estimate the error-states
             6. Update Covariance
             7. Inject errors
             8. Update Covariance if required and enforce symmetry
             9. Reset errors
           */
-          
+
           // Make all the entries of the used matrices zero
-          // This is required because not all sensors have the same number of 
+          // This is required because not all sensors have the same number of
           // observations and matrices are dimensioned so that they can store the
           // max number of observations. When correcting states with a sensor that
           // has less observations we don't want residual values from previous
@@ -298,7 +298,7 @@ namespace hf {
           bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x);
           bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
-          
+
           if (!JacobianOk || !InnovationOk)
           {
             return 1;
@@ -306,7 +306,7 @@ namespace hf {
 
           // Serial.println("P");
           // printMatrix(eskfp.P, errorStates, errorStates);
-          
+
           // Serial.println("H");
           // printMatrix(eskfp.H, observations, errorStates);
 
@@ -338,7 +338,7 @@ namespace hf {
 
           /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
-          
+
           // Serial.println("dx");
           // printMatrix(eskfp.dx, errorStates, 1);
           
@@ -348,7 +348,7 @@ namespace hf {
           //mulmat(eskfp.tmp0, eskfp.Kt, eskfp.tmp3, errorStates, errorStates, observations);
           //sub(eskfp.Pp, eskfp.tmp3, eskfp.tmp0, errorStates);
           //makesym(eskfp.tmp0, eskfp.P, errorStates);
-          
+
           /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(eskfp.K, eskfp.H, eskfp.tmp6, errorStates, observations, errorStates); // K*H
           negate(eskfp.tmp6, errorStates, errorStates); // -K*H
@@ -360,13 +360,13 @@ namespace hf {
           transpose(eskfp.K, eskfp.Kt, errorStates, observations); // K'
           mulmat(eskfp.R, eskfp.Kt, eskfp.tmp2, observations, observations, errorStates); // R*K'
           mulmat(eskfp.K, eskfp.tmp2, eskfp.tmp0, errorStates, observations, errorStates); // K*R*K'
-          accum(eskfp.tmp6, eskfp.tmp0, errorStates, errorStates); 
+          accum(eskfp.tmp6, eskfp.tmp0, errorStates, errorStates);
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
           // Serial.println("P");
           // printMatrix(eskfp.P, errorStates, errorStates);
-          
+
           /* Error injection */
           if (sensor->isOpticalFlow())
           {
@@ -423,10 +423,10 @@ namespace hf {
           transpose(eskfp.G, eskfp.tmp0, errorStates, errorStates);
           mulmat(eskfp.Pp, eskfp.tmp0, eskfp.tmp9, errorStates, errorStates, errorStates);
           mulmat(eskfp.G, eskfp.tmp9, eskfp.tmp10, errorStates, errorStates, errorStates);
-          
+
           // Force its symmetry: P = (P + P')/2
           makesym(eskfp.tmp10, eskfp.P, errorStates);*/
-          
+
           // Serial.print(eskfp.P[144], 8);
           // Serial.print(",");
           // Serial.print(eskfp.P[160], 8);
@@ -467,8 +467,8 @@ namespace hf {
           zeros(eskfp.K, errorStates, observations);
           zeros(eskfp.Kt, observations, errorStates);
           zeros(eskfp.hx, observations, 1);
-          zeros(eskfp.R, observations, observations);          
-          
+          zeros(eskfp.R, observations, observations);
+
           zeros(eskfp.tmp0, errorStates, errorStates);
           zeros(eskfp.tmp1, errorStates, observations);
           zeros(eskfp.tmp2, observations, errorStates);
@@ -497,7 +497,7 @@ namespace hf {
                 Serial.print(M[ii*c+jj],8);
                 Serial.print(",");
               }
-              
+
             }
           }
       }
@@ -523,5 +523,5 @@ namespace hf {
       }
 
   }; // class ESKF
-  
+
 } // namespace hf
