@@ -121,9 +121,15 @@ namespace hf {
           state.position[0] = eskf.x[0];
           state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
-          state.linearVelocities[0] = eskf.x[3];
-          state.linearVelocities[1] = eskf.x[4];
-          state.linearVelocities[2] = eskf.x[5];
+          
+          // Transform linear velocities to IMU frame
+          float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
+          float vels[3];
+          velocityToIMUFrame(vels, world_vels, q);
+          
+          state.linearVelocities[0] = vels[0];
+          state.linearVelocities[1] = vels[1];
+          state.linearVelocities[2] = vels[2];
       }
 
     public:
@@ -247,24 +253,6 @@ namespace hf {
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
-          // Serial.print(eskfp.x[0]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[1]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[2]);
-          // Serial.print(",");
-
-          // XXX for debuging
-          float world_vels[3] = {eskfp.x[3], eskfp.x[4], eskfp.x[5]};
-          float quat[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]};
-          float vels[3];
-          velocityToIMUFrame(vels, world_vels, quat);
-
-          Serial.print(vels[0], 8);
-          Serial.print(",");
-          Serial.print(vels[1], 8);
-          Serial.print(",");
-          Serial.println(vels[2], 8);
           /* success */
           synchState();
 
@@ -426,36 +414,12 @@ namespace hf {
 
           // Force its symmetry: P = (P + P')/2
           makesym(eskfp.tmp10, eskfp.P, errorStates);*/
-
-          // Serial.print(eskfp.P[144], 8);
-          // Serial.print(",");
-          // Serial.print(eskfp.P[160], 8);
-          // Serial.print(",");
-          // Serial.print(eskfp.dx[9], 8);
-          // Serial.print(",");
-          // Serial.println(eskfp.dx[10], 8);
           
           /* reset error state */
           zeros(eskfp.dx, errorStates, 1);
-          
-          // XXX for debuging
-          //fixQuaternion();
-          
+
           /* success */
           synchState();
-
-
-          // XXX for debuging
-          float world_vels[3] = {eskfp.x[3], eskfp.x[4], eskfp.x[5]};
-          float quat[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]};
-          float vels[3];
-          velocityToIMUFrame(vels, world_vels, quat);
-
-          Serial.print(vels[0], 8);
-          Serial.print(",");
-          Serial.print(vels[1], 8);
-          Serial.print(",");
-          Serial.println(vels[2], 8);
 
           return 0;
       } // correct
@@ -505,21 +469,21 @@ namespace hf {
       // XXX for debuging
       void velocityToIMUFrame(float vels[3], float world_vels[3], float q[4])
       {
-        float R[9]; // Rot matrix
-        float R_trans[9];
-        R[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
-        R[1] = 2*q[1]*q[2] - 2*q[0]*q[3];
-        R[2] = 2*q[1]*q[3] + 2*q[0]*q[2];
-        R[3] = 2*q[1]*q[2] + 2*q[0]*q[3];
-        R[4] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
-        R[5] = 2*q[2]*q[3] - 2*q[0]*q[1];
-        R[6] = 2*q[1]*q[3] - 2*q[0]*q[2];
-        R[7] = 2*q[2]*q[3] + 2*q[0]*q[1];
-        R[8] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+          float R[9]; // Rotation matrix
+          float R_trans[9];
+          // Compute rotation matrix from quaternion
+          R[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
+          R[1] = 2*q[1]*q[2] - 2*q[0]*q[3];
+          R[2] = 2*q[1]*q[3] + 2*q[0]*q[2];
+          R[3] = 2*q[1]*q[2] + 2*q[0]*q[3];
+          R[4] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
+          R[5] = 2*q[2]*q[3] - 2*q[0]*q[1];
+          R[6] = 2*q[1]*q[3] - 2*q[0]*q[2];
+          R[7] = 2*q[2]*q[3] + 2*q[0]*q[1];
+          R[8] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
         
-        transpose(R, R_trans, 3,3);
-        
-        mulvec(R_trans, world_vels, vels, 3, 3);
+          transpose(R, R_trans, 3,3);
+          mulvec(R_trans, world_vels, vels, 3, 3);
       }
 
   }; // class ESKF
