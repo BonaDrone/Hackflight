@@ -122,6 +122,11 @@ namespace hf {
           state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
           
+          // Cap velocities to 3d decimal (mm)
+          eskf.x[3] = int(eskf.x[3]*1000) / 1000.0;
+          eskf.x[4] = int(eskf.x[4]*1000) / 1000.0;
+          eskf.x[5] = int(eskf.x[5]*1000) / 1000.0;
+          
           // Transform linear velocities to IMU frame
           float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
           float vels[3];
