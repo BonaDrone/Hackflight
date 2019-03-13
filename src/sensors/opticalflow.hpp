@@ -34,20 +34,20 @@ namespace hf {
 
         private:
 
-            static constexpr float UPDATE_HZ = 100.0; // XXX should be using interrupt!
+            static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
             static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
 
             // Use digital pin 12 for chip select and SPI1 port for comms
             PMW3901 _flowSensor = PMW3901(12, &SPI1);
             // flow measures
-            // hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(1);
-            // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(1);
+            // hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(20);
+            // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
             float _deltaX = 0;
             float _deltaY = 0;
             // Time elapsed between corrections
             float deltat = 0.0;
             // Focal distance 
-            float f = 500.0;
+            float f = 400.0;
             // angular velocities
             float _rates[3];
 
@@ -67,6 +67,10 @@ namespace hf {
                     // _deltaY = _lpDeltaY.update((float)deltaX / deltat);
                     _deltaX = -(float)deltaY / deltat;
                     _deltaY = (float)deltaX / deltat;
+                    Serial.print(_deltaX, 8);
+                    Serial.print(",");
+                    Serial.print(_deltaY, 8);
+                    Serial.print(",");
 
                     return true; 
                 }
@@ -80,6 +84,8 @@ namespace hf {
             bool begin(void)
             {
                 bool connected = true;
+                // _lpDeltaX.init();
+                // _lpDeltaY.init();
                 if (!_flowSensor.begin()) {
                   connected = false;
                 }
@@ -213,8 +219,8 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-              R[0] = 5.0;
-              R[4] = 5.0;
+              R[0] = 600.0;
+              R[4] = 600.0;
             }
             
             virtual void getMeasures(eskf_state_t & state) override

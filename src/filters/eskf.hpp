@@ -108,7 +108,7 @@ namespace hf {
 
       }
 
-      void synchState(void)
+      void synchState(bool isCorrection)
       {
           // Update euler angles
           float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
@@ -122,19 +122,27 @@ namespace hf {
           state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
           
-          // Cap velocities to 3d decimal (mm)
-          eskf.x[3] = int(eskf.x[3]*1000) / 1000.0;
-          eskf.x[4] = int(eskf.x[4]*1000) / 1000.0;
-          eskf.x[5] = int(eskf.x[5]*1000) / 1000.0;
-          
           // Transform linear velocities to IMU frame
           float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
           float vels[3];
           velocityToIMUFrame(vels, world_vels, q);
           
-          state.linearVelocities[0] = vels[0];
-          state.linearVelocities[1] = vels[1];
-          state.linearVelocities[2] = vels[2];
+          // Cap velocities to 3d decimal (mm)
+          state.linearVelocities[0] = int(vels[0]*1000) / 1000.0;
+          state.linearVelocities[1] = int(vels[1]*1000) / 1000.0;;
+          state.linearVelocities[2] = int(vels[2]*1000) / 1000.0;;
+          
+          // XXX print for debugging
+          if (isCorrection)
+          {
+            Serial.print(micros() / 1000000.0, 8);
+            Serial.print(",");
+            Serial.print(state.linearVelocities[0], 8);
+            Serial.print(",");
+            Serial.print(state.linearVelocities[1], 8);
+            Serial.print(",");
+            Serial.println(state.position[2], 8);
+          }
       }
 
     public:
@@ -259,7 +267,7 @@ namespace hf {
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
           /* success */
-          synchState();
+          synchState(false);
 
           return 0;
 
@@ -424,7 +432,7 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
 
           /* success */
-          synchState();
+          synchState(sensor->isOpticalFlow());
 
           return 0;
       } // correct
@@ -487,8 +495,8 @@ namespace hf {
           R[7] = 2*q[2]*q[3] + 2*q[0]*q[1];
           R[8] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
         
-          transpose(R, R_trans, 3,3);
-          mulvec(R_trans, world_vels, vels, 3, 3);
+          transpose(R, R_trans, 3, 3);
+          mulvec(R, world_vels, vels, 3, 3);
       }
 
   }; // class ESKF
