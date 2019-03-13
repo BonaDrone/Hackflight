@@ -44,12 +44,23 @@ namespace hf {
             // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
             float _deltaX = 0;
             float _deltaY = 0;
+            int16_t lastFlowX = 0;
+            int16_t lastFlowY = 0;
             // Time elapsed between corrections
             float deltat = 0.0;
             // Focal distance 
             float f = 400.0;
             // angular velocities
             float _rates[3];
+
+            bool isFlowValid(int16_t current, int16_t last)
+            {
+              if (last!=0 && current==0)
+              {
+                return false;
+              }
+              return true;
+            }
 
         protected:
             
@@ -58,21 +69,27 @@ namespace hf {
                 static float _time;
 
                 if (time - _time > UPDATE_PERIOD) {
-                    deltat = time -_time;
-                    _time = time;
                     int16_t deltaX=0, deltaY=0;
                     _flowSensor.readMotionCount(&deltaX, &deltaY);
                     // To match camera frame
                     // _deltaX = _lpDeltaX.update(-(float)deltaY / deltat);
                     // _deltaY = _lpDeltaY.update((float)deltaX / deltat);
-                    _deltaX = -(float)deltaY / deltat;
-                    _deltaY = (float)deltaX / deltat;
-                    Serial.print(_deltaX, 8);
-                    Serial.print(",");
-                    Serial.print(_deltaY, 8);
-                    Serial.print(",");
-
-                    return true; 
+                    
+                    // Outlier detection
+                    if (isFlowValid(deltaX, lastFlowX) && isFlowValid(deltaY, lastFlowY))
+                    {
+                      deltat = time -_time;
+                      _time = time;
+                      lastFlowX = deltaX;
+                      lastFlowY = deltaY;
+                      _deltaX = -(float)deltaY / deltat;
+                      _deltaY = (float)deltaX / deltat;
+                      Serial.print(_deltaX, 8);
+                      Serial.print(",");
+                      Serial.print(_deltaY, 8);
+                      Serial.print(",");
+                      return true; 
+                    }
                 }
                 return false;
             }
