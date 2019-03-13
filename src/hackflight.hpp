@@ -394,12 +394,29 @@ namespace hf {
                 _mixer->motorsDisarmed[3] = m4;
             }
 
-            virtual void handle_CLEAR_EEPROM_Request(uint8_t & code) override
+            virtual void handle_CLEAR_EEPROM_Request(uint8_t section) override
             {
-                for (int i = PARAMETER_SLOTS ; i < EEPROM.length() ; i++)
-                {
-                    EEPROM.write(i, 0);
+                switch (section) {
+                  case 0: // Clear parameters section
+                      for (int i=0; i<PARAMETER_SLOTS; i++)
+                      {
+                          EEPROM.write(i, 0);
+                      }
+                      break;
+                  case 1: // Clear mission section
+                      for (int i=PARAMETER_SLOTS; i<EEPROM.length(); i++)
+                      {
+                          EEPROM.write(i, 0);
+                      }
+                      break;
+                  case 2: // Clear all
+                      for (int i=0; i<EEPROM.length(); i++)
+                      {
+                          EEPROM.write(i, 0);
+                      }
+                      break;
                 }
+
             }
 
             virtual void handle_WP_MISSION_FLAG_Request(uint8_t & flag) override

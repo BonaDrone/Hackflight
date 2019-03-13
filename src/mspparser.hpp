@@ -470,15 +470,6 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
-                    case 0:
-                    {
-                        uint8_t code = 0;
-                        handle_CLEAR_EEPROM_Request(code);
-                        prepareToSendBytes(1);
-                        sendByte(code);
-                        serialize8(_checksum);
-                        } break;
-
                     case 1:
                     {
                         uint8_t code = 0;
@@ -857,6 +848,15 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
+                    case 201:
+                    {
+                        uint8_t section = 0;
+                        memcpy(&section,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_CLEAR_EEPROM_Request(section);
+                        acknowledgeResponse();
+                        } break;
+
                 }
             }
 
@@ -926,12 +926,6 @@ namespace hf {
                         float m3 = getArgument(2);
                         float m4 = getArgument(3);
                         handle_GET_MOTOR_NORMAL_Data(m1, m2, m3, m4);
-                        } break;
-
-                    case 0:
-                    {
-                        uint8_t code = getArgument(0);
-                        handle_CLEAR_EEPROM_Data(code);
                         } break;
 
                     case 1:
@@ -1270,16 +1264,6 @@ namespace hf {
                 (void)m2;
                 (void)m3;
                 (void)m4;
-            }
-
-            virtual void handle_CLEAR_EEPROM_Request(uint8_t & code)
-            {
-                (void)code;
-            }
-
-            virtual void handle_CLEAR_EEPROM_Data(uint8_t & code)
-            {
-                (void)code;
             }
 
             virtual void handle_WP_ARM_Request(uint8_t & code)
@@ -1670,6 +1654,16 @@ namespace hf {
                 (void)rz;
             }
 
+            virtual void handle_CLEAR_EEPROM_Request(uint8_t  section)
+            {
+                (void)section;
+            }
+
+            virtual void handle_CLEAR_EEPROM_Data(uint8_t  section)
+            {
+                (void)section;
+            }
+
         public:
 
             static uint8_t serialize_RAW_IMU_Request(uint8_t bytes[])
@@ -1949,33 +1943,6 @@ namespace hf {
                 bytes[21] = CRC8(&bytes[3], 18);
 
                 return 22;
-            }
-
-            static uint8_t serialize_CLEAR_EEPROM_Request(uint8_t bytes[])
-            {
-                bytes[0] = 36;
-                bytes[1] = 77;
-                bytes[2] = 60;
-                bytes[3] = 0;
-                bytes[4] = 0;
-                bytes[5] = 0;
-
-                return 6;
-            }
-
-            static uint8_t serialize_CLEAR_EEPROM(uint8_t bytes[], uint8_t  code)
-            {
-                bytes[0] = 36;
-                bytes[1] = 77;
-                bytes[2] = 62;
-                bytes[3] = 1;
-                bytes[4] = 0;
-
-                memcpy(&bytes[5], &code, sizeof(uint8_t));
-
-                bytes[6] = CRC8(&bytes[3], 3);
-
-                return 7;
             }
 
             static uint8_t serialize_WP_ARM_Request(uint8_t bytes[])
@@ -2746,6 +2713,21 @@ namespace hf {
                 bytes[17] = CRC8(&bytes[3], 14);
 
                 return 18;
+            }
+
+            static uint8_t serialize_CLEAR_EEPROM(uint8_t bytes[], uint8_t  section)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 201;
+
+                memcpy(&bytes[5], &section, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
     }; // class MspParser
