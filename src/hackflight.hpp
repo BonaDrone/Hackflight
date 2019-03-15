@@ -328,7 +328,7 @@ namespace hf {
             // Map parameters to EEPROM addresses
             static const uint8_t GENERAL_CONFIG    = 0;
             static const uint8_t PID_CONSTANTS     = 1;
-            static const uint8_t N_PID_CONSTANTS   = 16;
+            static const uint8_t N_PID_CONSTANTS   = 19;
             static const uint8_t RANGE_PARAMS      = PID_CONSTANTS + N_PID_CONSTANTS * sizeof(float);
             static const uint8_t N_RANGE_PARAMS    = 3;
             static const uint8_t TRANSMITER_TRIMS  = RANGE_PARAMS + N_RANGE_PARAMS * sizeof(float);
@@ -480,54 +480,60 @@ namespace hf {
                 }
             }
 
-            virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollPitchP,
-                float gyroRollPitchI, float gyroRollPitchD, float gyroYawP,
-                float gyroYawI, float demandsToRate, float levelP,
-                float altHoldP, float altHoldVelP, float altHoldVelI, float altHoldVelD,
-                float minAltitude, float param6, float param7,
-                float param8, float param9) override
+            virtual void handle_SET_PID_CONSTANTS_Request(float gyroRollP, float gyroRollI, float gyroRollD,
+               float gyroPitchP, float gyroPitchI, float gyroPitchD,
+               float gyroYawP, float gyroYawI, float demandsToRate, 
+               float levelP, float altHoldP, float altHoldVelP, 
+               float altHoldVelI, float altHoldVelD, float minAltitude, 
+               float param6, float param7, float param8, float param9) override
             {
-                EEPROM.put(PID_CONSTANTS, gyroRollPitchP);
-                EEPROM.put(PID_CONSTANTS + 1 * sizeof(float), gyroRollPitchI);
-                EEPROM.put(PID_CONSTANTS + 2 * sizeof(float), gyroRollPitchD);
-                EEPROM.put(PID_CONSTANTS + 3 * sizeof(float), gyroYawP);
-                EEPROM.put(PID_CONSTANTS + 4 * sizeof(float), gyroYawI);
-                EEPROM.put(PID_CONSTANTS + 5 * sizeof(float), demandsToRate);
-                EEPROM.put(PID_CONSTANTS + 6 * sizeof(float), levelP);
-                EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), altHoldP);
-                EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), altHoldVelP);
-                EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), altHoldVelI);
-                EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), altHoldVelD);
-                EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
-                EEPROM.put(PID_CONSTANTS + 12 * sizeof(float), param6);
-                EEPROM.put(PID_CONSTANTS + 13 * sizeof(float), param7);
-                EEPROM.put(PID_CONSTANTS + 14 * sizeof(float), param8);
-                EEPROM.put(PID_CONSTANTS + 15 * sizeof(float), param9);
+                  EEPROM.put(PID_CONSTANTS, gyroRollP);
+                  EEPROM.put(PID_CONSTANTS + 1 * sizeof(float), gyroRollI);
+                  EEPROM.put(PID_CONSTANTS + 2 * sizeof(float), gyroRollD);
+                  EEPROM.put(PID_CONSTANTS + 3 * sizeof(float), gyroPitchP);
+                  EEPROM.put(PID_CONSTANTS + 4 * sizeof(float), gyroPitchI);
+                  EEPROM.put(PID_CONSTANTS + 5 * sizeof(float), gyroPitchD);
+                  EEPROM.put(PID_CONSTANTS + 6 * sizeof(float), gyroYawP);
+                  EEPROM.put(PID_CONSTANTS + 7 * sizeof(float), gyroYawI);
+                  EEPROM.put(PID_CONSTANTS + 8 * sizeof(float), demandsToRate);
+                  EEPROM.put(PID_CONSTANTS + 9 * sizeof(float), levelP);
+                  EEPROM.put(PID_CONSTANTS + 10 * sizeof(float), altHoldP);
+                  EEPROM.put(PID_CONSTANTS + 11 * sizeof(float), altHoldVelP);
+                  EEPROM.put(PID_CONSTANTS + 12 * sizeof(float), altHoldVelI);
+                  EEPROM.put(PID_CONSTANTS + 13 * sizeof(float), altHoldVelD);
+                  EEPROM.put(PID_CONSTANTS + 14 * sizeof(float), minAltitude);
+                  EEPROM.put(PID_CONSTANTS + 15 * sizeof(float), param6);
+                  EEPROM.put(PID_CONSTANTS + 16 * sizeof(float), param7);
+                  EEPROM.put(PID_CONSTANTS + 17 * sizeof(float), param8);
+                  EEPROM.put(PID_CONSTANTS + 18 * sizeof(float), param9);
             }
 
-            virtual void handle_GET_PID_CONSTANTS_Request(float  & gyroRollPitchP,
-                float & gyroRollPitchI, float & gyroRollPitchD, float & gyroYawP,
-                float & gyroYawI, float & demandsToRate, float & levelP,
-                float & altHoldP, float & altHoldVelP, float & altHoldVelI, float & altHoldVelD,
-                float & minAltitude, float & param6, float & param7,
-                float & param8, float & param9) override
+            virtual void handle_GET_PID_CONSTANTS_Request(float & gyroRollP, float & gyroRollI, float & gyroRollD,
+               float & gyroPitchP, float & gyroPitchI, float & gyroPitchD,
+               float & gyroYawP, float & gyroYawI, float & demandsToRate, 
+               float & levelP, float & altHoldP, float & altHoldVelP, 
+               float & altHoldVelI, float & altHoldVelD, float & minAltitude, 
+               float & param6, float & param7, float & param8, float & param9) override
             {
-              EEPROM.get(PID_CONSTANTS, gyroRollPitchP);
-              EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), gyroRollPitchI);
-              EEPROM.get(PID_CONSTANTS + 2 * sizeof(float), gyroRollPitchD);
-              EEPROM.get(PID_CONSTANTS + 3 * sizeof(float), gyroYawP);
-              EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), gyroYawI);
-              EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), demandsToRate);
-              EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), levelP);
-              EEPROM.get(PID_CONSTANTS + 7 * sizeof(float), altHoldP);
-              EEPROM.get(PID_CONSTANTS + 8 * sizeof(float), altHoldVelP);
-              EEPROM.get(PID_CONSTANTS + 9 * sizeof(float), altHoldVelI);
-              EEPROM.get(PID_CONSTANTS + 10 * sizeof(float), altHoldVelD);
-              EEPROM.get(PID_CONSTANTS + 11 * sizeof(float), minAltitude);
-              EEPROM.get(PID_CONSTANTS + 12 * sizeof(float), param6);
-              EEPROM.get(PID_CONSTANTS + 13 * sizeof(float), param7);
-              EEPROM.get(PID_CONSTANTS + 14 * sizeof(float), param8);
-              EEPROM.get(PID_CONSTANTS + 15 * sizeof(float), param9);
+                EEPROM.get(PID_CONSTANTS, gyroRollP);
+                EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), gyroRollI);
+                EEPROM.get(PID_CONSTANTS + 2 * sizeof(float), gyroRollD);
+                EEPROM.get(PID_CONSTANTS + 3 * sizeof(float), gyroPitchP);
+                EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), gyroPitchI);
+                EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), gyroPitchD);
+                EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), gyroYawP);
+                EEPROM.get(PID_CONSTANTS + 7 * sizeof(float), gyroYawI);
+                EEPROM.get(PID_CONSTANTS + 8 * sizeof(float), demandsToRate);
+                EEPROM.get(PID_CONSTANTS + 9 * sizeof(float), levelP);
+                EEPROM.get(PID_CONSTANTS + 10 * sizeof(float), altHoldP);
+                EEPROM.get(PID_CONSTANTS + 11 * sizeof(float), altHoldVelP);
+                EEPROM.get(PID_CONSTANTS + 12 * sizeof(float), altHoldVelI);
+                EEPROM.get(PID_CONSTANTS + 13 * sizeof(float), altHoldVelD);
+                EEPROM.get(PID_CONSTANTS + 14 * sizeof(float), minAltitude);
+                EEPROM.get(PID_CONSTANTS + 15 * sizeof(float), param6);
+                EEPROM.get(PID_CONSTANTS + 16 * sizeof(float), param7);
+                EEPROM.get(PID_CONSTANTS + 17 * sizeof(float), param8);
+                EEPROM.get(PID_CONSTANTS + 18 * sizeof(float), param9);
             }
 
             virtual void handle_SET_RANGE_PARAMETERS_Request(float rx, float ry, float rz) override
@@ -665,6 +671,18 @@ namespace hf {
                 status = _tx_calibration._rcCalibrationStatus;
             }
 
+            virtual void handle_GET_MISSION_COMPLETE_Request(uint8_t & status) override
+            {
+                status = _state.executingMission ? 1 : 0;
+            }
+            
+            virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
+            {
+                // XXX This should trigger a land action 
+                (void)flag;
+                digitalWrite(25, LOW);
+            }
+
         public:
 
             void init(Board * board, Receiver * receiver, Mixer * mixer, Rate * ratePid, bool armed=false)
@@ -763,7 +781,7 @@ namespace hf {
                 updateControlSignal();
 
                 // XXX Only for debuging purposes
-                //readEEPROM();
+                // readEEPROM();
             }
 
     }; // class Hackflight

@@ -197,9 +197,12 @@
   "SET_PID_CONSTANTS":
   [{"ID": 224},
    {"comment": "Set the controllers' parameters"},
-   {"gyroRollPitchP": "float"},
-   {"gyroRollPitchI": "float"},
-   {"gyroRollPitchD": "float"},
+   {"gyroRollP": "float"},
+   {"gyroRollI": "float"},
+   {"gyroRollD": "float"},
+   {"gyroPitchP": "float"},
+   {"gyroPitchI": "float"},
+   {"gyroPitchD": "float"},
    {"gyroYawP": "float"},
    {"gyroYawI": "float"},
    {"demandsToRate": "float"},
@@ -217,9 +220,12 @@
    "GET_PID_CONSTANTS":
    [{"ID": 127},
     {"comment": "Get the controllers' parameters"},
-    {"gyroRollPitchP": "float"},
-    {"gyroRollPitchI": "float"},
-    {"gyroRollPitchD": "float"},
+    {"gyroRollP": "float"},
+    {"gyroRollI": "float"},
+    {"gyroRollD": "float"},
+    {"gyroPitchP": "float"},
+    {"gyroPitchI": "float"},
+    {"gyroPitchD": "float"},
     {"gyroYawP": "float"},
     {"gyroYawI": "float"},
     {"demandsToRate": "float"},
@@ -261,10 +267,20 @@
    {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
    {"batteryVoltage": "float"}],
 
+  "SET_EMERGENCY_STOP":
+  [{"ID": 229},
+   {"comment": "Trigger an emergency landing"},
+   {"flag": "byte"}],
+
   "GET_BATTERY_VOLTAGE":
   [{"ID": 125},
    {"comment": "Get the current battery voltage"},
    {"voltage": "float"}],
+
+  "GET_MISSION_COMPLETE":
+  [{"ID": 116},
+   {"comment": "Get the status of the flight mission execution"},
+   {"status": "byte"}],
 
   "SET_RANGE_PARAMETERS":
   [{"ID": 221},
