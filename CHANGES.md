@@ -20,6 +20,7 @@
 * #73 Battery monitoring and low battery trigger
 * #75 ESKF estimates horizontal positions and velocities as well as accelerometer bias
 * #79 MSP message to get PID constants
+* #95 MSP message to retrieve flight mission execution status
 
 ### Changed
 

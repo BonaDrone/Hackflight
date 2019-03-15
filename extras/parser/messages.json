@@ -272,6 +272,11 @@
    {"comment": "Get the current battery voltage"},
    {"voltage": "float"}],
 
+  "GET_MISSION_COMPLETE":
+  [{"ID": 116},
+   {"comment": "Get the status of the flight mission execution"},
+   {"status": "byte"}],
+
   "SET_RANGE_PARAMETERS":
   [{"ID": 221},
    {"comment": "Range calibration parameters, which is the translation from IMU to range frames"},
