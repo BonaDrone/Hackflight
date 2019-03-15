@@ -671,6 +671,11 @@ namespace hf {
                 status = _tx_calibration._rcCalibrationStatus;
             }
 
+            virtual void handle_GET_MISSION_COMPLETE_Request(uint8_t & status) override
+            {
+                status = _state.executingMission ? 1 : 0;
+            }
+
         public:
 
             void init(Board * board, Receiver * receiver, Mixer * mixer, Rate * ratePid, bool armed=false)
