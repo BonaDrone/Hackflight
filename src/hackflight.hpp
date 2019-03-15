@@ -355,7 +355,7 @@ namespace hf {
             virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
             {
                 uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                EEPROM.put(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
+                EEPROM.write(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
             }
 
             virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue) override
@@ -394,11 +394,27 @@ namespace hf {
                 _mixer->motorsDisarmed[3] = m4;
             }
 
-            virtual void handle_CLEAR_EEPROM_Request(uint8_t & code) override
+            virtual void handle_CLEAR_EEPROM_Request(uint8_t section) override
             {
-                for (int i = PARAMETER_SLOTS ; i < EEPROM.length() ; i++)
-                {
-                    EEPROM.write(i, 0);
+                switch (section) {
+                  case 0: // Clear parameters section
+                      for (int i=0; i<PARAMETER_SLOTS; i++)
+                      {
+                          EEPROM.write(i, 0);
+                      }
+                      break;
+                  case 1: // Clear mission section
+                      for (int i=PARAMETER_SLOTS; i<EEPROM.length(); i++)
+                      {
+                          EEPROM.write(i, 0);
+                      }
+                      break;
+                  case 2: // Clear all
+                      for (int i=0; i<EEPROM.length(); i++)
+                      {
+                          EEPROM.write(i, 0);
+                      }
+                      break;
                 }
             }
 
@@ -443,10 +459,10 @@ namespace hf {
                 uint8_t config = EEPROM.read(GENERAL_CONFIG);
                 if (version)
                 {
-                  EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                  EEPROM.write(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
                   _isMosquito90 = true;
                 } else {
-                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                  EEPROM.write(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
                   _isMosquito90 = false;
                 }
             }
@@ -456,10 +472,10 @@ namespace hf {
                 uint8_t config = EEPROM.read(GENERAL_CONFIG);
                 if (hasBoard)
                 {
-                  EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                  EEPROM.write(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
                   _hasPositioningBoard = true;
                 } else {
-                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                  EEPROM.write(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
                   _hasPositioningBoard = false;
                 }
             }
@@ -638,7 +654,7 @@ namespace hf {
                       // Mark calibration as successful
                       _tx_calibration._rcCalibrationStatus = 1;
                       uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                      EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
+                      EEPROM.write(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
                     }
                     break;
                 }
@@ -747,7 +763,7 @@ namespace hf {
                 updateControlSignal();
 
                 // XXX Only for debuging purposes
-                // readEEPROM();
+                //readEEPROM();
             }
 
     }; // class Hackflight

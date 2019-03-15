@@ -79,11 +79,6 @@
    {"m3": "float"},
    {"m4": "float"}],
 
-  "CLEAR_EEPROM":
-  [{"ID": 0},
-   {"comment": "Clear all EEPROM memory"},
-   {"code": "byte"}],
-
   "WP_ARM":
   [{"ID": 1},
    {"comment": "Navigation order, arm the drone"},
@@ -276,6 +271,11 @@
    {"comment": "Range calibration parameters, which is the translation from IMU to range frames"},
    {"rx": "float"},
    {"ry": "float"},
-   {"rz": "float"}]
+   {"rz": "float"}],
+   
+  "CLEAR_EEPROM":
+  [{"ID": 201},
+   {"comment": "Clear a specific section of the EEPROM (or all)"},
+   {"section": "byte"}]
 
 }
