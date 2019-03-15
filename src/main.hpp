@@ -62,9 +62,12 @@ namespace hf {
               // Connection status (false unless proven otherwise)
               bool _positionBoardConnected = false;
               // Rate PID params
-              float _gyroRollPitchP;
-              float _gyroRollPitchI;
-              float _gyroRollPitchD;
+              float _gyroRollP;
+              float _gyroRollI;
+              float _gyroRollD;              
+              float _gyroPitchP;
+              float _gyroPitchI;
+              float _gyroPitchD;
               float _gyroYawP;
               float _gyroYawI;
               float _demandsToRate;
@@ -101,18 +104,21 @@ namespace hf {
                   _calibrateESC = (config >> CALIBRATE_ESC) & 1;
                   _txCalibrated = (config >> TX_CALIBRATED) & 1;
                   // Load Rate PID parameters (each float is 4 bytes)
-                  EEPROM.get(PID_CONSTANTS, _gyroRollPitchP);
-                  EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollPitchI);
-                  EEPROM.get(PID_CONSTANTS + 2 * sizeof(float), _gyroRollPitchD);
-                  EEPROM.get(PID_CONSTANTS + 3 * sizeof(float), _gyroYawP);
-                  EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), _gyroYawI);
-                  EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), _demandsToRate);
-                  EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), _levelP);
-                  EEPROM.get(PID_CONSTANTS + 7 * sizeof(float), _altHoldP);
-                  EEPROM.get(PID_CONSTANTS + 8 * sizeof(float), _altHoldVelP);
-                  EEPROM.get(PID_CONSTANTS + 9 * sizeof(float), _altHoldVelI);
-                  EEPROM.get(PID_CONSTANTS + 10 * sizeof(float), _altHoldVelD);
-                  EEPROM.get(PID_CONSTANTS + 11 * sizeof(float), _minAltitude);
+                  EEPROM.get(PID_CONSTANTS, _gyroRollP);
+                  EEPROM.get(PID_CONSTANTS + 1 * sizeof(float), _gyroRollI);
+                  EEPROM.get(PID_CONSTANTS + 2 * sizeof(float), _gyroRollD);
+                  EEPROM.get(PID_CONSTANTS + 3 * sizeof(float), _gyroPitchP);
+                  EEPROM.get(PID_CONSTANTS + 4 * sizeof(float), _gyroPitchI);
+                  EEPROM.get(PID_CONSTANTS + 5 * sizeof(float), _gyroPitchD);
+                  EEPROM.get(PID_CONSTANTS + 6 * sizeof(float), _gyroYawP);
+                  EEPROM.get(PID_CONSTANTS + 7 * sizeof(float), _gyroYawI);
+                  EEPROM.get(PID_CONSTANTS + 8 * sizeof(float), _demandsToRate);
+                  EEPROM.get(PID_CONSTANTS + 9 * sizeof(float), _levelP);
+                  EEPROM.get(PID_CONSTANTS + 10 * sizeof(float), _altHoldP);
+                  EEPROM.get(PID_CONSTANTS + 11 * sizeof(float), _altHoldVelP);
+                  EEPROM.get(PID_CONSTANTS + 12 * sizeof(float), _altHoldVelI);
+                  EEPROM.get(PID_CONSTANTS + 13 * sizeof(float), _altHoldVelD);
+                  EEPROM.get(PID_CONSTANTS + 14 * sizeof(float), _minAltitude);
                   EEPROM.get(RANGE_PARAMS, _rx);
                   EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
                   EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
@@ -266,9 +272,12 @@ namespace hf {
 
                 // Instantiate controllers after loading parameters
                 hf::Rate * ratePid = new hf::Rate(
-                  _gyroRollPitchP,
-                  _gyroRollPitchI,
-                  _gyroRollPitchD,
+                  _gyroRollP,
+                  _gyroRollI,
+                  _gyroRollD,
+                  _gyroPitchP,
+                  _gyroPitchI,
+                  _gyroPitchD,                  
                   _gyroYawP,
                   _gyroYawI,
                   _demandsToRate);
