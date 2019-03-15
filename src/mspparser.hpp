@@ -848,6 +848,15 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 116:
+                    {
+                        uint8_t status = 0;
+                        handle_GET_MISSION_COMPLETE_Request(status);
+                        prepareToSendBytes(1);
+                        sendByte(status);
+                        serialize8(_checksum);
+                        } break;
+
                     case 221:
                     {
                         float rx = 0;
@@ -1107,6 +1116,12 @@ namespace hf {
                     {
                         float voltage = getArgument(0);
                         handle_GET_BATTERY_VOLTAGE_Data(voltage);
+                        } break;
+
+                    case 116:
+                    {
+                        uint8_t status = getArgument(0);
+                        handle_GET_MISSION_COMPLETE_Data(status);
                         } break;
 
                 }
@@ -1668,6 +1683,16 @@ namespace hf {
             virtual void handle_GET_BATTERY_VOLTAGE_Data(float & voltage)
             {
                 (void)voltage;
+            }
+
+            virtual void handle_GET_MISSION_COMPLETE_Request(uint8_t & status)
+            {
+                (void)status;
+            }
+
+            virtual void handle_GET_MISSION_COMPLETE_Data(uint8_t & status)
+            {
+                (void)status;
             }
 
             virtual void handle_SET_RANGE_PARAMETERS_Request(float  rx, float  ry, float  rz)
@@ -2732,6 +2757,33 @@ namespace hf {
                 bytes[9] = CRC8(&bytes[3], 6);
 
                 return 10;
+            }
+
+            static uint8_t serialize_GET_MISSION_COMPLETE_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 116;
+                bytes[5] = 116;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_MISSION_COMPLETE(uint8_t bytes[], uint8_t  status)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 116;
+
+                memcpy(&bytes[5], &status, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
             static uint8_t serialize_SET_RANGE_PARAMETERS(uint8_t bytes[], float  rx, float  ry, float  rz)
