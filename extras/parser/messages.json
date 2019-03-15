@@ -267,6 +267,11 @@
    {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
    {"batteryVoltage": "float"}],
 
+  "SET_EMERGENCY_STOP":
+  [{"ID": 229},
+   {"comment": "Trigger an emergency landing"},
+   {"flag": "byte"}],
+
   "GET_BATTERY_VOLTAGE":
   [{"ID": 125},
    {"comment": "Get the current battery voltage"},

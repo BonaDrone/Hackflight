@@ -675,6 +675,13 @@ namespace hf {
             {
                 status = _state.executingMission ? 1 : 0;
             }
+            
+            virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
+            {
+                // XXX This should trigger a land action 
+                (void)flag;
+                digitalWrite(25, LOW);
+            }
 
         public:
 

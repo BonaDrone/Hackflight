@@ -839,6 +839,15 @@ namespace hf {
                         acknowledgeResponse();
                         } break;
 
+                    case 229:
+                    {
+                        uint8_t flag = 0;
+                        memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_EMERGENCY_STOP_Request(flag);
+                        acknowledgeResponse();
+                        } break;
+
                     case 125:
                     {
                         float voltage = 0;
@@ -1673,6 +1682,16 @@ namespace hf {
             virtual void handle_SET_BATTERY_VOLTAGE_Data(float  batteryVoltage)
             {
                 (void)batteryVoltage;
+            }
+
+            virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_SET_EMERGENCY_STOP_Data(uint8_t  flag)
+            {
+                (void)flag;
             }
 
             virtual void handle_GET_BATTERY_VOLTAGE_Request(float & voltage)
@@ -2730,6 +2749,21 @@ namespace hf {
                 bytes[9] = CRC8(&bytes[3], 6);
 
                 return 10;
+            }
+
+            static uint8_t serialize_SET_EMERGENCY_STOP(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 229;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
             static uint8_t serialize_GET_BATTERY_VOLTAGE_Request(uint8_t bytes[])

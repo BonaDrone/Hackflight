@@ -21,6 +21,7 @@
 * #75 ESKF estimates horizontal positions and velocities as well as accelerometer bias
 * #79 MSP message to get PID constants
 * #95 MSP message to retrieve flight mission execution status
+* #96 MSP message to stop the Mosquito
 
 ### Changed
 
