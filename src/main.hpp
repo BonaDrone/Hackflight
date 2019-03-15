@@ -299,7 +299,7 @@ namespace hf {
                       calibrateESCsMultiShot();
                       uint8_t config = EEPROM.read(GENERAL_CONFIG);
                       Serial.println(config);
-                      EEPROM.put(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
+                      EEPROM.write(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
                       Serial.println(config);
                     }
                     h.init(new hf::BonadroneMultiShot(), &rc, &mixer, ratePid);

@@ -355,7 +355,7 @@ namespace hf {
             virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
             {
                 uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                EEPROM.put(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
+                EEPROM.write(GENERAL_CONFIG, config | (1 << CALIBRATE_ESC));
             }
 
             virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue) override
@@ -416,7 +416,6 @@ namespace hf {
                       }
                       break;
                 }
-
             }
 
             virtual void handle_WP_MISSION_FLAG_Request(uint8_t & flag) override
@@ -460,10 +459,10 @@ namespace hf {
                 uint8_t config = EEPROM.read(GENERAL_CONFIG);
                 if (version)
                 {
-                  EEPROM.put(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
+                  EEPROM.write(GENERAL_CONFIG, config | (1 << MOSQUITO_VERSION));
                   _isMosquito90 = true;
                 } else {
-                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
+                  EEPROM.write(GENERAL_CONFIG, config & ~(1 << MOSQUITO_VERSION));
                   _isMosquito90 = false;
                 }
             }
@@ -473,10 +472,10 @@ namespace hf {
                 uint8_t config = EEPROM.read(GENERAL_CONFIG);
                 if (hasBoard)
                 {
-                  EEPROM.put(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
+                  EEPROM.write(GENERAL_CONFIG, config | (1 << POSITIONING_BOARD));
                   _hasPositioningBoard = true;
                 } else {
-                  EEPROM.put(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
+                  EEPROM.write(GENERAL_CONFIG, config & ~(1 << POSITIONING_BOARD));
                   _hasPositioningBoard = false;
                 }
             }
@@ -655,7 +654,7 @@ namespace hf {
                       // Mark calibration as successful
                       _tx_calibration._rcCalibrationStatus = 1;
                       uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                      EEPROM.put(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
+                      EEPROM.write(GENERAL_CONFIG, config | (1 << TX_CALIBRATED));
                     }
                     break;
                 }
@@ -764,7 +763,7 @@ namespace hf {
                 updateControlSignal();
 
                 // XXX Only for debuging purposes
-                // readEEPROM();
+                //readEEPROM();
             }
 
     }; // class Hackflight
