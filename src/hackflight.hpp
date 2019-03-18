@@ -694,7 +694,7 @@ namespace hf {
                 _ratePid  = ratePid;
 
                 // XXX Now, the order of the sensors and the ESKF sensor must be the same.
-                // XXX. Ideal behavior: add sensors and ensure a method (not harcoded)
+                // XXX Ideal behavior: add sensors and ensure a method (not harcoded)
                 // XXX that adds ESKF sensors depending on how they have been added in the sensors array.
 
                 // Error state kalman filter

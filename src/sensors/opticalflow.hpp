@@ -40,27 +40,18 @@ namespace hf {
             // Use digital pin 12 for chip select and SPI1 port for comms
             PMW3901 _flowSensor = PMW3901(12, &SPI1);
             // flow measures
-            // hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(20);
-            // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
+            hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(20);
+            hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
+            float _filteredDeltaX = 0;
+            float _filteredDeltaY = 0;                 
             float _deltaX = 0;
             float _deltaY = 0;
-            int16_t lastFlowX = 0;
-            int16_t lastFlowY = 0;
             // Time elapsed between corrections
             float deltat = 0.0;
             // Focal distance 
-            float f = 400.0;
+            float f = 350.0;
             // angular velocities
             float _rates[3];
-
-            bool isFlowValid(int16_t current, int16_t last)
-            {
-              if (last!=0 && current==0)
-              {
-                return false;
-              }
-              return true;
-            }
 
         protected:
             
@@ -72,24 +63,17 @@ namespace hf {
                     int16_t deltaX=0, deltaY=0;
                     _flowSensor.readMotionCount(&deltaX, &deltaY);
                     // To match camera frame
-                    // _deltaX = _lpDeltaX.update(-(float)deltaY / deltat);
-                    // _deltaY = _lpDeltaY.update((float)deltaX / deltat);
-                    
-                    // Outlier detection
-                    if (isFlowValid(deltaX, lastFlowX) && isFlowValid(deltaY, lastFlowY))
-                    {
-                      deltat = time -_time;
-                      _time = time;
-                      lastFlowX = deltaX;
-                      lastFlowY = deltaY;
-                      _deltaX = -(float)deltaY / deltat;
-                      _deltaY = (float)deltaX / deltat;
-                      Serial.print(_deltaX, 8);
-                      Serial.print(",");
-                      Serial.print(_deltaY, 8);
-                      Serial.print(",");
-                      return true; 
-                    }
+                    _filteredDeltaX = _lpDeltaX.update((float)deltaX);
+                    _filteredDeltaY = _lpDeltaY.update((float)deltaY);                 
+                    deltat = time -_time;
+                    _time = time;
+                    _deltaX = -(float)_filteredDeltaY / deltat;
+                    _deltaY = (float)_filteredDeltaX / deltat;
+                    // Serial.print(_deltaX, 8);
+                    // Serial.print(",");
+                    // Serial.print(_deltaY, 8);
+                    // Serial.print(",");
+                    return true; 
                 }
                 return false;
             }
@@ -101,8 +85,8 @@ namespace hf {
             bool begin(void)
             {
                 bool connected = true;
-                // _lpDeltaX.init();
-                // _lpDeltaY.init();
+                _lpDeltaX.init();
+                _lpDeltaY.init();
                 if (!_flowSensor.begin()) {
                   connected = false;
                 }
@@ -236,8 +220,8 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-              R[0] = 600.0;
-              R[4] = 600.0;
+              R[0] = 1.0;
+              R[4] = 1.0;
             }
             
             virtual void getMeasures(eskf_state_t & state) override

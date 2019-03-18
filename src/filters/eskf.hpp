@@ -133,16 +133,20 @@ namespace hf {
           state.linearVelocities[2] = int(vels[2]*1000) / 1000.0;;
           
           // XXX print for debugging
-          if (isCorrection)
-          {
-            Serial.print(micros() / 1000000.0, 8);
-            Serial.print(",");
-            Serial.print(state.linearVelocities[0], 8);
-            Serial.print(",");
-            Serial.print(state.linearVelocities[1], 8);
-            Serial.print(",");
-            Serial.println(state.position[2], 8);
-          }
+          // if (isCorrection)
+          // {
+          //   Serial.print(state.position[0], 8);
+          //   Serial.print(",");
+          //   Serial.print(state.position[1], 8);
+          //   Serial.print(",");
+          //   Serial.print(micros() / 1000000.0, 8);
+          //   Serial.print(",");
+          //   Serial.print(state.linearVelocities[0], 8);
+          //   Serial.print(",");
+          //   Serial.print(state.linearVelocities[1], 8);
+          //   Serial.print(",");
+          //   Serial.println(state.position[2], 8);
+          // }
       }
 
     public:
