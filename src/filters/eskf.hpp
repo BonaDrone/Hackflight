@@ -36,6 +36,7 @@ namespace hf {
 
     private:
 
+      // NEsta, NNsta, Mobs are defined in eskf_struct.hpp
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
@@ -174,7 +175,7 @@ namespace hf {
           eskfp.x[3] = 0.0; // velocity
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
-          eskfp.x[6] = 1.0; // orientation
+          eskfp.x[6] = 1.0; // orientation (quaternion)
           eskfp.x[7] = 0.0;
           eskfp.x[8] = 0.0;
           eskfp.x[9] = 0.0;
@@ -304,16 +305,12 @@ namespace hf {
           bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
 
+          // Skip correction if there were any errors when obtaining
+          // the Jacobian or the innovation
           if (!JacobianOk || !InnovationOk)
           {
-            return 1;
+              return 1;
           }
-
-          // Serial.println("P");
-          // printMatrix(eskfp.P, errorStates, errorStates);
-
-          // Serial.println("H");
-          // printMatrix(eskfp.H, observations, errorStates);
 
           // Compute gain:
           /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
@@ -325,27 +322,12 @@ namespace hf {
 
           makesym(eskfp.tmp3, eskfp.tmp9, observations);
 
-          // Serial.println("Z");
-          // printMatrix(eskfp.tmp9, observations, observations);
-
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
           if (sensor->Zinverse(eskfp.tmp9, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
 
-          // Serial.println("Zinv");
-          // printMatrix(eskfp.tmp4, observations, observations);
-
-          // Serial.println("K");
-          // printMatrix(eskfp.K, errorStates, observations);
-          // 
-          // Serial.println("z");
-          // printMatrix(eskfp.hx, observations, 1);
-
           /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
-
-          // Serial.println("dx");
-          // printMatrix(eskfp.dx, errorStates, 1);
           
           /* P_k = P_k - K_k Z_k K^T_k  */
           //transpose(eskfp.K, eskfp.Kt, observations, errorStates);
@@ -369,9 +351,6 @@ namespace hf {
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
-          // Serial.println("P");
-          // printMatrix(eskfp.P, errorStates, errorStates);
-
           /* Error injection */
           if (sensor->isOpticalFlow())
           {
@@ -379,7 +358,7 @@ namespace hf {
               eskf.x[1] += eskf.dx[1];
               eskf.x[3] += eskf.dx[3]; // velocity
               eskf.x[4] += eskf.dx[4];
-              eskf.x[10] += eskf.dx[9];
+              eskf.x[10] += eskf.dx[9]; // accel bias
               eskf.x[11] += eskf.dx[10];
               eskf.x[12] += eskf.dx[11];
           } else {
@@ -413,8 +392,6 @@ namespace hf {
 
           }
 
-          // eskfp.x[10] = -0.02; // Brute force accel x bias to 0
-          // eskfp.x[11] = -0.02; // Brute force accel y bias to 0
           eskfp.x[15] = 0.00; // Brute force yaw bias to 0
 
 
@@ -487,7 +464,6 @@ namespace hf {
       void velocityToIMUFrame(float vels[3], float world_vels[3], float q[4])
       {
           float R[9]; // Rotation matrix
-          float R_trans[9];
           // Compute rotation matrix from quaternion
           R[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
           R[1] = 2*q[1]*q[2] - 2*q[0]*q[3];
@@ -498,8 +474,7 @@ namespace hf {
           R[6] = 2*q[1]*q[3] - 2*q[0]*q[2];
           R[7] = 2*q[2]*q[3] + 2*q[0]*q[1];
           R[8] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
-        
-          transpose(R, R_trans, 3, 3);
+
           mulvec(R, world_vels, vels, 3, 3);
       }
 
