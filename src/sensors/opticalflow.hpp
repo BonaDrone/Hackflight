@@ -36,12 +36,13 @@ namespace hf {
 
             static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
             static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
+            static const uint8_t HISTORY = 20;
 
             // Use digital pin 12 for chip select and SPI1 port for comms
             PMW3901 _flowSensor = PMW3901(12, &SPI1);
             // flow measures
-            hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(20);
-            hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(20);
+            hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(HISTORY);
+            hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(HISTORY);
             float _filteredDeltaX = 0;
             float _filteredDeltaY = 0;                 
             float _deltaX = 0;
@@ -84,9 +85,9 @@ namespace hf {
 
             bool begin(void)
             {
-                bool connected = true;
                 _lpDeltaX.init();
                 _lpDeltaY.init();
+                bool connected = true;
                 if (!_flowSensor.begin()) {
                   connected = false;
                 }
@@ -220,37 +221,34 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-              R[0] = 1.0;
-              R[4] = 1.0;
+                R[0] = 1.0;
+                R[4] = 1.0;
             }
             
             virtual void getMeasures(eskf_state_t & state) override
             {
-              _rates[0] = state.angularVelocities[0];
-              _rates[1] = state.angularVelocities[1];
-              _rates[2] = state.angularVelocities[2];
+                _rates[0] = state.angularVelocities[0];
+                _rates[1] = state.angularVelocities[1];
+                _rates[2] = state.angularVelocities[2];
             }
 
             virtual bool Zinverse(float * Z, float * invZ) override
             {
-              // Since Z by default is a 3x3 matrix, temporarily copy its
-              // values in a 2x2 matrix to avoid messing up with the indexes
-              float Ztmp[4];
-              Ztmp[0] = Z[0];
-              Ztmp[1] = Z[1];
-              Ztmp[2] = Z[3];
-              Ztmp[3] = Z[4];
-              float invZtmp[4];
-              float tmp[2];
-              if (cholsl(Ztmp, invZtmp, tmp, 2))
-              { 
-                return 1;
-              }
-              invZ[0] = invZtmp[0];
-              invZ[1] = invZtmp[1];
-              invZ[3] = invZtmp[2];
-              invZ[4] = invZtmp[3];
-              return 0;
+                // Since Z by default is a 3x3 matrix, temporarily copy its
+                // values in a 2x2 matrix to avoid messing up with the indexes
+                float Ztmp[4];
+                Ztmp[0] = Z[0];
+                Ztmp[1] = Z[1];
+                Ztmp[2] = Z[3];
+                Ztmp[3] = Z[4];
+                float invZtmp[4];
+                float tmp[2];
+                if (cholsl(Ztmp, invZtmp, tmp, 2))  return 1;
+                invZ[0] = invZtmp[0];
+                invZ[1] = invZtmp[1];
+                invZ[3] = invZtmp[2];
+                invZ[4] = invZtmp[3];
+                return 0;
             }
             
             virtual bool isOpticalFlow(void) override { return true; }
