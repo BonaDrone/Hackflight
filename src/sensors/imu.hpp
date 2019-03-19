@@ -582,18 +582,13 @@ namespace hf {
                 state.angularVelocities[2] = _rates[2];                
             }
 
-            virtual bool ready(float time) override
+            virtual bool shouldUpdateESKF(float time) override
             {
                 (void)time;
 
                 bool result = board->getIMU(_rates, _accels);
 
                 return result;
-            }
-            
-            virtual bool shouldUpdateESKF(float time) override
-            {
-                return true;
             }
 
         private:

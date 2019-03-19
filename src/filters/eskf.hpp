@@ -236,7 +236,7 @@ namespace hf {
           */
 
           // Check sensor
-          if (sensor->ready(time)) {
+          if (sensor->shouldUpdateESKF(time)) {
               // Update state with gyro rates
               sensor->modifyState(state, time);
           }
