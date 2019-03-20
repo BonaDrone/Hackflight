@@ -380,7 +380,7 @@ namespace hf {
                 Q[3] =  0;
                 Q[18] =   0;
                 Q[33] =   0;
-                Q[48] =   15.00;
+                Q[48] =   5.0;
                 Q[63] =   0;
                 Q[78] =   0;
                 Q[93] =   0;
@@ -397,7 +397,7 @@ namespace hf {
                 Q[19] =  0;
                 Q[34] =   0;
                 Q[49] =   0;
-                Q[64] =   15.000;
+                Q[64] =   5.0;
                 Q[79] =   0;
                 Q[94] =   0;
                 Q[109] =   0;
@@ -414,7 +414,7 @@ namespace hf {
                 Q[35] =  0;
                 Q[50] =   0;
                 Q[65] =   0;
-                Q[80] =   0.001;
+                Q[80] =   5.0;
                 Q[95] =   0;
                 Q[110] =   0;
                 Q[125] =   0;
@@ -582,18 +582,13 @@ namespace hf {
                 state.angularVelocities[2] = _rates[2];                
             }
 
-            virtual bool ready(float time) override
+            virtual bool shouldUpdateESKF(float time) override
             {
                 (void)time;
 
                 bool result = board->getIMU(_rates, _accels);
 
                 return result;
-            }
-            
-            virtual bool shouldUpdateESKF(float time) override
-            {
-                return true;
             }
 
         private:

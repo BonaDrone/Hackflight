@@ -22,6 +22,9 @@
 * #79 MSP message to get PID constants
 * #95 MSP message to retrieve flight mission execution status
 * #96 MSP message to stop the Mosquito
+* #102 Filter OF measures with a LPF
+* #102 Express linear velocities in IMU frame
+* #102 ESKF tuning and cleanup
 
 ### Changed
 

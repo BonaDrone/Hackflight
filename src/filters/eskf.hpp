@@ -36,6 +36,7 @@ namespace hf {
 
     private:
 
+      // NEsta, NNsta, Mobs are defined in eskf_struct.hpp
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
@@ -108,7 +109,7 @@ namespace hf {
 
       }
 
-      void synchState(void)
+      void synchState(bool isCorrection)
       {
           // Update euler angles
           float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
@@ -121,9 +122,32 @@ namespace hf {
           state.position[0] = eskf.x[0];
           state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
-          state.linearVelocities[0] = eskf.x[3];
-          state.linearVelocities[1] = eskf.x[4];
-          state.linearVelocities[2] = eskf.x[5];
+          
+          // Transform linear velocities to IMU frame
+          float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
+          float vels[3];
+          velocityToIMUFrame(vels, world_vels, q);
+          
+          // Cap velocities to 3d decimal (mm)
+          state.linearVelocities[0] = int(vels[0]*1000) / 1000.0;
+          state.linearVelocities[1] = int(vels[1]*1000) / 1000.0;;
+          state.linearVelocities[2] = int(vels[2]*1000) / 1000.0;;
+          
+          // XXX print for debugging
+          // if (isCorrection)
+          // {
+          //   Serial.print(state.position[0], 8);
+          //   Serial.print(",");
+          //   Serial.print(state.position[1], 8);
+          //   Serial.print(",");
+          //   Serial.print(micros() / 1000000.0, 8);
+          //   Serial.print(",");
+          //   Serial.print(state.linearVelocities[0], 8);
+          //   Serial.print(",");
+          //   Serial.print(state.linearVelocities[1], 8);
+          //   Serial.print(",");
+          //   Serial.println(state.position[2], 8);
+          // }
       }
 
     public:
@@ -151,7 +175,7 @@ namespace hf {
           eskfp.x[3] = 0.0; // velocity
           eskfp.x[4] = 0.0;
           eskfp.x[5] = 0.0;
-          eskfp.x[6] = 1.0; // orientation
+          eskfp.x[6] = 1.0; // orientation (quaternion)
           eskfp.x[7] = 0.0;
           eskfp.x[8] = 0.0;
           eskfp.x[9] = 0.0;
@@ -212,7 +236,7 @@ namespace hf {
           */
 
           // Check sensor
-          if (sensor->ready(time)) {
+          if (sensor->shouldUpdateESKF(time)) {
               // Update state with gyro rates
               sensor->modifyState(state, time);
           }
@@ -247,23 +271,8 @@ namespace hf {
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
-          // Serial.print(eskfp.x[0]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[1]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[2]);
-          // Serial.print(",");
-
-          // Serial.print(eskfp.x[3]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[4]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[5]);
-          // Serial.print(",");
-          // Serial.println(eskfp.x[12]);
-
           /* success */
-          synchState();
+          synchState(false);
 
           return 0;
 
@@ -296,16 +305,12 @@ namespace hf {
           bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
           sensor->getCovarianceCorrection(eskfp.R);
 
+          // Skip correction if there were any errors when obtaining
+          // the Jacobian or the innovation
           if (!JacobianOk || !InnovationOk)
           {
-            return 1;
+              return 1;
           }
-
-          // Serial.println("P");
-          // printMatrix(eskfp.P, errorStates, errorStates);
-
-          // Serial.println("H");
-          // printMatrix(eskfp.H, observations, errorStates);
 
           // Compute gain:
           /* K_k = P_k H^T_k (H_k P_k H^T_k + R)^{-1} */
@@ -317,22 +322,13 @@ namespace hf {
 
           makesym(eskfp.tmp3, eskfp.tmp9, observations);
 
-          // Serial.println("Z");
-          // printMatrix(eskfp.tmp9, observations, observations);
-
           // if (cholsl(eskfp.tmp3, eskfp.tmp4, eskfp.tmp5, observations)) return 1; // tmp4 = Z^-1
           if (sensor->Zinverse(eskfp.tmp9, eskfp.tmp4)) return 1; // tmp4 = Z^-1
           mulmat(eskfp.tmp1, eskfp.tmp4, eskfp.K, errorStates, observations, observations); // K = P*H'*Z^-1
 
-          // Serial.println("Zinv");
-          // printMatrix(eskfp.tmp4, observations, observations);
-
-          // Serial.println("K");
-          // printMatrix(eskfp.K, errorStates, observations);
-
           /* \hat{x}_k = \hat{x_k} + K_k(z_k - h(\hat{x}_k)) */
           mulvec(eskfp.K, eskfp.hx, eskfp.dx, errorStates, observations);
-
+          
           /* P_k = P_k - K_k Z_k K^T_k  */
           //transpose(eskfp.K, eskfp.Kt, observations, errorStates);
           //mulmat(eskfp.K, eskfp.tmp3, eskfp.tmp0, errorStates, observations, errorStates);
@@ -355,24 +351,24 @@ namespace hf {
 
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
-          // Serial.println("P");
-          // printMatrix(eskfp.P, errorStates, errorStates);
-
           /* Error injection */
           if (sensor->isOpticalFlow())
           {
-              eskfp.x[0] += eskfp.dx[0]; // position
-              eskfp.x[1] += eskfp.dx[1];
-              eskfp.x[3] += eskfp.dx[3]; // velocity
-              eskfp.x[4] += eskfp.dx[4];
+              eskf.x[0] += eskf.dx[0]; // position
+              eskf.x[1] += eskf.dx[1];
+              eskf.x[3] += eskf.dx[3]; // velocity
+              eskf.x[4] += eskf.dx[4];
+              eskf.x[10] += eskf.dx[9]; // accel bias
+              eskf.x[11] += eskf.dx[10];
+              eskf.x[12] += eskf.dx[11];
           } else {
               // XXX Quaternion injection as a method
               float tmp[4];
               tmp[0] = 1.0;
-              tmp[1] = eskfp.dx[6]/2.0;
-              tmp[2] = eskfp.dx[7]/2.0;
-              tmp[3] = eskfp.dx[8]/2.0;
-              float quat_tmp[4] = {eskfp.x[6], eskfp.x[7], eskfp.x[8], eskfp.x[9]};
+              tmp[1] = eskf.dx[6]/2.0;
+              tmp[2] = eskf.dx[7]/2.0;
+              tmp[3] = eskf.dx[8]/2.0;
+              float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
               Quaternion::computeqL(eskfp.qL, quat_tmp);
               mulvec(eskfp.qL, tmp, eskfp.tmp5, 4, 4);
               norvec(eskfp.tmp5, tmp, 4);
@@ -381,21 +377,23 @@ namespace hf {
               eskf.x[8] = tmp[2];
               eskf.x[9] = tmp[3];
               // Inject rest of errors
-              eskfp.x[0] += eskfp.dx[0]; // position
-              eskfp.x[1] += eskfp.dx[1];
-              eskfp.x[2] += eskfp.dx[2];
-              eskfp.x[3] += eskfp.dx[3]; // velocity
-              eskfp.x[4] += eskfp.dx[4];
-              eskfp.x[5] += eskfp.dx[5];
-              eskfp.x[10] += eskfp.dx[9]; // accel bias
-              eskfp.x[11] += eskfp.dx[10];
-              eskfp.x[12] += eskfp.dx[11];
-              eskfp.x[13] += eskfp.dx[12]; // gyro bias
-              eskfp.x[14] += eskfp.dx[13];
-              eskfp.x[15] += eskfp.dx[14];
+              eskf.x[0] += eskf.dx[0]; // position
+              eskf.x[1] += eskf.dx[1];
+              eskf.x[2] += eskf.dx[2];
+              eskf.x[3] += eskf.dx[3]; // velocity
+              eskf.x[4] += eskf.dx[4];
+              eskf.x[5] += eskf.dx[5];
+              eskf.x[10] += eskf.dx[9]; // accel bias
+              eskf.x[11] += eskf.dx[10];
+              eskf.x[12] += eskf.dx[11];
+              eskf.x[13] += eskf.dx[12]; // gyro bias
+              eskf.x[14] += eskf.dx[13];
+              eskf.x[15] += eskf.dx[14];
 
-              eskfp.x[15] = 0.00; // Brute force yaw bias to 0
           }
+
+          eskfp.x[15] = 0.00; // Brute force yaw bias to 0
+
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
@@ -410,27 +408,12 @@ namespace hf {
 
           // Force its symmetry: P = (P + P')/2
           makesym(eskfp.tmp10, eskfp.P, errorStates);*/
-
+          
           /* reset error state */
           zeros(eskfp.dx, errorStates, 1);
+
           /* success */
-          synchState();
-
-          // Serial.print(eskfp.x[0]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[1]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[2]);
-          // Serial.print(",");
-
-          // Serial.print(eskfp.x[3]);
-          // Serial.print(",");
-          // Serial.print(eskfp.x[4]);
-          // Serial.print(",");
-
-          // Serial.print(eskfp.x[5]);
-          // Serial.print(",");
-          // Serial.println(eskfp.x[12]);
+          synchState(sensor->isOpticalFlow());
 
           return 0;
       } // correct
@@ -475,6 +458,24 @@ namespace hf {
 
             }
           }
+      }
+
+      // XXX for debuging
+      void velocityToIMUFrame(float vels[3], float world_vels[3], float q[4])
+      {
+          float R[9]; // Rotation matrix
+          // Compute rotation matrix from quaternion
+          R[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
+          R[1] = 2*q[1]*q[2] - 2*q[0]*q[3];
+          R[2] = 2*q[1]*q[3] + 2*q[0]*q[2];
+          R[3] = 2*q[1]*q[2] + 2*q[0]*q[3];
+          R[4] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
+          R[5] = 2*q[2]*q[3] - 2*q[0]*q[1];
+          R[6] = 2*q[1]*q[3] - 2*q[0]*q[2];
+          R[7] = 2*q[2]*q[3] + 2*q[0]*q[1];
+          R[8] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+
+          mulvec(R, world_vels, vels, 3, 3);
       }
 
   }; // class ESKF
