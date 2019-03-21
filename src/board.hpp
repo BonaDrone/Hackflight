@@ -29,6 +29,7 @@ namespace hf {
 
         friend class Hackflight;
         friend class Gyrometer;
+        friend class IMU;
         friend class Quaternion;
         friend class Accelerometer;
         friend class Barometer;
@@ -50,17 +51,19 @@ namespace hf {
 
 
             //------------------------------------ Core functionality ----------------------------------------------------
+            virtual bool  getIMU(float gyroRates[3], float accels[3]) = 0;
             virtual bool  getQuaternion(float quat[4]) = 0;
-            virtual bool  getGyrometer(float gyroRates[3]) = 0;
             virtual void  writeMotor(uint8_t index, float value) = 0;
             virtual float getTime(void) = 0;
 
             //------------------------- Support for additional surface-mount sensors -------------------------------------
+            virtual bool  getGyrometer(float gyroRates[3]) { (void)gyroRates;  return false; }
             virtual bool  getAccelerometer(float accelGs[3]) { (void)accelGs;  return false; }
             virtual bool  getMagnetometer(float uTs[3]) { (void)uTs;  return false; }
             virtual bool  getBarometer(float & pressure) { (void)pressure;  return false; }
 
             //------------------------------- Serial communications via MSP ----------------------------------------------
+            virtual void    setSerialFlag(void) = 0;
             virtual uint8_t serialAvailableBytes(void) { return 0; }
             virtual uint8_t serialReadByte(void)  { return 0; }
             virtual void    serialWriteByte(uint8_t c) { (void)c; }

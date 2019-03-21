@@ -1,69 +1,297 @@
 {
-  "RAW_IMU": 
+  "RAW_IMU":
   [{"ID": 102},
-   {"accx": "short"}, 
-   {"accy": "short"}, 
-   {"accz": "short"}, 
-   {"gyrx": "short"}, 
-   {"gyry": "short"}, 
-   {"gyrz": "short"}, 
-   {"magx": "short"}, 
-   {"magy": "short"}, 
+   {"accx": "short"},
+   {"accy": "short"},
+   {"accz": "short"},
+   {"gyrx": "short"},
+   {"gyry": "short"},
+   {"gyrz": "short"},
+   {"magx": "short"},
+   {"magy": "short"},
    {"magz": "short"}],
 
-  "RC_NORMAL": 
+  "RC_NORMAL":
   [{"ID": 121},
-   {"comment": "16 channels in http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol"}, 
-   {"c1": "float"}, 
-   {"c2": "float"}, 
-   {"c3": "float"}, 
-   {"c4": "float"}, 
-   {"c5": "float"}, 
+   {"comment": "16 channels in http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol"},
+   {"c1": "float"},
+   {"c2": "float"},
+   {"c3": "float"},
+   {"c4": "float"},
+   {"c5": "float"},
    {"c6": "float"}],
 
-  "ATTITUDE_RADIANS": 
+  "SET_RC_NORMAL":
+  [{"ID": 222},
+   {"c1": "float"},
+   {"c2": "float"},
+   {"c3": "float"},
+   {"c4": "float"},
+   {"c5": "float"},
+   {"c6": "float"}],
+
+  "LOST_SIGNAL":
+  [{"ID": 226},
+   {"comment": "ESP32 lost signal MSP message"},
+   {"flag": "byte"}],
+
+  "ATTITUDE_RADIANS":
   [{"ID": 122},
-   {"roll"    : "float"}, 
+   {"roll"    : "float"},
    {"pitch"   : "float"},
    {"yaw"     : "float"}],
-  
-  "ALTITUDE_METERS": 
+
+  "ALTITUDE_METERS":
   [{"ID": 123},
-   {"estalt"  : "float"}, 
-   {"vario"   : "float"}],  
+   {"estalt"  : "float"},
+   {"vario"   : "float"}],
 
-  "LOITER": 
+  "LOITER":
   [{"ID": 126},
-   {"agl"   : "float"}, 
+   {"agl"   : "float"},
    {"flowx" : "float"},
-   {"flowy" : "float"}],  
+   {"flowy" : "float"}],
 
-  "FAKE_INT": 
+  "SET_ARMED":
+  [{"ID": 216},
+   {"comment": "Arm/disarm from MSP"},
+   {"flag": "byte"}],
+
+  "FAKE_INT":
   [{"ID": 199},
-   {"comment": "Fake int message for testing"}, 
+   {"comment": "Fake int message for testing"},
    {"value1" : "int"},
-   {"value2" : "int"}],  
+   {"value2" : "int"}],
 
-  "SET_MOTOR_NORMAL": 
+  "SET_MOTOR_NORMAL":
   [{"ID": 215},
-   {"comment": "We send floating-point values in [0,1], rather than PWM"}, 
+   {"comment": "We send floating-point values in [0,1], rather than PWM"},
    {"m1": "float"},
    {"m2": "float"},
    {"m3": "float"},
    {"m4": "float"}],
 
-  "SET_ARMED": 
-  [{"ID": 216},
-   {"comment": "Arm/disarm from MSP"}, 
+  "GET_MOTOR_NORMAL":
+  [{"ID": 124},
+   {"comment": "We get the motor floating-point values in [0,1], rather than PWM"},
+   {"m1": "float"},
+   {"m2": "float"},
+   {"m3": "float"},
+   {"m4": "float"}],
+
+  "WP_ARM":
+  [{"ID": 1},
+   {"comment": "Navigation order, arm the drone"},
+   {"code": "byte"}],
+
+  "WP_DISARM":
+  [{"ID": 2},
+   {"comment": "Navigation order, disarm the drone"},
+   {"code": "byte"}],
+
+  "WP_LAND":
+  [{"ID": 3},
+   {"comment": "Navigation order, land"},
+   {"code": "byte"}],
+
+  "WP_TAKE_OFF":
+  [{"ID": 4},
+   {"comment": "Navigation order, take off"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_FORWARD":
+  [{"ID": 5},
+   {"comment": "Navigation order, go forward"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_BACKWARD":
+  [{"ID": 6},
+   {"comment": "Navigation order, go backward"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_LEFT":
+  [{"ID": 7},
+   {"comment": "Navigation order, go left"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_GO_RIGHT":
+  [{"ID": 8},
+   {"comment": "Navigation order, go right"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_CHANGE_ALTITUDE":
+  [{"ID": 9},
+   {"comment": "Navigation order, change altitude"},
+   {"meters": "byte"},
+   {"code": "byte"}],
+
+  "WP_CHANGE_SPEED":
+  [{"ID": 10},
+   {"comment": "Navigation order, change speed"},
+   {"speed": "byte"},
+   {"code": "byte"}],
+
+  "WP_HOVER":
+  [{"ID": 11},
+   {"comment": "Navigation order, hover during some seconds"},
+   {"seconds": "byte"},
+   {"code": "byte"}],
+
+  "WP_TURN_CW":
+  [{"ID": 12},
+   {"comment": "Navigation order, turn cw (looking drone from the top)"},
+   {"degrees": "byte"},
+   {"code": "byte"}],
+
+  "WP_TURN_CCW":
+  [{"ID": 13},
+   {"comment": "Navigation order, turn ccw (looking drone from the top)"},
+   {"degrees": "byte"},
+   {"code": "byte"}],
+
+  "WP_MISSION_FLAG":
+  [{"ID": 23},
+   {"comment": "begin of mission codes flag"},
    {"flag": "byte"}],
 
-  "SET_RC_NORMAL": 
-  [{"ID": 222},
-   {"c1": "float"}, 
-   {"c2": "float"}, 
-   {"c3": "float"}, 
-   {"c4": "float"}, 
-   {"c5": "float"}, 
-   {"c6": "float"}]
+  "ESC_CALIBRATION":
+  [{"ID": 24},
+   {"comment": "Calibrate the ESCs with the Standard or MultiShot protocol"},
+   {"protocol": "byte"}],
+
+  "MOSQUITO_VERSION":
+  [{"ID": 25},
+   {"comment": "Return the type of Mosquito (90 or 150)"},
+   {"mosquitoVersion": "byte"}],
+
+  "POSITION_BOARD":
+  [{"ID": 26},
+   {"comment": "Return if position board parameter is set to True or False"},
+   {"hasPositionBoard": "byte"}],
+
+  "POSITION_BOARD_CONNECTED":
+  [{"ID": 27},
+   {"comment": "Return if position board is connected"},
+   {"positionBoardConnected": "byte"}],
+
+  "WP_MISSION_BEGIN":
+  [{"ID": 30},
+   {"comment": "Start mission execution"},
+   {"flag": "byte"}],
+
+  "FIRMWARE_VERSION":
+  [{"ID": 50},
+   {"comment": "Current firmware version"},
+   {"version": "byte"}],
+
+  "SET_MOSQUITO_VERSION":
+  [{"ID": 223},
+   {"comment": "Set the type of Mosquito (90 or 150) being used"},
+   {"version": "byte"}],
+
+  "SET_PID_CONSTANTS":
+  [{"ID": 224},
+   {"comment": "Set the controllers' parameters"},
+   {"gyroRollP": "float"},
+   {"gyroRollI": "float"},
+   {"gyroRollD": "float"},
+   {"gyroPitchP": "float"},
+   {"gyroPitchI": "float"},
+   {"gyroPitchD": "float"},
+   {"gyroYawP": "float"},
+   {"gyroYawI": "float"},
+   {"demandsToRate": "float"},
+   {"levelP": "float"},
+   {"altHoldP": "float"},
+   {"altHoldVelP": "float"},
+   {"altHoldVelI": "float"},
+   {"altHoldVelD": "float"},
+   {"minAltitude": "float"},
+   {"param6": "float"},
+   {"param7": "float"},
+   {"param8": "float"},
+   {"param9": "float"}],
+
+   "GET_PID_CONSTANTS":
+   [{"ID": 127},
+    {"comment": "Get the controllers' parameters"},
+    {"gyroRollP": "float"},
+    {"gyroRollI": "float"},
+    {"gyroRollD": "float"},
+    {"gyroPitchP": "float"},
+    {"gyroPitchI": "float"},
+    {"gyroPitchD": "float"},
+    {"gyroYawP": "float"},
+    {"gyroYawI": "float"},
+    {"demandsToRate": "float"},
+    {"levelP": "float"},
+    {"altHoldP": "float"},
+    {"altHoldVelP": "float"},
+    {"altHoldVelI": "float"},
+    {"altHoldVelD": "float"},
+    {"minAltitude": "float"},
+    {"param6": "float"},
+    {"param7": "float"},
+    {"param8": "float"},
+    {"param9": "float"}],
+
+  "SET_POSITIONING_BOARD":
+  [{"ID": 225},
+   {"comment": "Specify whether the positioning board is present or not"},
+   {"hasBoard": "byte"}],
+
+  "SET_LEDS":
+  [{"ID": 227},
+   {"comment": "Specify whether the positioning board is present or not"},
+   {"red": "byte"},
+   {"green": "byte"},
+   {"blue": "byte"}],
+
+  "RC_CALIBRATION":
+  [{"ID": 214},
+   {"comment": "Calibrate the transmitter"},
+   {"stage": "byte"}],
+
+  "RC_CALIBRATION_STATUS":
+  [{"ID": 119},
+   {"comment": "Return the status of the transmitter calibration"},
+   {"status": "byte"}],
+
+  "SET_BATTERY_VOLTAGE":
+  [{"ID": 228},
+   {"comment": "Set the current voltage in the STM32 controller, measured in the ESP32"},
+   {"batteryVoltage": "float"}],
+
+  "SET_EMERGENCY_STOP":
+  [{"ID": 229},
+   {"comment": "Trigger an emergency landing"},
+   {"flag": "byte"}],
+
+  "GET_BATTERY_VOLTAGE":
+  [{"ID": 125},
+   {"comment": "Get the current battery voltage"},
+   {"voltage": "float"}],
+
+  "GET_MISSION_COMPLETE":
+  [{"ID": 116},
+   {"comment": "Get the status of the flight mission execution"},
+   {"status": "byte"}],
+
+  "SET_RANGE_PARAMETERS":
+  [{"ID": 221},
+   {"comment": "Range calibration parameters, which is the translation from IMU to range frames"},
+   {"rx": "float"},
+   {"ry": "float"},
+   {"rz": "float"}],
+   
+  "CLEAR_EEPROM":
+  [{"ID": 201},
+   {"comment": "Clear a specific section of the EEPROM (or all)"},
+   {"section": "byte"}]
 
 }

@@ -36,6 +36,14 @@ namespace hf {
         friend class MspParser;
 
         private: 
+        // Allow bypassing the receiver method that updates RC values. Receiving
+        // via wifi should set it to true to avoid overwritting RC values
+        bool _bypassReceiver = false;
+        // Allow to trigger lost signal from Hackflight via this flag 
+        bool _lostSignal = false;
+        // Receiving via Wifi should set this boolean to true so that RC values
+        // are updated
+        bool _gotNewFrame = false;
 
         static constexpr uint8_t DEFAULT_CHANNEL_MAP[6] = {0, 1, 2, 3, 4, 5};
 
@@ -44,6 +52,13 @@ namespace hf {
         const float CYCLIC_RATE       = 0.90f;
         const float THROTTLE_MID      = 0.00f;
         const float THROTTLE_EXPO     = 0.20f;
+        
+        bool _calibrated = false;
+        // Arrays to trim demands 
+        float M_POS[4];
+        float N_POS[4];
+        float M_NEG[4];
+        float N_NEG[4];
 
         float adjustCommand(float command, uint8_t channel)
         {
@@ -59,6 +74,22 @@ namespace hf {
         float applyCyclicFunction(float command)
         {
             return rcFun(command, CYCLIC_EXPO, CYCLIC_RATE);
+        }
+
+        void applyTrims(bool calibrating)
+        {
+            if (calibrating || !_calibrated) return;
+ 
+            for (int channel=0; channel<4; channel++)
+            {
+                float val = rawvals[_channelMap[channel]];
+                if (val < 0)
+                {
+                    rawvals[_channelMap[channel]] = M_NEG[channel] * val + N_NEG[channel];
+                } else {
+                    rawvals[_channelMap[channel]] = M_POS[channel] * val + N_POS[channel];                  
+                }
+            }
         }
 
         float makePositiveCommand(uint8_t channel)
@@ -104,6 +135,15 @@ namespace hf {
         virtual bool gotNewFrame(void) = 0;
         virtual void readRawvals(void) = 0;
 
+        // Enable readRawvals bypass 
+        void readRawvals(bool bypass)
+        {
+          if (!bypass)
+          {
+            readRawvals();
+          }
+        }
+
         // This can be overridden optionally
         virtual void begin(void) { }
 
@@ -127,6 +167,17 @@ namespace hf {
 
         // Override this if your receiver provides RSSI or other weak-signal detection
         virtual bool lostSignal(void) { return false; }
+        
+        bool lostSignal(bool bypassing)
+        {
+            if (bypassing)
+            {
+              return (lostSignal() || _lostSignal);
+            }
+            else {
+              return lostSignal();
+            }
+        }
 
         Receiver(const uint8_t channelMap[6]) // throttle, roll, pitch, yaw, aux, arm
         { 
@@ -142,13 +193,15 @@ namespace hf {
         {
         }
 
-        bool getDemands(float yawAngle)
+        bool getDemands(float yawAngle, bool calibrating = false)
         {
             // Wait till there's a new frame
-            if (!gotNewFrame()) return false;
+            if (!gotNewFrame() && !_gotNewFrame) return false;
 
             // Read raw channel values
-            readRawvals();
+            readRawvals(_bypassReceiver);
+            
+            applyTrims(calibrating);
 
             // Convert raw [-1,+1] to absolute value
             demands.roll  = makePositiveCommand(CHANNEL_ROLL);
@@ -227,7 +280,56 @@ namespace hf {
         {
             _trimYaw = trim;
         }
-
+        
+        void setTrim(float m_pos, float n_pos, float m_neg, float n_neg, int channel)
+        {
+            M_POS[channel] = m_pos;
+            N_POS[channel] = n_pos;
+            M_NEG[channel] = m_neg;
+            N_NEG[channel] = n_neg;
+        }
+        
+        void setCalibrationStatus(bool calibrated)
+        {
+            _calibrated = calibrated;
+        }
+        
+        virtual void pollForFrame(void) {}
+        
+        // Setters and getters of the attributes required to be able to use the
+        // ESP32 and MSP messages as a receiver. For now, we offer this possibility
+        // to work with any receiver by implementing this methods in the receiver
+        // class 
+        
+        void setGotNewFrame(bool gotNewFrame)
+        {
+            _gotNewFrame = gotNewFrame;
+        }
+        
+        void setBypassReceiver(bool bypass)
+        {
+            _bypassReceiver = bypass;
+        }
+        
+        void setLostSignal(bool lost)
+        {
+            _lostSignal = lost;
+        }
+        
+        bool getGotNewFrame(void)
+        {
+            return _gotNewFrame;
+        }
+        
+        bool getBypassReceiver(void)
+        {
+            return _bypassReceiver;
+        }
+        
+        bool getLostSignal(void)
+        {
+            return _lostSignal;
+        }
 
     }; // class Receiver
 

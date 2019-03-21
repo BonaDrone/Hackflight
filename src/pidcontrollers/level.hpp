@@ -1,7 +1,7 @@
 /*
    level.hpp : PID controller for Level mode
 
-   Copyright (c) 2018 Juan Gallostra and Simon D. Levy
+   Copyright (c) 2019 Simon D. Levy, Juan Gallostra Acin, Pep Marti-Saumell
 
    Author: Juan Gallostra
 
@@ -40,15 +40,16 @@ namespace hf {
 
         private:
           
-            const float FEED_FORWARD = 0.6;
+            const float FEED_FORWARD = 1.0;
             
             float PTerms[2];
             
             float _demandsToAngle;
+            float _demandsToRate;
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 10)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -58,13 +59,14 @@ namespace hf {
                 // Since we work in radians:
                 // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
+                _demandsToRate = demandsToRate;
             }
 
             Level(float rollPitchLevelP) : Level(rollPitchLevelP, rollPitchLevelP)
             {
             }
 
-            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
 
@@ -75,8 +77,8 @@ namespace hf {
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 
-                demands.roll = _demands[0];
-                demands.pitch = _demands[1];
+                demands.roll = _demands[0]/_demandsToRate;
+                demands.pitch = _demands[1]/_demandsToRate;
 
                 // We've always gotta do this!
                 return true;

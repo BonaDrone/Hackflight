@@ -1,271 +1,306 @@
-/*
-   mspparser.hpp: header-only implementation of MSP parsing routines
-
-   Auto-generated code: DO NOT EDIT!
-
-   Copyright (C) Simon D. Levy 2018
-
-   This program is part of Hackflight
-
-   This code is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as 
-   published by the Free Software Foundation, either version 3 of the 
-   License, or (at your option) any later version.
-
-   This code is distributed in the hope that it will be useful,     
-   but WITHOUT ANY WARRANTY without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public License 
-   along with this code.  If not, see <http:#www.gnu.org/licenses/>.
- */
-
-
-#pragma once
-
-#include <stdint.h>
-#include <string.h>
-
-namespace hf {
-
-    class MspParser {
-
-        public:
-
-            static const uint8_t MAXMSG = 255;
-
-        private:
-
-            static const int INBUF_SIZE  = 128;
-            static const int OUTBUF_SIZE = 128;
-
-            typedef enum serialState_t {
-                IDLE,
-                HEADER_START,
-                HEADER_M,
-                HEADER_ARROW,
-                HEADER_SIZE,
-                HEADER_CMD
-            } serialState_t;
-
-            uint8_t _checksum;
-            uint8_t _inBuf[INBUF_SIZE];
-            uint8_t _inBufIndex;
-            uint8_t _outBuf[OUTBUF_SIZE];
-            uint8_t _outBufIndex;
-            uint8_t _outBufSize;
-            uint8_t _command;
-            uint8_t _offset;
-            uint8_t _dataSize;
-            uint8_t _direction;
-
-            serialState_t  _state;
-
-            void serialize8(uint8_t a)
-            {
-                _outBuf[_outBufSize++] = a;
-                _checksum ^= a;
-            }
-
-            void serialize16(int16_t a)
-            {
-                serialize8(a & 0xFF);
-                serialize8((a >> 8) & 0xFF);
-            }
-
-            void serialize32(uint32_t a)
-            {
-                serialize8(a & 0xFF);
-                serialize8((a >> 8) & 0xFF);
-                serialize8((a >> 16) & 0xFF);
-                serialize8((a >> 24) & 0xFF);
-            }
-
-            void headSerialResponse(uint8_t err, uint8_t s)
-            {
-                serialize8('$');
-                serialize8('M');
-                serialize8(err ? '!' : '>');
-                _checksum = 0;               // start calculating a new _checksum
-                serialize8(s);
-                serialize8(_command);
-            }
-
-            void headSerialReply(uint8_t s)
-            {
-                headSerialResponse(0, s);
-            }
-
-            void prepareToSend(uint8_t count, uint8_t size)
-            {
-                _outBufSize = 0;
-                _outBufIndex = 0;
-                headSerialReply(count*size);
-            }
-
-            void prepareToSendBytes(uint8_t count)
-            {
-                prepareToSend(count, 1);
-            }
-
-            void sendByte(uint8_t src)
-            {
-                serialize8(src);
-            }
-
-            void prepareToSendShorts(uint8_t count)
-            {
-                prepareToSend(count, 2);
-            }
-
-            void sendShort(short src)
-            {
-                int16_t a;
-                memcpy(&a, &src, 2);
-                serialize16(a);
-            }
-
-            void prepareToSendInts(uint8_t count)
-            {
-                prepareToSend(count, 4);
-            }
-
-            void sendInt(int32_t src)
-            {
-                int32_t a;
-                memcpy(&a, &src, 4);
-                serialize32(a);
-            }
-
-            void prepareToSendFloats(uint8_t count)
-            {
-                prepareToSend(count, 4);
-            }
-
-            void sendFloat(float src)
-            {
-                uint32_t a;
-                memcpy(&a, &src, 4);
-                serialize32(a);
-            }
-
-            static uint8_t CRC8(uint8_t * data, int n) 
-            {
-                uint8_t crc = 0x00;
-
-                for (int k=0; k<n; ++k) {
-
-                    crc ^= data[k];
-                }
-
-                return crc;
-            }
-
-            float getArgument(uint8_t k)
-            {
-                return (float)k; // XXX for testing only
-            }
-
-        protected:
-
-            void init(void)
-            {
-                _checksum = 0;
-                _outBufIndex = 0;
-                _outBufSize = 0;
-                _command = 0;
-                _offset = 0;
-                _dataSize = 0;
-                _state = IDLE;
-            }
-            
-            uint8_t availableBytes(void)
-            {
-                return _outBufSize;
-            }
-
-            uint8_t readByte(void)
-            {
-                _outBufSize--;
-                return _outBuf[_outBufIndex++];
-            }
-
-            // returns true if reboot request, false otherwise
-            bool parse(uint8_t c)
-            {
-                switch (_state) {
-
-                    case IDLE:
-                        if (c == 'R') {
-                            return true; // got reboot command
-                        }
-                        _state = (c == '$') ? HEADER_START : IDLE;
-                        break;
-
-                    case HEADER_START:
-                        _state = (c == 'M') ? HEADER_M : IDLE;
-                        break;
-
-                    case HEADER_M:
-                        switch (c) {
-                           case '>':
-                                _direction = 1;
-                                _state = HEADER_ARROW;
-                                break;
-                            case '<':
-                                _direction = 0;
-                                _state = HEADER_ARROW;
-                                break;
-                             default:
-                                _state = IDLE;
-                        }
-                        break;
-
-                    case HEADER_ARROW:
-                        if (c > INBUF_SIZE) {       // now we are expecting the payload size
-                            _state = IDLE;
-                            return false;
-                        }
-                        _dataSize = c;
-                        _offset = 0;
-                        _checksum = 0;
-                        _inBufIndex = 0;
-                        _checksum ^= c;
-                        _state = HEADER_SIZE;      // the command is to follow
-                        break;
-
-                    case HEADER_SIZE:
-                        _command = c;
-                        _checksum ^= c;
-                        _state = HEADER_CMD;
-                        break;
-
-                    case HEADER_CMD:
-                        if (_offset < _dataSize) {
-                            _checksum ^= c;
-                            _inBuf[_offset++] = c;
-                        } else  {
-                            if (_checksum == c) {        // compare calculated and transferred _checksum
-                                if (_direction == 0) {
-                                    dispatchRequestMessage();
-                                }
-                                else {
-                                    dispatchDataMessage();
-                                }
-                            }
-                            _state = IDLE;
-                        }
-
-                } // switch (_state)
-
-                return false; // no reboot 
-
-            } // parse
-
-
+/*
+   mspparser.hpp: header-only implementation of MSP parsing routines
+
+   Auto-generated code: DO NOT EDIT!
+
+   Copyright (C) Simon D. Levy 2018
+
+   This program is part of Hackflight
+
+   This code is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as 
+   published by the Free Software Foundation, either version 3 of the 
+   License, or (at your option) any later version.
+
+   This code is distributed in the hope that it will be useful,     
+   but WITHOUT ANY WARRANTY without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License 
+   along with this code.  If not, see <http:#www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include <stdint.h>
+#include <string.h>
+
+#include <EEPROM.h>
+
+namespace hf {
+
+    class MspParser {
+
+        public:
+
+            static const uint8_t MAXMSG = 255;
+            
+            // Number of EEPROM reserved slots for parameters
+            static const int PARAMETER_SLOTS = 150;
+
+        private:
+
+            static const int INBUF_SIZE  = 128;
+            static const int OUTBUF_SIZE = 128;
+
+            int EEPROMindex = PARAMETER_SLOTS;
+            bool incomingMission = false;
+
+            typedef enum serialState_t {
+                IDLE,
+                HEADER_START,
+                HEADER_M,
+                HEADER_ARROW,
+                HEADER_SIZE,
+                HEADER_CMD
+            } serialState_t;
+
+            uint8_t _checksum;
+            uint8_t _inBuf[INBUF_SIZE];
+            uint8_t _inBufIndex;
+            uint8_t _outBuf[OUTBUF_SIZE];
+            uint8_t _outBufIndex;
+            uint8_t _outBufSize;
+            uint8_t _command;
+            uint8_t _offset;
+            uint8_t _dataSize;
+            uint8_t _direction;
+
+            serialState_t  _state;
+
+            void serialize8(uint8_t a)
+            {
+                _outBuf[_outBufSize++] = a;
+                _checksum ^= a;
+            }
+
+            void serialize16(int16_t a)
+            {
+                serialize8(a & 0xFF);
+                serialize8((a >> 8) & 0xFF);
+            }
+
+            void serialize32(uint32_t a)
+            {
+                serialize8(a & 0xFF);
+                serialize8((a >> 8) & 0xFF);
+                serialize8((a >> 16) & 0xFF);
+                serialize8((a >> 24) & 0xFF);
+            }
+
+            void headSerialResponse(uint8_t err, uint8_t s)
+            {
+                serialize8('$');
+                serialize8('M');
+                serialize8(err ? '!' : '>');
+                _checksum = 0;               // start calculating a new _checksum
+                serialize8(s);
+                serialize8(_command);
+            }
+
+            void headSerialReply(uint8_t s)
+            {
+                headSerialResponse(0, s);
+            }
+
+            void prepareToSend(uint8_t count, uint8_t size)
+            {
+                _outBufSize = 0;
+                _outBufIndex = 0;
+                headSerialReply(count*size);
+            }
+
+            void acknowledgeResponse(void)
+            {
+                prepareToSend(0, 0);
+                serialize8(_checksum);
+            }
+
+            void prepareToSendBytes(uint8_t count)
+            {
+                prepareToSend(count, 1);
+            }
+
+            void sendByte(uint8_t src)
+            {
+                serialize8(src);
+            }
+
+            void prepareToSendShorts(uint8_t count)
+            {
+                prepareToSend(count, 2);
+            }
+
+            void sendShort(short src)
+            {
+                int16_t a;
+                memcpy(&a, &src, 2);
+                serialize16(a);
+            }
+
+            void prepareToSendInts(uint8_t count)
+            {
+                prepareToSend(count, 4);
+            }
+
+            void sendInt(int32_t src)
+            {
+                int32_t a;
+                memcpy(&a, &src, 4);
+                serialize32(a);
+            }
+
+            void prepareToSendFloats(uint8_t count)
+            {
+                prepareToSend(count, 4);
+            }
+
+            void sendFloat(float src)
+            {
+                uint32_t a;
+                memcpy(&a, &src, 4);
+                serialize32(a);
+            }
+
+            static uint8_t CRC8(uint8_t * data, int n) 
+            {
+                uint8_t crc = 0x00;
+
+                for (int k=0; k<n; ++k) {
+
+                    crc ^= data[k];
+                }
+
+                return crc;
+            }
+
+            float getArgument(uint8_t k)
+            {
+                return (float)k; // XXX for testing only
+            }
+
+            void processMissionCommand(uint8_t command)
+            {
+                if (incomingMission && command != 23)
+                {
+                    EEPROM.write(EEPROMindex, command);
+                    EEPROMindex += 1;
+                    if (command != 1 && command != 2 && command != 3)
+                    {
+                        uint8_t commandData = readCommandData();
+                        EEPROM.write(EEPROMindex, commandData);
+                        EEPROMindex += 1;
+                    }
+                }
+            }
+                        
+            uint8_t readCommandData(void)
+            {
+                return _inBuf[_inBufIndex++] & 0xff;
+            }
+
+        protected:
+
+            void init(void)
+            {
+                _checksum = 0;
+                _outBufIndex = 0;
+                _outBufSize = 0;
+                _command = 0;
+                _offset = 0;
+                _dataSize = 0;
+                _state = IDLE;
+            }
+            
+            uint8_t availableBytes(void)
+            {
+                return _outBufSize;
+            }
+
+            uint8_t readByte(void)
+            {
+                _outBufSize--;
+                return _outBuf[_outBufIndex++];
+            }
+
+            // returns true if reboot request, false otherwise
+            bool parse(uint8_t c)
+            {
+                switch (_state) {
+
+                    case IDLE:
+                        if (c == 'R') {
+                            return true; // got reboot command
+                        }
+                        _state = (c == '$') ? HEADER_START : IDLE;
+                        break;
+
+                    case HEADER_START:
+                        _state = (c == 'M') ? HEADER_M : IDLE;
+                        break;
+
+                    case HEADER_M:
+                        switch (c) {
+                           case '>':
+                                _direction = 1;
+                                _state = HEADER_ARROW;
+                                break;
+                            case '<':
+                                _direction = 0;
+                                _state = HEADER_ARROW;
+                                break;
+                             default:
+                                _state = IDLE;
+                        }
+                        break;
+
+                    case HEADER_ARROW:
+                        if (c > INBUF_SIZE) {       // now we are expecting the payload size
+                            _state = IDLE;
+                            return false;
+                        }
+                        _dataSize = c;
+                        _offset = 0;
+                        _checksum = 0;
+                        _inBufIndex = 0;
+                        _checksum ^= c;
+                        _state = HEADER_SIZE;      // the command is to follow
+                        break;
+
+                    case HEADER_SIZE:
+                        _command = c;
+                        _checksum ^= c;
+                        _state = HEADER_CMD;
+                        break;
+
+                    case HEADER_CMD:
+                        if (_offset < _dataSize) {
+                            _checksum ^= c;
+                            _inBuf[_offset++] = c;
+                        } else  {
+                            _state = IDLE;
+                            if (_checksum == c) {        // compare calculated and transferred _checksum
+                                if (_direction == 0) {
+                                    dispatchRequestMessage();
+                                }
+                                else {
+                                    dispatchDataMessage();
+                                }
+                            }
+                        }
+
+                } // switch (_state)
+
+                return false; // no reboot 
+
+            } // parse
+
+
             void dispatchRequestMessage(void)
             {
+                processMissionCommand(_command);
                 switch (_command) {
 
                     case 102:
@@ -312,6 +347,39 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 222:
+                    {
+                        float c1 = 0;
+                        memcpy(&c1,  &_inBuf[0], sizeof(float));
+
+                        float c2 = 0;
+                        memcpy(&c2,  &_inBuf[4], sizeof(float));
+
+                        float c3 = 0;
+                        memcpy(&c3,  &_inBuf[8], sizeof(float));
+
+                        float c4 = 0;
+                        memcpy(&c4,  &_inBuf[12], sizeof(float));
+
+                        float c5 = 0;
+                        memcpy(&c5,  &_inBuf[16], sizeof(float));
+
+                        float c6 = 0;
+                        memcpy(&c6,  &_inBuf[20], sizeof(float));
+
+                        handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 226:
+                    {
+                        uint8_t flag = 0;
+                        memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_LOST_SIGNAL_Request(flag);
+                        acknowledgeResponse();
+                        } break;
+
                     case 122:
                     {
                         float roll = 0;
@@ -349,6 +417,15 @@ namespace hf {
                         serialize8(_checksum);
                         } break;
 
+                    case 216:
+                    {
+                        uint8_t flag = 0;
+                        memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_ARMED_Request(flag);
+                        acknowledgeResponse();
+                        } break;
+
                     case 199:
                     {
                         int32_t value1 = 0;
@@ -375,37 +452,441 @@ namespace hf {
                         memcpy(&m4,  &_inBuf[12], sizeof(float));
 
                         handle_SET_MOTOR_NORMAL_Request(m1, m2, m3, m4);
+                        acknowledgeResponse();
                         } break;
 
-                    case 216:
+                    case 124:
+                    {
+                        float m1 = 0;
+                        float m2 = 0;
+                        float m3 = 0;
+                        float m4 = 0;
+                        handle_GET_MOTOR_NORMAL_Request(m1, m2, m3, m4);
+                        prepareToSendFloats(4);
+                        sendFloat(m1);
+                        sendFloat(m2);
+                        sendFloat(m3);
+                        sendFloat(m4);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 1:
+                    {
+                        uint8_t code = 0;
+                        handle_WP_ARM_Request(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 2:
+                    {
+                        uint8_t code = 0;
+                        handle_WP_DISARM_Request(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 3:
+                    {
+                        uint8_t code = 0;
+                        handle_WP_LAND_Request(code);
+                        prepareToSendBytes(1);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 4:
+                    {
+                        uint8_t meters = 0;
+                        uint8_t code = 0;
+                        handle_WP_TAKE_OFF_Request(meters, code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 5:
+                    {
+                        uint8_t meters = 0;
+                        uint8_t code = 0;
+                        handle_WP_GO_FORWARD_Request(meters, code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 6:
+                    {
+                        uint8_t meters = 0;
+                        uint8_t code = 0;
+                        handle_WP_GO_BACKWARD_Request(meters, code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 7:
+                    {
+                        uint8_t meters = 0;
+                        uint8_t code = 0;
+                        handle_WP_GO_LEFT_Request(meters, code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 8:
+                    {
+                        uint8_t meters = 0;
+                        uint8_t code = 0;
+                        handle_WP_GO_RIGHT_Request(meters, code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 9:
+                    {
+                        uint8_t meters = 0;
+                        uint8_t code = 0;
+                        handle_WP_CHANGE_ALTITUDE_Request(meters, code);
+                        prepareToSendBytes(2);
+                        sendByte(meters);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 10:
+                    {
+                        uint8_t speed = 0;
+                        uint8_t code = 0;
+                        handle_WP_CHANGE_SPEED_Request(speed, code);
+                        prepareToSendBytes(2);
+                        sendByte(speed);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 11:
+                    {
+                        uint8_t seconds = 0;
+                        uint8_t code = 0;
+                        handle_WP_HOVER_Request(seconds, code);
+                        prepareToSendBytes(2);
+                        sendByte(seconds);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 12:
+                    {
+                        uint8_t degrees = 0;
+                        uint8_t code = 0;
+                        handle_WP_TURN_CW_Request(degrees, code);
+                        prepareToSendBytes(2);
+                        sendByte(degrees);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 13:
+                    {
+                        uint8_t degrees = 0;
+                        uint8_t code = 0;
+                        handle_WP_TURN_CCW_Request(degrees, code);
+                        prepareToSendBytes(2);
+                        sendByte(degrees);
+                        sendByte(code);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 23:
+                    {
+                        incomingMission = incomingMission ? false : true;
+                        uint8_t flag = 0;
+                        handle_WP_MISSION_FLAG_Request(flag);
+                        prepareToSendBytes(1);
+                        sendByte(flag);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 24:
+                    {
+                        uint8_t protocol = 0;
+                        handle_ESC_CALIBRATION_Request(protocol);
+                        prepareToSendBytes(1);
+                        sendByte(protocol);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 25:
+                    {
+                        uint8_t mosquitoVersion = 0;
+                        handle_MOSQUITO_VERSION_Request(mosquitoVersion);
+                        prepareToSendBytes(1);
+                        sendByte(mosquitoVersion);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 26:
+                    {
+                        uint8_t hasPositionBoard = 0;
+                        handle_POSITION_BOARD_Request(hasPositionBoard);
+                        prepareToSendBytes(1);
+                        sendByte(hasPositionBoard);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 27:
+                    {
+                        uint8_t positionBoardConnected = 0;
+                        handle_POSITION_BOARD_CONNECTED_Request(positionBoardConnected);
+                        prepareToSendBytes(1);
+                        sendByte(positionBoardConnected);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 30:
+                    {
+                        uint8_t flag = 0;
+                        handle_WP_MISSION_BEGIN_Request(flag);
+                        prepareToSendBytes(1);
+                        sendByte(flag);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 50:
+                    {
+                        uint8_t version = 0;
+                        handle_FIRMWARE_VERSION_Request(version);
+                        prepareToSendBytes(1);
+                        sendByte(version);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 223:
+                    {
+                        uint8_t version = 0;
+                        memcpy(&version,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_MOSQUITO_VERSION_Request(version);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 224:
+                    {
+                        float gyroRollP = 0;
+                        memcpy(&gyroRollP,  &_inBuf[0], sizeof(float));
+
+                        float gyroRollI = 0;
+                        memcpy(&gyroRollI,  &_inBuf[4], sizeof(float));
+
+                        float gyroRollD = 0;
+                        memcpy(&gyroRollD,  &_inBuf[8], sizeof(float));
+
+                        float gyroPitchP = 0;
+                        memcpy(&gyroPitchP,  &_inBuf[12], sizeof(float));
+
+                        float gyroPitchI = 0;
+                        memcpy(&gyroPitchI,  &_inBuf[16], sizeof(float));
+
+                        float gyroPitchD = 0;
+                        memcpy(&gyroPitchD,  &_inBuf[20], sizeof(float));
+
+                        float gyroYawP = 0;
+                        memcpy(&gyroYawP,  &_inBuf[24], sizeof(float));
+
+                        float gyroYawI = 0;
+                        memcpy(&gyroYawI,  &_inBuf[28], sizeof(float));
+
+                        float demandsToRate = 0;
+                        memcpy(&demandsToRate,  &_inBuf[32], sizeof(float));
+
+                        float levelP = 0;
+                        memcpy(&levelP,  &_inBuf[36], sizeof(float));
+
+                        float altHoldP = 0;
+                        memcpy(&altHoldP,  &_inBuf[40], sizeof(float));
+
+                        float altHoldVelP = 0;
+                        memcpy(&altHoldVelP,  &_inBuf[44], sizeof(float));
+
+                        float altHoldVelI = 0;
+                        memcpy(&altHoldVelI,  &_inBuf[48], sizeof(float));
+
+                        float altHoldVelD = 0;
+                        memcpy(&altHoldVelD,  &_inBuf[52], sizeof(float));
+
+                        float minAltitude = 0;
+                        memcpy(&minAltitude,  &_inBuf[56], sizeof(float));
+
+                        float param6 = 0;
+                        memcpy(&param6,  &_inBuf[60], sizeof(float));
+
+                        float param7 = 0;
+                        memcpy(&param7,  &_inBuf[64], sizeof(float));
+
+                        float param8 = 0;
+                        memcpy(&param8,  &_inBuf[68], sizeof(float));
+
+                        float param9 = 0;
+                        memcpy(&param9,  &_inBuf[72], sizeof(float));
+
+                        handle_SET_PID_CONSTANTS_Request(gyroRollP, gyroRollI, gyroRollD, gyroPitchP, gyroPitchI, gyroPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 127:
+                    {
+                        float gyroRollP = 0;
+                        float gyroRollI = 0;
+                        float gyroRollD = 0;
+                        float gyroPitchP = 0;
+                        float gyroPitchI = 0;
+                        float gyroPitchD = 0;
+                        float gyroYawP = 0;
+                        float gyroYawI = 0;
+                        float demandsToRate = 0;
+                        float levelP = 0;
+                        float altHoldP = 0;
+                        float altHoldVelP = 0;
+                        float altHoldVelI = 0;
+                        float altHoldVelD = 0;
+                        float minAltitude = 0;
+                        float param6 = 0;
+                        float param7 = 0;
+                        float param8 = 0;
+                        float param9 = 0;
+                        handle_GET_PID_CONSTANTS_Request(gyroRollP, gyroRollI, gyroRollD, gyroPitchP, gyroPitchI, gyroPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
+                        prepareToSendFloats(19);
+                        sendFloat(gyroRollP);
+                        sendFloat(gyroRollI);
+                        sendFloat(gyroRollD);
+                        sendFloat(gyroPitchP);
+                        sendFloat(gyroPitchI);
+                        sendFloat(gyroPitchD);
+                        sendFloat(gyroYawP);
+                        sendFloat(gyroYawI);
+                        sendFloat(demandsToRate);
+                        sendFloat(levelP);
+                        sendFloat(altHoldP);
+                        sendFloat(altHoldVelP);
+                        sendFloat(altHoldVelI);
+                        sendFloat(altHoldVelD);
+                        sendFloat(minAltitude);
+                        sendFloat(param6);
+                        sendFloat(param7);
+                        sendFloat(param8);
+                        sendFloat(param9);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 225:
+                    {
+                        uint8_t hasBoard = 0;
+                        memcpy(&hasBoard,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_SET_POSITIONING_BOARD_Request(hasBoard);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 227:
+                    {
+                        uint8_t red = 0;
+                        memcpy(&red,  &_inBuf[0], sizeof(uint8_t));
+
+                        uint8_t green = 0;
+                        memcpy(&green,  &_inBuf[1], sizeof(uint8_t));
+
+                        uint8_t blue = 0;
+                        memcpy(&blue,  &_inBuf[2], sizeof(uint8_t));
+
+                        handle_SET_LEDS_Request(red, green, blue);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 214:
+                    {
+                        uint8_t stage = 0;
+                        memcpy(&stage,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_RC_CALIBRATION_Request(stage);
+                        acknowledgeResponse();
+                        } break;
+
+                    case 119:
+                    {
+                        uint8_t status = 0;
+                        handle_RC_CALIBRATION_STATUS_Request(status);
+                        prepareToSendBytes(1);
+                        sendByte(status);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 228:
+                    {
+                        float batteryVoltage = 0;
+                        memcpy(&batteryVoltage,  &_inBuf[0], sizeof(float));
+
+                        handle_SET_BATTERY_VOLTAGE_Request(batteryVoltage);
+                        } break;
+
+                    case 229:
                     {
                         uint8_t flag = 0;
                         memcpy(&flag,  &_inBuf[0], sizeof(uint8_t));
 
-                        handle_SET_ARMED_Request(flag);
+                        handle_SET_EMERGENCY_STOP_Request(flag);
+                        acknowledgeResponse();
                         } break;
 
-                    case 222:
+                    case 125:
                     {
-                        float c1 = 0;
-                        memcpy(&c1,  &_inBuf[0], sizeof(float));
+                        float voltage = 0;
+                        handle_GET_BATTERY_VOLTAGE_Request(voltage);
+                        prepareToSendFloats(1);
+                        sendFloat(voltage);
+                        serialize8(_checksum);
+                        } break;
 
-                        float c2 = 0;
-                        memcpy(&c2,  &_inBuf[4], sizeof(float));
+                    case 116:
+                    {
+                        uint8_t status = 0;
+                        handle_GET_MISSION_COMPLETE_Request(status);
+                        prepareToSendBytes(1);
+                        sendByte(status);
+                        serialize8(_checksum);
+                        } break;
 
-                        float c3 = 0;
-                        memcpy(&c3,  &_inBuf[8], sizeof(float));
+                    case 221:
+                    {
+                        float rx = 0;
+                        memcpy(&rx,  &_inBuf[0], sizeof(float));
 
-                        float c4 = 0;
-                        memcpy(&c4,  &_inBuf[12], sizeof(float));
+                        float ry = 0;
+                        memcpy(&ry,  &_inBuf[4], sizeof(float));
 
-                        float c5 = 0;
-                        memcpy(&c5,  &_inBuf[16], sizeof(float));
+                        float rz = 0;
+                        memcpy(&rz,  &_inBuf[8], sizeof(float));
 
-                        float c6 = 0;
-                        memcpy(&c6,  &_inBuf[20], sizeof(float));
+                        handle_SET_RANGE_PARAMETERS_Request(rx, ry, rz);
+                        acknowledgeResponse();
+                        } break;
 
-                        handle_SET_RC_NORMAL_Request(c1, c2, c3, c4, c5, c6);
+                    case 201:
+                    {
+                        uint8_t section = 0;
+                        memcpy(&section,  &_inBuf[0], sizeof(uint8_t));
+
+                        handle_CLEAR_EEPROM_Request(section);
+                        acknowledgeResponse();
                         } break;
 
                 }
@@ -470,6 +951,187 @@ namespace hf {
                         handle_FAKE_INT_Data(value1, value2);
                         } break;
 
+                    case 124:
+                    {
+                        float m1 = getArgument(0);
+                        float m2 = getArgument(1);
+                        float m3 = getArgument(2);
+                        float m4 = getArgument(3);
+                        handle_GET_MOTOR_NORMAL_Data(m1, m2, m3, m4);
+                        } break;
+
+                    case 1:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_WP_ARM_Data(code);
+                        } break;
+
+                    case 2:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_WP_DISARM_Data(code);
+                        } break;
+
+                    case 3:
+                    {
+                        uint8_t code = getArgument(0);
+                        handle_WP_LAND_Data(code);
+                        } break;
+
+                    case 4:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_TAKE_OFF_Data(meters, code);
+                        } break;
+
+                    case 5:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_FORWARD_Data(meters, code);
+                        } break;
+
+                    case 6:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_BACKWARD_Data(meters, code);
+                        } break;
+
+                    case 7:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_LEFT_Data(meters, code);
+                        } break;
+
+                    case 8:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_GO_RIGHT_Data(meters, code);
+                        } break;
+
+                    case 9:
+                    {
+                        uint8_t meters = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_CHANGE_ALTITUDE_Data(meters, code);
+                        } break;
+
+                    case 10:
+                    {
+                        uint8_t speed = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_CHANGE_SPEED_Data(speed, code);
+                        } break;
+
+                    case 11:
+                    {
+                        uint8_t seconds = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_HOVER_Data(seconds, code);
+                        } break;
+
+                    case 12:
+                    {
+                        uint8_t degrees = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_TURN_CW_Data(degrees, code);
+                        } break;
+
+                    case 13:
+                    {
+                        uint8_t degrees = getArgument(0);
+                        uint8_t code = getArgument(1);
+                        handle_WP_TURN_CCW_Data(degrees, code);
+                        } break;
+
+                    case 23:
+                    {
+                        uint8_t flag = getArgument(0);
+                        handle_WP_MISSION_FLAG_Data(flag);
+                        } break;
+
+                    case 24:
+                    {
+                        uint8_t protocol = getArgument(0);
+                        handle_ESC_CALIBRATION_Data(protocol);
+                        } break;
+
+                    case 25:
+                    {
+                        uint8_t mosquitoVersion = getArgument(0);
+                        handle_MOSQUITO_VERSION_Data(mosquitoVersion);
+                        } break;
+
+                    case 26:
+                    {
+                        uint8_t hasPositionBoard = getArgument(0);
+                        handle_POSITION_BOARD_Data(hasPositionBoard);
+                        } break;
+
+                    case 27:
+                    {
+                        uint8_t positionBoardConnected = getArgument(0);
+                        handle_POSITION_BOARD_CONNECTED_Data(positionBoardConnected);
+                        } break;
+
+                    case 30:
+                    {
+                        uint8_t flag = getArgument(0);
+                        handle_WP_MISSION_BEGIN_Data(flag);
+                        } break;
+
+                    case 50:
+                    {
+                        uint8_t version = getArgument(0);
+                        handle_FIRMWARE_VERSION_Data(version);
+                        } break;
+
+                    case 127:
+                    {
+                        float gyroRollP = getArgument(0);
+                        float gyroRollI = getArgument(1);
+                        float gyroRollD = getArgument(2);
+                        float gyroPitchP = getArgument(3);
+                        float gyroPitchI = getArgument(4);
+                        float gyroPitchD = getArgument(5);
+                        float gyroYawP = getArgument(6);
+                        float gyroYawI = getArgument(7);
+                        float demandsToRate = getArgument(8);
+                        float levelP = getArgument(9);
+                        float altHoldP = getArgument(10);
+                        float altHoldVelP = getArgument(11);
+                        float altHoldVelI = getArgument(12);
+                        float altHoldVelD = getArgument(13);
+                        float minAltitude = getArgument(14);
+                        float param6 = getArgument(15);
+                        float param7 = getArgument(16);
+                        float param8 = getArgument(17);
+                        float param9 = getArgument(18);
+                        handle_GET_PID_CONSTANTS_Data(gyroRollP, gyroRollI, gyroRollD, gyroPitchP, gyroPitchI, gyroPitchD, gyroYawP, gyroYawI, demandsToRate, levelP, altHoldP, altHoldVelP, altHoldVelI, altHoldVelD, minAltitude, param6, param7, param8, param9);
+                        } break;
+
+                    case 119:
+                    {
+                        uint8_t status = getArgument(0);
+                        handle_RC_CALIBRATION_STATUS_Data(status);
+                        } break;
+
+                    case 125:
+                    {
+                        float voltage = getArgument(0);
+                        handle_GET_BATTERY_VOLTAGE_Data(voltage);
+                        } break;
+
+                    case 116:
+                    {
+                        uint8_t status = getArgument(0);
+                        handle_GET_MISSION_COMPLETE_Data(status);
+                        } break;
+
                 }
             }
 
@@ -521,6 +1183,36 @@ namespace hf {
                 (void)c6;
             }
 
+            virtual void handle_SET_RC_NORMAL_Request(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            {
+                (void)c1;
+                (void)c2;
+                (void)c3;
+                (void)c4;
+                (void)c5;
+                (void)c6;
+            }
+
+            virtual void handle_SET_RC_NORMAL_Data(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            {
+                (void)c1;
+                (void)c2;
+                (void)c3;
+                (void)c4;
+                (void)c5;
+                (void)c6;
+            }
+
+            virtual void handle_LOST_SIGNAL_Request(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_LOST_SIGNAL_Data(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
             virtual void handle_ATTITUDE_RADIANS_Request(float & roll, float & pitch, float & yaw)
             {
                 (void)roll;
@@ -561,6 +1253,16 @@ namespace hf {
                 (void)flowy;
             }
 
+            virtual void handle_SET_ARMED_Request(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_SET_ARMED_Data(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
             virtual void handle_FAKE_INT_Request(int32_t & value1, int32_t & value2)
             {
                 (void)value1;
@@ -589,34 +1291,450 @@ namespace hf {
                 (void)m4;
             }
 
-            virtual void handle_SET_ARMED_Request(uint8_t  flag)
+            virtual void handle_GET_MOTOR_NORMAL_Request(float & m1, float & m2, float & m3, float & m4)
+            {
+                (void)m1;
+                (void)m2;
+                (void)m3;
+                (void)m4;
+            }
+
+            virtual void handle_GET_MOTOR_NORMAL_Data(float & m1, float & m2, float & m3, float & m4)
+            {
+                (void)m1;
+                (void)m2;
+                (void)m3;
+                (void)m4;
+            }
+
+            virtual void handle_WP_ARM_Request(uint8_t & code)
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_ARM_Data(uint8_t & code)
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_DISARM_Request(uint8_t & code)
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_DISARM_Data(uint8_t & code)
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_LAND_Request(uint8_t & code)
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_LAND_Data(uint8_t & code)
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_TAKE_OFF_Data(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_FORWARD_Request(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_FORWARD_Data(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_BACKWARD_Request(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_BACKWARD_Data(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_LEFT_Request(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_LEFT_Data(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_RIGHT_Request(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_RIGHT_Data(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_CHANGE_ALTITUDE_Data(uint8_t & meters, uint8_t & code)
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_CHANGE_SPEED_Request(uint8_t & speed, uint8_t & code)
+            {
+                (void)speed;
+                (void)code;
+            }
+
+            virtual void handle_WP_CHANGE_SPEED_Data(uint8_t & speed, uint8_t & code)
+            {
+                (void)speed;
+                (void)code;
+            }
+
+            virtual void handle_WP_HOVER_Request(uint8_t & seconds, uint8_t & code)
+            {
+                (void)seconds;
+                (void)code;
+            }
+
+            virtual void handle_WP_HOVER_Data(uint8_t & seconds, uint8_t & code)
+            {
+                (void)seconds;
+                (void)code;
+            }
+
+            virtual void handle_WP_TURN_CW_Request(uint8_t & degrees, uint8_t & code)
+            {
+                (void)degrees;
+                (void)code;
+            }
+
+            virtual void handle_WP_TURN_CW_Data(uint8_t & degrees, uint8_t & code)
+            {
+                (void)degrees;
+                (void)code;
+            }
+
+            virtual void handle_WP_TURN_CCW_Request(uint8_t & degrees, uint8_t & code)
+            {
+                (void)degrees;
+                (void)code;
+            }
+
+            virtual void handle_WP_TURN_CCW_Data(uint8_t & degrees, uint8_t & code)
+            {
+                (void)degrees;
+                (void)code;
+            }
+
+            virtual void handle_WP_MISSION_FLAG_Request(uint8_t & flag)
             {
                 (void)flag;
             }
 
-            virtual void handle_SET_ARMED_Data(uint8_t  flag)
+            virtual void handle_WP_MISSION_FLAG_Data(uint8_t & flag)
             {
                 (void)flag;
             }
 
-            virtual void handle_SET_RC_NORMAL_Request(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            virtual void handle_ESC_CALIBRATION_Request(uint8_t & protocol)
             {
-                (void)c1;
-                (void)c2;
-                (void)c3;
-                (void)c4;
-                (void)c5;
-                (void)c6;
+                (void)protocol;
             }
 
-            virtual void handle_SET_RC_NORMAL_Data(float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            virtual void handle_ESC_CALIBRATION_Data(uint8_t & protocol)
             {
-                (void)c1;
-                (void)c2;
-                (void)c3;
-                (void)c4;
-                (void)c5;
-                (void)c6;
+                (void)protocol;
+            }
+
+            virtual void handle_MOSQUITO_VERSION_Request(uint8_t & mosquitoVersion)
+            {
+                (void)mosquitoVersion;
+            }
+
+            virtual void handle_MOSQUITO_VERSION_Data(uint8_t & mosquitoVersion)
+            {
+                (void)mosquitoVersion;
+            }
+
+            virtual void handle_POSITION_BOARD_Request(uint8_t & hasPositionBoard)
+            {
+                (void)hasPositionBoard;
+            }
+
+            virtual void handle_POSITION_BOARD_Data(uint8_t & hasPositionBoard)
+            {
+                (void)hasPositionBoard;
+            }
+
+            virtual void handle_POSITION_BOARD_CONNECTED_Request(uint8_t & positionBoardConnected)
+            {
+                (void)positionBoardConnected;
+            }
+
+            virtual void handle_POSITION_BOARD_CONNECTED_Data(uint8_t & positionBoardConnected)
+            {
+                (void)positionBoardConnected;
+            }
+
+            virtual void handle_WP_MISSION_BEGIN_Request(uint8_t & flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_WP_MISSION_BEGIN_Data(uint8_t & flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_FIRMWARE_VERSION_Request(uint8_t & version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_FIRMWARE_VERSION_Data(uint8_t & version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_MOSQUITO_VERSION_Request(uint8_t  version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_MOSQUITO_VERSION_Data(uint8_t  version)
+            {
+                (void)version;
+            }
+
+            virtual void handle_SET_PID_CONSTANTS_Request(float  gyroRollP, float  gyroRollI, float  gyroRollD, float  gyroPitchP, float  gyroPitchI, float  gyroPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                (void)gyroRollP;
+                (void)gyroRollI;
+                (void)gyroRollD;
+                (void)gyroPitchP;
+                (void)gyroPitchI;
+                (void)gyroPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_SET_PID_CONSTANTS_Data(float  gyroRollP, float  gyroRollI, float  gyroRollD, float  gyroPitchP, float  gyroPitchI, float  gyroPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                (void)gyroRollP;
+                (void)gyroRollI;
+                (void)gyroRollD;
+                (void)gyroPitchP;
+                (void)gyroPitchI;
+                (void)gyroPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_GET_PID_CONSTANTS_Request(float & gyroRollP, float & gyroRollI, float & gyroRollD, float & gyroPitchP, float & gyroPitchI, float & gyroPitchD, float & gyroYawP, float & gyroYawI, float & demandsToRate, float & levelP, float & altHoldP, float & altHoldVelP, float & altHoldVelI, float & altHoldVelD, float & minAltitude, float & param6, float & param7, float & param8, float & param9)
+            {
+                (void)gyroRollP;
+                (void)gyroRollI;
+                (void)gyroRollD;
+                (void)gyroPitchP;
+                (void)gyroPitchI;
+                (void)gyroPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_GET_PID_CONSTANTS_Data(float & gyroRollP, float & gyroRollI, float & gyroRollD, float & gyroPitchP, float & gyroPitchI, float & gyroPitchD, float & gyroYawP, float & gyroYawI, float & demandsToRate, float & levelP, float & altHoldP, float & altHoldVelP, float & altHoldVelI, float & altHoldVelD, float & minAltitude, float & param6, float & param7, float & param8, float & param9)
+            {
+                (void)gyroRollP;
+                (void)gyroRollI;
+                (void)gyroRollD;
+                (void)gyroPitchP;
+                (void)gyroPitchI;
+                (void)gyroPitchD;
+                (void)gyroYawP;
+                (void)gyroYawI;
+                (void)demandsToRate;
+                (void)levelP;
+                (void)altHoldP;
+                (void)altHoldVelP;
+                (void)altHoldVelI;
+                (void)altHoldVelD;
+                (void)minAltitude;
+                (void)param6;
+                (void)param7;
+                (void)param8;
+                (void)param9;
+            }
+
+            virtual void handle_SET_POSITIONING_BOARD_Request(uint8_t  hasBoard)
+            {
+                (void)hasBoard;
+            }
+
+            virtual void handle_SET_POSITIONING_BOARD_Data(uint8_t  hasBoard)
+            {
+                (void)hasBoard;
+            }
+
+            virtual void handle_SET_LEDS_Request(uint8_t  red, uint8_t  green, uint8_t  blue)
+            {
+                (void)red;
+                (void)green;
+                (void)blue;
+            }
+
+            virtual void handle_SET_LEDS_Data(uint8_t  red, uint8_t  green, uint8_t  blue)
+            {
+                (void)red;
+                (void)green;
+                (void)blue;
+            }
+
+            virtual void handle_RC_CALIBRATION_Request(uint8_t  stage)
+            {
+                (void)stage;
+            }
+
+            virtual void handle_RC_CALIBRATION_Data(uint8_t  stage)
+            {
+                (void)stage;
+            }
+
+            virtual void handle_RC_CALIBRATION_STATUS_Request(uint8_t & status)
+            {
+                (void)status;
+            }
+
+            virtual void handle_RC_CALIBRATION_STATUS_Data(uint8_t & status)
+            {
+                (void)status;
+            }
+
+            virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage)
+            {
+                (void)batteryVoltage;
+            }
+
+            virtual void handle_SET_BATTERY_VOLTAGE_Data(float  batteryVoltage)
+            {
+                (void)batteryVoltage;
+            }
+
+            virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_SET_EMERGENCY_STOP_Data(uint8_t  flag)
+            {
+                (void)flag;
+            }
+
+            virtual void handle_GET_BATTERY_VOLTAGE_Request(float & voltage)
+            {
+                (void)voltage;
+            }
+
+            virtual void handle_GET_BATTERY_VOLTAGE_Data(float & voltage)
+            {
+                (void)voltage;
+            }
+
+            virtual void handle_GET_MISSION_COMPLETE_Request(uint8_t & status)
+            {
+                (void)status;
+            }
+
+            virtual void handle_GET_MISSION_COMPLETE_Data(uint8_t & status)
+            {
+                (void)status;
+            }
+
+            virtual void handle_SET_RANGE_PARAMETERS_Request(float  rx, float  ry, float  rz)
+            {
+                (void)rx;
+                (void)ry;
+                (void)rz;
+            }
+
+            virtual void handle_SET_RANGE_PARAMETERS_Data(float  rx, float  ry, float  rz)
+            {
+                (void)rx;
+                (void)ry;
+                (void)rz;
+            }
+
+            virtual void handle_CLEAR_EEPROM_Request(uint8_t  section)
+            {
+                (void)section;
+            }
+
+            virtual void handle_CLEAR_EEPROM_Data(uint8_t  section)
+            {
+                (void)section;
             }
 
         public:
@@ -686,6 +1804,41 @@ namespace hf {
                 bytes[29] = CRC8(&bytes[3], 26);
 
                 return 30;
+            }
+
+            static uint8_t serialize_SET_RC_NORMAL(uint8_t bytes[], float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 24;
+                bytes[4] = 222;
+
+                memcpy(&bytes[5], &c1, sizeof(float));
+                memcpy(&bytes[9], &c2, sizeof(float));
+                memcpy(&bytes[13], &c3, sizeof(float));
+                memcpy(&bytes[17], &c4, sizeof(float));
+                memcpy(&bytes[21], &c5, sizeof(float));
+                memcpy(&bytes[25], &c6, sizeof(float));
+
+                bytes[29] = CRC8(&bytes[3], 26);
+
+                return 30;
+            }
+
+            static uint8_t serialize_LOST_SIGNAL(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 226;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
             static uint8_t serialize_ATTITUDE_RADIANS_Request(uint8_t bytes[])
@@ -774,6 +1927,21 @@ namespace hf {
                 return 18;
             }
 
+            static uint8_t serialize_SET_ARMED(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 216;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
             static uint8_t serialize_FAKE_INT_Request(uint8_t bytes[])
             {
                 bytes[0] = 36;
@@ -820,13 +1988,416 @@ namespace hf {
                 return 22;
             }
 
-            static uint8_t serialize_SET_ARMED(uint8_t bytes[], uint8_t  flag)
+            static uint8_t serialize_GET_MOTOR_NORMAL_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 124;
+                bytes[5] = 124;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_MOTOR_NORMAL(uint8_t bytes[], float  m1, float  m2, float  m3, float  m4)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 16;
+                bytes[4] = 124;
+
+                memcpy(&bytes[5], &m1, sizeof(float));
+                memcpy(&bytes[9], &m2, sizeof(float));
+                memcpy(&bytes[13], &m3, sizeof(float));
+                memcpy(&bytes[17], &m4, sizeof(float));
+
+                bytes[21] = CRC8(&bytes[3], 18);
+
+                return 22;
+            }
+
+            static uint8_t serialize_WP_ARM_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 1;
+                bytes[5] = 1;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_ARM(uint8_t bytes[], uint8_t  code)
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
                 bytes[2] = 62;
                 bytes[3] = 1;
-                bytes[4] = 216;
+                bytes[4] = 1;
+
+                memcpy(&bytes[5], &code, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_WP_DISARM_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 2;
+                bytes[5] = 2;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_DISARM(uint8_t bytes[], uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 2;
+
+                memcpy(&bytes[5], &code, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_WP_LAND_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 3;
+                bytes[5] = 3;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_LAND(uint8_t bytes[], uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 3;
+
+                memcpy(&bytes[5], &code, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_WP_TAKE_OFF_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 4;
+                bytes[5] = 4;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_TAKE_OFF(uint8_t bytes[], uint8_t  meters, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 4;
+
+                memcpy(&bytes[5], &meters, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_GO_FORWARD_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 5;
+                bytes[5] = 5;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_GO_FORWARD(uint8_t bytes[], uint8_t  meters, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 5;
+
+                memcpy(&bytes[5], &meters, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_GO_BACKWARD_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 6;
+                bytes[5] = 6;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_GO_BACKWARD(uint8_t bytes[], uint8_t  meters, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 6;
+
+                memcpy(&bytes[5], &meters, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_GO_LEFT_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 7;
+                bytes[5] = 7;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_GO_LEFT(uint8_t bytes[], uint8_t  meters, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 7;
+
+                memcpy(&bytes[5], &meters, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_GO_RIGHT_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 8;
+                bytes[5] = 8;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_GO_RIGHT(uint8_t bytes[], uint8_t  meters, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 8;
+
+                memcpy(&bytes[5], &meters, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_CHANGE_ALTITUDE_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 9;
+                bytes[5] = 9;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_CHANGE_ALTITUDE(uint8_t bytes[], uint8_t  meters, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 9;
+
+                memcpy(&bytes[5], &meters, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_CHANGE_SPEED_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 10;
+                bytes[5] = 10;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_CHANGE_SPEED(uint8_t bytes[], uint8_t  speed, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 10;
+
+                memcpy(&bytes[5], &speed, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_HOVER_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 11;
+                bytes[5] = 11;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_HOVER(uint8_t bytes[], uint8_t  seconds, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 11;
+
+                memcpy(&bytes[5], &seconds, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_TURN_CW_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 12;
+                bytes[5] = 12;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_TURN_CW(uint8_t bytes[], uint8_t  degrees, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 12;
+
+                memcpy(&bytes[5], &degrees, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_TURN_CCW_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 13;
+                bytes[5] = 13;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_TURN_CCW(uint8_t bytes[], uint8_t  degrees, uint8_t  code)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 2;
+                bytes[4] = 13;
+
+                memcpy(&bytes[5], &degrees, sizeof(uint8_t));
+                memcpy(&bytes[6], &code, sizeof(uint8_t));
+
+                bytes[7] = CRC8(&bytes[3], 4);
+
+                return 8;
+            }
+
+            static uint8_t serialize_WP_MISSION_FLAG_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 23;
+                bytes[5] = 23;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_MISSION_FLAG(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 23;
 
                 memcpy(&bytes[5], &flag, sizeof(uint8_t));
 
@@ -835,24 +2406,449 @@ namespace hf {
                 return 7;
             }
 
-            static uint8_t serialize_SET_RC_NORMAL(uint8_t bytes[], float  c1, float  c2, float  c3, float  c4, float  c5, float  c6)
+            static uint8_t serialize_ESC_CALIBRATION_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 24;
+                bytes[5] = 24;
+
+                return 6;
+            }
+
+            static uint8_t serialize_ESC_CALIBRATION(uint8_t bytes[], uint8_t  protocol)
             {
                 bytes[0] = 36;
                 bytes[1] = 77;
                 bytes[2] = 62;
-                bytes[3] = 24;
-                bytes[4] = 222;
+                bytes[3] = 1;
+                bytes[4] = 24;
 
-                memcpy(&bytes[5], &c1, sizeof(float));
-                memcpy(&bytes[9], &c2, sizeof(float));
-                memcpy(&bytes[13], &c3, sizeof(float));
-                memcpy(&bytes[17], &c4, sizeof(float));
-                memcpy(&bytes[21], &c5, sizeof(float));
-                memcpy(&bytes[25], &c6, sizeof(float));
+                memcpy(&bytes[5], &protocol, sizeof(uint8_t));
 
-                bytes[29] = CRC8(&bytes[3], 26);
+                bytes[6] = CRC8(&bytes[3], 3);
 
-                return 30;
+                return 7;
+            }
+
+            static uint8_t serialize_MOSQUITO_VERSION_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 25;
+                bytes[5] = 25;
+
+                return 6;
+            }
+
+            static uint8_t serialize_MOSQUITO_VERSION(uint8_t bytes[], uint8_t  mosquitoVersion)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 25;
+
+                memcpy(&bytes[5], &mosquitoVersion, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 26;
+                bytes[5] = 26;
+
+                return 6;
+            }
+
+            static uint8_t serialize_POSITION_BOARD(uint8_t bytes[], uint8_t  hasPositionBoard)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 26;
+
+                memcpy(&bytes[5], &hasPositionBoard, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_CONNECTED_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 27;
+                bytes[5] = 27;
+
+                return 6;
+            }
+
+            static uint8_t serialize_POSITION_BOARD_CONNECTED(uint8_t bytes[], uint8_t  positionBoardConnected)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 27;
+
+                memcpy(&bytes[5], &positionBoardConnected, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_WP_MISSION_BEGIN_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 30;
+                bytes[5] = 30;
+
+                return 6;
+            }
+
+            static uint8_t serialize_WP_MISSION_BEGIN(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 30;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_FIRMWARE_VERSION_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 50;
+                bytes[5] = 50;
+
+                return 6;
+            }
+
+            static uint8_t serialize_FIRMWARE_VERSION(uint8_t bytes[], uint8_t  version)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 50;
+
+                memcpy(&bytes[5], &version, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_MOSQUITO_VERSION(uint8_t bytes[], uint8_t  version)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 223;
+
+                memcpy(&bytes[5], &version, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_PID_CONSTANTS(uint8_t bytes[], float  gyroRollP, float  gyroRollI, float  gyroRollD, float  gyroPitchP, float  gyroPitchI, float  gyroPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 76;
+                bytes[4] = 224;
+
+                memcpy(&bytes[5], &gyroRollP, sizeof(float));
+                memcpy(&bytes[9], &gyroRollI, sizeof(float));
+                memcpy(&bytes[13], &gyroRollD, sizeof(float));
+                memcpy(&bytes[17], &gyroPitchP, sizeof(float));
+                memcpy(&bytes[21], &gyroPitchI, sizeof(float));
+                memcpy(&bytes[25], &gyroPitchD, sizeof(float));
+                memcpy(&bytes[29], &gyroYawP, sizeof(float));
+                memcpy(&bytes[33], &gyroYawI, sizeof(float));
+                memcpy(&bytes[37], &demandsToRate, sizeof(float));
+                memcpy(&bytes[41], &levelP, sizeof(float));
+                memcpy(&bytes[45], &altHoldP, sizeof(float));
+                memcpy(&bytes[49], &altHoldVelP, sizeof(float));
+                memcpy(&bytes[53], &altHoldVelI, sizeof(float));
+                memcpy(&bytes[57], &altHoldVelD, sizeof(float));
+                memcpy(&bytes[61], &minAltitude, sizeof(float));
+                memcpy(&bytes[65], &param6, sizeof(float));
+                memcpy(&bytes[69], &param7, sizeof(float));
+                memcpy(&bytes[73], &param8, sizeof(float));
+                memcpy(&bytes[77], &param9, sizeof(float));
+
+                bytes[81] = CRC8(&bytes[3], 78);
+
+                return 82;
+            }
+
+            static uint8_t serialize_GET_PID_CONSTANTS_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 127;
+                bytes[5] = 127;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_PID_CONSTANTS(uint8_t bytes[], float  gyroRollP, float  gyroRollI, float  gyroRollD, float  gyroPitchP, float  gyroPitchI, float  gyroPitchD, float  gyroYawP, float  gyroYawI, float  demandsToRate, float  levelP, float  altHoldP, float  altHoldVelP, float  altHoldVelI, float  altHoldVelD, float  minAltitude, float  param6, float  param7, float  param8, float  param9)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 76;
+                bytes[4] = 127;
+
+                memcpy(&bytes[5], &gyroRollP, sizeof(float));
+                memcpy(&bytes[9], &gyroRollI, sizeof(float));
+                memcpy(&bytes[13], &gyroRollD, sizeof(float));
+                memcpy(&bytes[17], &gyroPitchP, sizeof(float));
+                memcpy(&bytes[21], &gyroPitchI, sizeof(float));
+                memcpy(&bytes[25], &gyroPitchD, sizeof(float));
+                memcpy(&bytes[29], &gyroYawP, sizeof(float));
+                memcpy(&bytes[33], &gyroYawI, sizeof(float));
+                memcpy(&bytes[37], &demandsToRate, sizeof(float));
+                memcpy(&bytes[41], &levelP, sizeof(float));
+                memcpy(&bytes[45], &altHoldP, sizeof(float));
+                memcpy(&bytes[49], &altHoldVelP, sizeof(float));
+                memcpy(&bytes[53], &altHoldVelI, sizeof(float));
+                memcpy(&bytes[57], &altHoldVelD, sizeof(float));
+                memcpy(&bytes[61], &minAltitude, sizeof(float));
+                memcpy(&bytes[65], &param6, sizeof(float));
+                memcpy(&bytes[69], &param7, sizeof(float));
+                memcpy(&bytes[73], &param8, sizeof(float));
+                memcpy(&bytes[77], &param9, sizeof(float));
+
+                bytes[81] = CRC8(&bytes[3], 78);
+
+                return 82;
+            }
+
+            static uint8_t serialize_SET_POSITIONING_BOARD(uint8_t bytes[], uint8_t  hasBoard)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 225;
+
+                memcpy(&bytes[5], &hasBoard, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_LEDS(uint8_t bytes[], uint8_t  red, uint8_t  green, uint8_t  blue)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 3;
+                bytes[4] = 227;
+
+                memcpy(&bytes[5], &red, sizeof(uint8_t));
+                memcpy(&bytes[6], &green, sizeof(uint8_t));
+                memcpy(&bytes[7], &blue, sizeof(uint8_t));
+
+                bytes[8] = CRC8(&bytes[3], 5);
+
+                return 9;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION(uint8_t bytes[], uint8_t  stage)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 214;
+
+                memcpy(&bytes[5], &stage, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION_STATUS_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 119;
+                bytes[5] = 119;
+
+                return 6;
+            }
+
+            static uint8_t serialize_RC_CALIBRATION_STATUS(uint8_t bytes[], uint8_t  status)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 119;
+
+                memcpy(&bytes[5], &status, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_BATTERY_VOLTAGE(uint8_t bytes[], float  batteryVoltage)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 4;
+                bytes[4] = 228;
+
+                memcpy(&bytes[5], &batteryVoltage, sizeof(float));
+
+                bytes[9] = CRC8(&bytes[3], 6);
+
+                return 10;
+            }
+
+            static uint8_t serialize_SET_EMERGENCY_STOP(uint8_t bytes[], uint8_t  flag)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 229;
+
+                memcpy(&bytes[5], &flag, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_GET_BATTERY_VOLTAGE_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 125;
+                bytes[5] = 125;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_BATTERY_VOLTAGE(uint8_t bytes[], float  voltage)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 4;
+                bytes[4] = 125;
+
+                memcpy(&bytes[5], &voltage, sizeof(float));
+
+                bytes[9] = CRC8(&bytes[3], 6);
+
+                return 10;
+            }
+
+            static uint8_t serialize_GET_MISSION_COMPLETE_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 116;
+                bytes[5] = 116;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_MISSION_COMPLETE(uint8_t bytes[], uint8_t  status)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 116;
+
+                memcpy(&bytes[5], &status, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
+            }
+
+            static uint8_t serialize_SET_RANGE_PARAMETERS(uint8_t bytes[], float  rx, float  ry, float  rz)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 12;
+                bytes[4] = 221;
+
+                memcpy(&bytes[5], &rx, sizeof(float));
+                memcpy(&bytes[9], &ry, sizeof(float));
+                memcpy(&bytes[13], &rz, sizeof(float));
+
+                bytes[17] = CRC8(&bytes[3], 14);
+
+                return 18;
+            }
+
+            static uint8_t serialize_CLEAR_EEPROM(uint8_t bytes[], uint8_t  section)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 1;
+                bytes[4] = 201;
+
+                memcpy(&bytes[5], &section, sizeof(uint8_t));
+
+                bytes[6] = CRC8(&bytes[3], 3);
+
+                return 7;
             }
 
     }; // class MspParser

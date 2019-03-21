@@ -48,36 +48,47 @@ hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL)
 
 hf::MixerQuadX mixer;
 
-hf::Rate ratePid = hf::Rate(
-        0.10f,  // Gyro Roll P
-        0.01f,  // Gyro Roll I
-        0.05f,  // Gyro Roll D
-        0.20f,  // Gyro Pitch P
-        0.01f,  // Gyro Pitch I
-        0.05f,  // Gyro Pitch D
-        0.10f,  // Gyro yaw P
-        0.01f,  // Gyro yaw I
-        8.58f); // Demands to rate
+// Rate Constants
+const float RATE_ROLL_P = 0.05;
+const float RATE_ROLL_I = 0.40;
+const float RATE_ROLL_D = 0.0001;
+const float RATE_PITCH_P = 0.05;
+const float RATE_PITCH_I = 0.55;
+const float RATE_PITCH_D = 0.0001;
+const float RATE_YAW_P = 0.05;
+const float RATE_YAW_I = 0.40;
 
-hf::Level level = hf::Level(
-        0.25f,   // Roll Level P
-        0.25f);  // Pitch Level P
+const float RATE_DEM2RATE = 6.00;
+
+hf::Rate ratePid = hf::Rate(
+        RATE_ROLL_P,   // Gyro Roll P
+        RATE_ROLL_I,   // Gyro Roll I
+        RATE_ROLL_D, // Gyro Roll D
+        RATE_PITCH_P,   // Gyro Pitch P
+        RATE_PITCH_I,   // Gyro Pitch I
+        RATE_PITCH_D, // Gyro Pitch D
+        RATE_YAW_P,   // Gyro yaw P
+        RATE_YAW_I,   // Gyro yaw I
+        RATE_DEM2RATE);  // Demands to rate (6 when using rate)
+
+// Level constants
+const float LEVEL_ROLL_P = 1.00;
+const float LEVEL_PITCH_P = 1.00;
+
+const float LEVEL_DEM2ANGLE = 45.0;
+
+hf::Level level = hf::Level(LEVEL_ROLL_P,LEVEL_PITCH_P, LEVEL_DEM2ANGLE, RATE_DEM2RATE);  // Pitch Level P
 
 void setup(void)
 {
     // begin the serial port for the ESP32
     Serial4.begin(115200);
 
-    // Trim receiver via software
-    rc.setTrimRoll(-0.0012494f);
-    rc.setTrimPitch(-0.0058769f);
-    rc.setTrimYaw(-0.0192190f);
-
     // 0 means the controller will always be active, but by changing
     // that number it can be linked to a different aux state
     h.addPidController(&level, 0);
 
-    h.init(new hf::BonadroneMultiShot(), &rc, &mixer, &ratePid);
+    h.init(new hf::BonadroneBrushed(), &rc, &mixer, &ratePid);
 }
 
 void loop(void)

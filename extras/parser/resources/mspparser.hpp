@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <EEPROM.h>
+
 namespace hf {
 
     class MspParser {
@@ -34,11 +36,17 @@ namespace hf {
         public:
 
             static const uint8_t MAXMSG = 255;
+            
+            // Number of EEPROM reserved slots for parameters
+            static const int PARAMETER_SLOTS = 150;
 
         private:
 
             static const int INBUF_SIZE  = 128;
             static const int OUTBUF_SIZE = 128;
+
+            int EEPROMindex = PARAMETER_SLOTS;
+            bool incomingMission = false;
 
             typedef enum serialState_t {
                 IDLE,
@@ -104,6 +112,12 @@ namespace hf {
                 headSerialReply(count*size);
             }
 
+            void acknowledgeResponse(void)
+            {
+                prepareToSend(0, 0);
+                serialize8(_checksum);
+            }
+
             void prepareToSendBytes(uint8_t count)
             {
                 prepareToSend(count, 1);
@@ -165,6 +179,26 @@ namespace hf {
             float getArgument(uint8_t k)
             {
                 return (float)k; // XXX for testing only
+            }
+
+            void processMissionCommand(uint8_t command)
+            {
+                if (incomingMission && command != 23)
+                {
+                    EEPROM.write(EEPROMindex, command);
+                    EEPROMindex += 1;
+                    if (command != 1 && command != 2 && command != 3)
+                    {
+                        uint8_t commandData = readCommandData();
+                        EEPROM.write(EEPROMindex, commandData);
+                        EEPROMindex += 1;
+                    }
+                }
+            }
+                        
+            uint8_t readCommandData(void)
+            {
+                return _inBuf[_inBufIndex++] & 0xff;
             }
 
         protected:
@@ -246,6 +280,7 @@ namespace hf {
                             _checksum ^= c;
                             _inBuf[_offset++] = c;
                         } else  {
+                            _state = IDLE;
                             if (_checksum == c) {        // compare calculated and transferred _checksum
                                 if (_direction == 0) {
                                     dispatchRequestMessage();
@@ -254,7 +289,6 @@ namespace hf {
                                     dispatchDataMessage();
                                 }
                             }
-                            _state = IDLE;
                         }
 
                 } // switch (_state)
