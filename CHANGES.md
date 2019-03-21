@@ -26,6 +26,7 @@
 * #102 Express linear velocities in IMU frame
 * #102 ESKF tuning and cleanup
 * #103 Allow to define MSP messages with ID > 200 that do not acknowledge
+* #105 Filter ESKF estimated linear velocities with a LPF
 
 ### Changed
 
