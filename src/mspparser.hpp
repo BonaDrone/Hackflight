@@ -836,7 +836,6 @@ namespace hf {
                         memcpy(&batteryVoltage,  &_inBuf[0], sizeof(float));
 
                         handle_SET_BATTERY_VOLTAGE_Request(batteryVoltage);
-                        acknowledgeResponse();
                         } break;
 
                     case 229:

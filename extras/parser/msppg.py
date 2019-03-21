@@ -26,6 +26,10 @@ import os
 import json
 from pkg_resources import resource_string
 
+# Constants ==================================================================================
+
+AVOID_ACKNOWLEDGE = [228]
+
 # Helper functions ===========================================================================
 
 def clean(string):
@@ -275,7 +279,8 @@ class HPP_Emitter(CodeEmitter):
                     self.output.write(6*self.indent + ('send%s(%s);\n' % (argtype, argname)))
                 self.output.write(6*self.indent + "serialize8(_checksum);\n")
             else:
-                self.output.write(6*self.indent + "acknowledgeResponse();\n")
+            	if msgid not in AVOID_ACKNOWLEDGE: 
+                	self.output.write(6*self.indent + "acknowledgeResponse();\n")
             self.output.write(6*self.indent + '} break;\n\n')
 
         self.output.write(4*self.indent + '}\n')
