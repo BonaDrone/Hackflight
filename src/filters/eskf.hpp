@@ -40,6 +40,11 @@ namespace hf {
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
+      
+      // Velocity low pass filters
+      static const uint8_t HISTORY = 50;
+      hf::LowPassFilter _lpVelX = hf::LowPassFilter(HISTORY);
+      hf::LowPassFilter _lpVelY = hf::LowPassFilter(HISTORY);
 
       eskf_t eskf;
       eskf_p_t eskfp;
@@ -129,9 +134,9 @@ namespace hf {
           velocityToIMUFrame(vels, world_vels, q);
           
           // Cap velocities to 3d decimal (mm)
-          state.linearVelocities[0] = int(vels[0]*1000) / 1000.0;
-          state.linearVelocities[1] = int(vels[1]*1000) / 1000.0;;
-          state.linearVelocities[2] = int(vels[2]*1000) / 1000.0;;
+          state.linearVelocities[0] = _lpVelX.update(vels[0]);
+          state.linearVelocities[1] = _lpVelY.update(vels[1]);
+          state.linearVelocities[2] = vels[2];
           
           // XXX print for debugging
           // if (isCorrection)
@@ -167,6 +172,10 @@ namespace hf {
           zeros(eskfp.K, errorStates, observations);
           zeros(eskfp.Fdx, errorStates, errorStates);
           zeros(eskfp.H, observations, errorStates);
+
+          // intialize lpfs
+          _lpVelX.init();
+          _lpVelY.init();
 
           // initial state
           eskfp.x[0] = 0.0; // position
