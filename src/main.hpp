@@ -89,9 +89,8 @@ namespace hf {
               float _max[4] = {0,0,0,0}; 
 
               // Required objects to run Hackflight
-              hf::Hackflight h;
               hf::MixerQuadX mixer;
-              hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL);
+              hf::SBUS_Receiver * rc = new hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL);
                   
               void loadParameters(void)
               {
@@ -246,18 +245,20 @@ namespace hf {
                     float n_pos =  - (m_pos * _center[k]);
                     float m_neg = - 1.0 / (_min[k+1] - _center[k]); 
                     float n_neg =  - (m_neg * _center[k]);
-                    rc.setTrim(m_pos, n_pos, m_neg, n_neg, k+1);
+                    rc->setTrim(m_pos, n_pos, m_neg, n_neg, k+1);
                   }
                   // Set Throttle trims
                   float m = 2.0 / (_max[0] - _min[0]);
                   float n = 1.0 - m*_max[0];
-                  rc.setTrim(m, n, m, n, 0);
+                  rc->setTrim(m, n, m, n, 0);
               }
 
         protected:
 
 
         public:
+
+            hf::Hackflight h;
 
             void init()
             {  
@@ -266,7 +267,7 @@ namespace hf {
                 // begin the serial port for the ESP32
                 Serial4.begin(115200);
                 
-                rc.setCalibrationStatus(_txCalibrated);
+                rc->setCalibrationStatus(_txCalibrated);
                 // Trim receiver via software
                 trimReceiver();
 
@@ -301,17 +302,15 @@ namespace hf {
                 h.addPidController(level, 0);
 
                 if (_isMosquito90) {
-                    h.init(new hf::BonadroneBrushed(), &rc, &mixer, ratePid);
+                    h.init(new hf::BonadroneBrushed(), rc, &mixer, ratePid);
                 } else {
                     if (_calibrateESC)
                     {
                       calibrateESCsMultiShot();
                       uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                      Serial.println(config);
                       EEPROM.write(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
-                      Serial.println(config);
                     }
-                    h.init(new hf::BonadroneMultiShot(), &rc, &mixer, ratePid);
+                    h.init(new hf::BonadroneMultiShot(), rc, &mixer, ratePid);
                 }
                 // Add additional sensors
                 if (_hasPositioningBoard)
@@ -335,11 +334,6 @@ namespace hf {
                 h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
             } // init
-
-            void update(void)
-            {
-                h.update();
-            } // update 
 
     }; // class HackflightWrapper
 
