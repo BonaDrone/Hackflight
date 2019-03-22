@@ -10,5 +10,5 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  hw.update();
+  hw.h.update();
 }
