@@ -52,9 +52,6 @@ namespace hf {
 
             virtual bool getJacobianObservation(float * H, float * x) override
             {
-                
-                // Serial.println("Range correct");
-              
                 float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
                 // 1 column
                 H[0] =  0;
