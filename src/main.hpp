@@ -289,7 +289,7 @@ namespace hf {
                 if (_hasPositioningBoard)
                 {
                     hf::AltitudeHold * althold = new hf::AltitudeHold(
-                        _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
+                        _altHoldP,      // Altitude Hold P -> this will set velTarget to 0
                         _altHoldVelP,   // Altitude Hold Velocity P
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
