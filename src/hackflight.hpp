@@ -73,7 +73,8 @@ namespace hf {
 
             // Mandatory sensors on the board
             IMU _imu;
-            Quaternion _quaternion; // not really a sensor, but we treat it like one!
+            // XXX No longer needed
+            // Quaternion _quaternion; // not really a sensor, but we treat it like one!
             Accelerometer _accelerometer;
 
             // Additional sensors
@@ -545,7 +546,7 @@ namespace hf {
 
             virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage) override
             {
-              _state.batteryVoltage = batteryVoltage;
+                _state.batteryVoltage = batteryVoltage;
             }
 
             virtual void handle_GET_BATTERY_VOLTAGE_Request(float & batteryVoltage) override

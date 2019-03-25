@@ -89,7 +89,7 @@ namespace hf {
               float _max[4] = {0,0,0,0}; 
 
               // Required objects to run Hackflight
-              hf::MixerQuadX mixer;
+              hf::MixerQuadX * mixer = new hf::MixerQuadX();
               hf::SBUS_Receiver * rc = new hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL);
                   
               void loadParameters(void)
@@ -302,7 +302,7 @@ namespace hf {
                 h.addPidController(level, 0);
 
                 if (_isMosquito90) {
-                    h.init(new hf::BonadroneBrushed(), rc, &mixer, ratePid);
+                    h.init(new hf::BonadroneBrushed(), rc, mixer, ratePid);
                 } else {
                     if (_calibrateESC)
                     {
@@ -310,7 +310,7 @@ namespace hf {
                       uint8_t config = EEPROM.read(GENERAL_CONFIG);
                       EEPROM.write(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
                     }
-                    h.init(new hf::BonadroneMultiShot(), rc, &mixer, ratePid);
+                    h.init(new hf::BonadroneMultiShot(), rc, mixer, ratePid);
                 }
                 // Add additional sensors
                 if (_hasPositioningBoard)
@@ -326,7 +326,7 @@ namespace hf {
                     h.addSensor(opticalflow);
                     h.eskf.addSensorESKF(opticalflow);
                     
-                    _positionBoardConnected = _rangeConnected & _opticalConnected;                 
+                    _positionBoardConnected = _rangeConnected & _opticalConnected;
                 }
 
                 // Set parameters in hackflight instance so that they can be queried
