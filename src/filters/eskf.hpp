@@ -114,7 +114,7 @@ namespace hf {
 
       }
 
-      void synchState(bool isCorrection)
+      void synchState()
       {
           // Update euler angles
           float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
@@ -281,7 +281,7 @@ namespace hf {
           makesym(eskfp.tmp6, eskfp.P, errorStates);
 
           /* success */
-          synchState(false);
+          synchState();
 
           return 0;
 
@@ -422,7 +422,7 @@ namespace hf {
           zeros(eskfp.dx, errorStates, 1);
 
           /* success */
-          synchState(sensor->isOpticalFlow());
+          synchState();
 
           return 0;
       } // correct
