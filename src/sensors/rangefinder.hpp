@@ -127,7 +127,7 @@ namespace hf {
                 float newDistance;
                 if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) {
                     _time = time;
-                    if (_distance < 0.0 && _distance > 4.5)
+                    if (_distance < 0.0 || _distance > 4.5)
                     {
                       return false;
                     }
