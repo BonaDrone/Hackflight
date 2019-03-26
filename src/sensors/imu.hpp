@@ -46,7 +46,6 @@ namespace hf {
 
             virtual void integrateNominalState(float * fx, float * x, double dt) override
             {
-                // Serial.println("Update");
                 // 1 column
                 fx[0] = x[0] + dt*x[3];
                 // 2 column

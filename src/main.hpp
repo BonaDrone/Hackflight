@@ -34,7 +34,7 @@
 
 // Additional Sensors
 // (Gyrometer and accelerometer are included by default)
-#include <VL53L1X.h>
+#include <PMW3901.h>
 #include "sensors/rangefinders/vl53l1x.hpp"
 #include "sensors/opticalflow.hpp"
 

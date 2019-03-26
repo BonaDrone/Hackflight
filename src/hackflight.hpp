@@ -73,8 +73,6 @@ namespace hf {
 
             // Mandatory sensors on the board
             IMU _imu;
-            // XXX No longer needed
-            // Quaternion _quaternion; // not really a sensor, but we treat it like one!
             Accelerometer _accelerometer;
 
             // Additional sensors
@@ -766,7 +764,6 @@ namespace hf {
             {
                 // Check Battery
                 checkBattery();
-
                 // Check planner
                 checkPlanner();
                 // Grab control signal if available

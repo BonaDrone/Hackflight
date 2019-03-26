@@ -23,8 +23,6 @@
 #include <cmath>
 #include <math.h>
 
-#include <PMW3901.h>
-
 #include "debug.hpp"
 #include "peripheral.hpp"
 
