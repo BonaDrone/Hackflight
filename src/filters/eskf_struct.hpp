@@ -42,30 +42,32 @@ namespace hf {
       float R[Mobs][Mobs];  /* measurement error covariance */
 
       float K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
-      float Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
+      // float Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
 
       float Fdx[NEsta][NEsta];  /* Jacobian of process model */
       float H[Mobs][NEsta];  /* Jacobian of measurement model */
 
-      float Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
-      float Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
+      // float Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
+      // float Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
       
-      float G[NEsta][NEsta];  
+      // float G[NEsta][NEsta];  
 
       float fx[NNsta];   /* output of user defined f() state-transition function */
       float hx[Mobs];   /* output of user defined h() measurement function */
+      
+      // float Z[Mobs][Mobs];
 
-      /* temporary storage */
-      float tmp0[NEsta][NEsta];
-      float tmp1[NEsta][Mobs];
-      float tmp2[Mobs][NEsta];
-      float tmp3[Mobs][Mobs];
-      float tmp4[Mobs][Mobs];
-      float tmp5[NNsta];
-      float tmp6[NEsta][NEsta];
-      float tmp7[NEsta][NEsta];
-      float tmp8[NEsta][NEsta];
-      float tmp9[Mobs][Mobs];
+      // /* temporary storage */
+      // float tmp0[NEsta][NEsta];
+      // float tmp1[NEsta][Mobs];
+      // float tmp2[Mobs][NEsta];
+      // float tmp3[Mobs][Mobs];
+      // float tmp4[Mobs][Mobs];
+      // float tmp5[NNsta];
+      // float tmp6[NEsta][NEsta];
+      // float tmp7[NEsta][NEsta];
+      // float tmp8[NEsta][NEsta];
+      // float tmp9[Mobs][Mobs];
 
   } eskf_t;
   
@@ -92,18 +94,20 @@ namespace hf {
 
       float * fx;   /* output of user defined f() state-transition function */
       float * hx;   /* output of user defined h() measurement function */
+      
+      // float * Z;
 
-      /* temporary storage */
-      float * tmp0;
-      float * tmp1;
-      float * tmp2;
-      float * tmp3;
-      float * tmp4;
-      float * tmp5;
-      float * tmp6;
-      float * tmp7;
-      float * tmp8;
-      float * tmp9;
+      // /* temporary storage */
+      // float * tmp0;
+      // float * tmp1;
+      // float * tmp2;
+      // float * tmp3;
+      // float * tmp4;
+      // float * tmp5;
+      // float * tmp6;
+      // float * tmp7;
+      // float * tmp8;
+      // float * tmp9;
 
   } eskf_p_t;
   
