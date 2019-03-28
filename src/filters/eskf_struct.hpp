@@ -35,7 +35,7 @@ namespace hf {
 
       float x[NNsta];    /*nominal state vector */
       float dx[NEsta];   /*error-state vector*/
-      float qL[NNsta][NNsta]; /*Left matrix quaternion*/
+      float qL[4][4]; /*Left matrix quaternion*/
 
       float P[NEsta][NEsta];  /* prediction error covariance */
       float Q[NEsta][NEsta];  /* process noise covariance */

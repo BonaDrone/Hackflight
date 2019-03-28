@@ -60,7 +60,7 @@ namespace hf {
           eskfp.dx = dptr;
           dptr += ne;
           eskfp.qL = dptr;
-          dptr += nn*nn;
+          dptr += 4*4;
 
           eskfp.P = dptr;
           dptr += ne*ne;
@@ -245,7 +245,7 @@ namespace hf {
       {
           eskfp_init(&eskf, nominalStates, errorStates, observations);
           /* zero-out matrices */
-          zeros(eskfp.qL, nominalStates, nominalStates);
+          zeros(eskfp.qL, 4, 4);
           zeros(eskfp.P, errorStates, errorStates);
           zeros(eskfp.Q, errorStates, errorStates);
           zeros(eskfp.R, observations, observations);
