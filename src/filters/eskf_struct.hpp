@@ -33,27 +33,27 @@ namespace hf {
 
   typedef struct {
 
-      float x[NNsta];    /*nominal state vector */
-      float dx[NEsta];   /*error-state vector*/
-      float qL[4][4]; /*Left matrix quaternion*/
+      float x[NNsta];     /*nominal state vector */
+      float dx[NEsta];    /*error-state vector*/
+      float qL[4][4];     /*Left matrix quaternion*/
 
       float P[NEsta][NEsta];  /* prediction error covariance */
       float Q[NEsta][NEsta];  /* process noise covariance */
-      float R[Mobs][Mobs];  /* measurement error covariance */
+      float R[Mobs][Mobs];    /* measurement error covariance */
 
-      float K[NEsta][Mobs];  /* Kalman gain; a.k.a. K */
+      float K[NEsta][Mobs];   /* Kalman gain; a.k.a. K */
       // float Kt[Mobs][NEsta];  /* transpose Kalman gain; a.k.a. K */
 
       float Fdx[NEsta][NEsta];  /* Jacobian of process model */
-      float H[Mobs][NEsta];  /* Jacobian of measurement model */
+      float H[Mobs][NEsta];     /* Jacobian of measurement model */
 
       // float Ht[NEsta][Mobs]; /* transpose of measurement Jacobian */
       // float Fdxt[NEsta][NEsta]; /* transpose of process Jacobian */
       
       // float G[NEsta][NEsta];  
 
-      float fx[NNsta];   /* output of user defined f() state-transition function */
-      float hx[Mobs];   /* output of user defined h() measurement function */
+      float fx[NNsta];    /* output of user defined f() state-transition function */
+      float hx[Mobs];     /* output of user defined h() measurement function */
       
       // float Z[Mobs][Mobs];
 
@@ -82,7 +82,7 @@ namespace hf {
       float * R;  /* measurement error covariance */
 
       float * K;  /* Kalman gain; a.k.a. K */
-      float * Kt;  /* transpose Kalman gain; a.k.a. K */
+      // float * Kt;  /* transpose Kalman gain; a.k.a. K */
 
       float * Fdx;  /* Jacobian of process model */
       float * H;  /* Jacobian of measurement model */
@@ -90,7 +90,7 @@ namespace hf {
       float * Ht; /* transpose of measurement Jacobian */
       float * Fdxt; /* transpose of process Jacobian */
       
-      float * G;  
+      // float * G;  
 
       float * fx;   /* output of user defined f() state-transition function */
       float * hx;   /* output of user defined h() measurement function */
