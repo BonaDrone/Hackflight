@@ -175,20 +175,24 @@ namespace hf {
 
             void correctStateEstimate(void)
             {
-                // Check all sensors if they need an update estimate
-                static uint8_t k;
-                k +=1;
+                // Update index of the sensor that will correct the estimations 
+                static uint8_t correctionSensor;
+                correctionSensor+=1;
                 // for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 // {
-                ESKF_Sensor * sensor = eskf.sensors[k];
+                ESKF_Sensor * sensor = eskf.sensors[correctionSensor];
                 float time = _board->getTime();
 
+                // Check if the selected sensor is ready to correct and, if so,
+                // correct the estimated states
                 if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
                 {
                     sensor->getMeasures(*_state.UAVState);
                     eskf.correct(sensor, time);
                 }
-                k = k%3;     
+                // make sure that the index of the sensor that corrects goes
+                // between 1-3
+                correctionSensor = correctionSensor%3;     
                 // }
             }
 
