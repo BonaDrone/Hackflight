@@ -88,8 +88,8 @@ namespace hf {
       float * Fdx;  /* Jacobian of process model */
       float * H;  /* Jacobian of measurement model */
 
-      float * Ht; /* transpose of measurement Jacobian */
-      float * Fdxt; /* transpose of process Jacobian */
+      //float * Ht; /* transpose of measurement Jacobian */
+      //float * Fdxt; /* transpose of process Jacobian */
       
       // float * G;  
 
