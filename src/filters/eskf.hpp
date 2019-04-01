@@ -127,7 +127,7 @@ namespace hf {
           state.position[0] = eskf.x[0];
           state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
-          
+
           // Transform linear velocities to IMU frame
           float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
           float vels[3];
@@ -157,12 +157,9 @@ namespace hf {
 
       void covariancePrediction(float * Fdx, float * P, float * Q)
       {
-          float tmp0Matrix[errorStates][errorStates];
-          float tmp6Matrix[errorStates][errorStates];
-          float FdxtMatrix[errorStates][errorStates];
-          float * tmp0 = &tmp0Matrix[0][0];
-          float * tmp6 = &tmp6Matrix[0][0];
-          float * Fdxt = &FdxtMatrix[0][0];
+          float tmp0[errorStates*errorStates];
+          float tmp6[errorStates*errorStates];
+          float Fdxt[errorStates*errorStates];
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
           transpose(Fdx, Fdxt, errorStates, errorStates);
           mulmat(Fdx, P, tmp0, errorStates, errorStates, errorStates);
@@ -174,18 +171,12 @@ namespace hf {
       
       int computeGain(float * P, float * H, float * R, float * K, ESKF_Sensor * sensor)
       {
-          float tmp1Matrix[errorStates][observations];
-          float tmp2Matrix[observations][errorStates];
-          float tmp3Matrix[observations][observations];
-          float tmp4Matrix[observations][observations];
-          float tmp9Matrix[observations][observations];
-          float HtMatrix[errorStates][observations];
-          float * tmp1 = &tmp1Matrix[0][0];
-          float * tmp2 = &tmp2Matrix[0][0];
-          float * tmp3 = &tmp3Matrix[0][0];
-          float * tmp4 = &tmp4Matrix[0][0];
-          float * tmp9 = &tmp9Matrix[0][0];
-          float * Ht   = &HtMatrix[0][0];
+          float tmp1[errorStates*observations];
+          float tmp2[observations*errorStates];
+          float tmp3[observations*observations];
+          float tmp4[observations*observations];
+          float tmp9[observations*observations];
+          float Ht[errorStates*observations];
           
           transpose(H, Ht, observations, errorStates);
           mulmat(P, Ht, tmp1, errorStates, errorStates, observations); // P*H'
@@ -205,20 +196,13 @@ namespace hf {
       
       void covarianceUpdate(float * K, float * H, float * R, float * P)
       {
-          float tmp0Matrix[errorStates][errorStates];
-          float tmp2Matrix[observations][errorStates];
-          float tmp6Matrix[errorStates][errorStates];
-          float tmp7Matrix[errorStates][errorStates];
-          float tmp8Matrix[errorStates][errorStates];
-          float tmp9Matrix[errorStates][errorStates];
-          float KtMatrix[observations][errorStates];
-          float * tmp0 = &tmp0Matrix[0][0];
-          float * tmp2 = &tmp2Matrix[0][0];
-          float * tmp6 = &tmp6Matrix[0][0];
-          float * tmp7 = &tmp7Matrix[0][0];
-          float * tmp8 = &tmp8Matrix[0][0];
-          float * tmp9 = &tmp9Matrix[0][0];
-          float * Kt   = &KtMatrix[0][0];
+          float tmp0[errorStates*errorStates];
+          float tmp2[observations*errorStates];
+          float tmp6[errorStates*errorStates];
+          float tmp7[errorStates*errorStates];
+          float tmp8[errorStates*errorStates];
+          float tmp9[errorStates*errorStates];
+          float Kt[observations*errorStates];
           
           /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(K, H, tmp6, errorStates, observations, errorStates); // K*H
