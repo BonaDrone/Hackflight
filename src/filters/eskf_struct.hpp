@@ -28,14 +28,15 @@
 #define NNsta 16
 #define NEsta 15
 #define Mobs 3
+#define MNQuat 4
 
 namespace hf {
 
   typedef struct {
 
-      float x[NNsta];     /*nominal state vector */
-      float dx[NEsta];    /*error-state vector*/
-      float qL[4][4];     /*Left matrix quaternion*/
+      float x[NNsta];               /*nominal state vector */
+      float dx[NEsta];              /*error-state vector*/
+      float qL[MNQuat][MNQuat];     /*Left matrix quaternion*/
 
       float P[NEsta][NEsta];  /* prediction error covariance */
       float Q[NEsta][NEsta];  /* process noise covariance */

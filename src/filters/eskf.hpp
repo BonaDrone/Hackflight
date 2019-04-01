@@ -40,6 +40,7 @@ namespace hf {
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
+      static const uint8_t mnQuat = MNQuat;
       
       // Velocity low pass filters
       static const uint8_t HISTORY = 50;
@@ -52,7 +53,7 @@ namespace hf {
       double t_lastCall;
       double dt;
 
-      void eskfp_init(void * eskf, int nn, int ne, int m)
+      void eskfp_init(void * eskf, int nn, int ne, int m, int mnquat)
       {
           float * dptr = (float *)eskf;
           eskfp.x = dptr;
@@ -60,7 +61,7 @@ namespace hf {
           eskfp.dx = dptr;
           dptr += ne;
           eskfp.qL = dptr;
-          dptr += 4*4;
+          dptr += mnquat*mnquat;
 
           eskfp.P = dptr;
           dptr += ne*ne;
@@ -226,9 +227,9 @@ namespace hf {
 
       void init(void)
       {
-          eskfp_init(&eskf, nominalStates, errorStates, observations);
+          eskfp_init(&eskf, nominalStates, errorStates, observations, mnQuat);
           /* zero-out matrices */
-          zeros(eskfp.qL, 4, 4);
+          zeros(eskfp.qL, mnQuat, mnQuat);
           zeros(eskfp.P, errorStates, errorStates);
           zeros(eskfp.Q, errorStates, errorStates);
           zeros(eskfp.R, observations, observations);
