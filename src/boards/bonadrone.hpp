@@ -21,7 +21,6 @@
 #pragma once
 
 #include <Wire.h>
-#include <EEPROM.h>
 
 #include <LSM6DSM.h> 
 

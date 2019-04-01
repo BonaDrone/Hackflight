@@ -73,7 +73,6 @@ namespace hf {
 
             // Mandatory sensors on the board
             IMU _imu;
-            Quaternion _quaternion; // not really a sensor, but we treat it like one!
             Accelerometer _accelerometer;
 
             // Additional sensors
@@ -176,18 +175,25 @@ namespace hf {
 
             void correctStateEstimate(void)
             {
-                // Check all sensors if they need an update estimate
-                for (uint8_t k=0; k<eskf.sensor_count; ++k)
-                {
-                    ESKF_Sensor * sensor = eskf.sensors[k];
-                    float time = _board->getTime();
+                // Update index of the sensor that will correct the estimations 
+                static uint8_t correctionSensor;
+                correctionSensor+=1;
+                // for (uint8_t k=0; k<eskf.sensor_count; ++k)
+                // {
+                ESKF_Sensor * sensor = eskf.sensors[correctionSensor];
+                float time = _board->getTime();
 
-                    if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
-                    {
-                        sensor->getMeasures(*_state.UAVState);
-                        eskf.correct(sensor, time);
-                    }
+                // Check if the selected sensor is ready to correct and, if so,
+                // correct the estimated states
+                if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
+                {
+                    sensor->getMeasures(*_state.UAVState);
+                    eskf.correct(sensor, time);
                 }
+                // make sure that the index of the sensor that corrects goes
+                // between 1-3
+                correctionSensor = correctionSensor%3;     
+                // }
             }
 
             void runPidControllers(void)
@@ -545,7 +551,7 @@ namespace hf {
 
             virtual void handle_SET_BATTERY_VOLTAGE_Request(float  batteryVoltage) override
             {
-              _state.batteryVoltage = batteryVoltage;
+                _state.batteryVoltage = batteryVoltage;
             }
 
             virtual void handle_GET_BATTERY_VOLTAGE_Request(float & batteryVoltage) override
@@ -765,7 +771,6 @@ namespace hf {
             {
                 // Check Battery
                 checkBattery();
-
                 // Check planner
                 checkPlanner();
                 // Grab control signal if available
