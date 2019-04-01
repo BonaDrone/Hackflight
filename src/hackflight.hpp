@@ -176,17 +176,20 @@ namespace hf {
             void correctStateEstimate(void)
             {
                 // Check all sensors if they need an update estimate
-                for (uint8_t k=0; k<eskf.sensor_count; ++k)
-                {
-                    ESKF_Sensor * sensor = eskf.sensors[k];
-                    float time = _board->getTime();
+                static uint8_t k;
+                k +=1;
+                // for (uint8_t k=0; k<eskf.sensor_count; ++k)
+                // {
+                ESKF_Sensor * sensor = eskf.sensors[k];
+                float time = _board->getTime();
 
-                    if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
-                    {
-                        sensor->getMeasures(*_state.UAVState);
-                        eskf.correct(sensor, time);
-                    }
+                if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
+                {
+                    sensor->getMeasures(*_state.UAVState);
+                    eskf.correct(sensor, time);
                 }
+                k = k%3;     
+                // }
             }
 
             void runPidControllers(void)
