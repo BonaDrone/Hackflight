@@ -35,6 +35,8 @@
 * #75 Refactor tasks in main loop
 * #76 Improve Rate and Level controllers 
 * #80 Enable clearing EEPROM by sections
+* #107 Increase main loop speed
+* #111 Correct only with one sensor when calling the main loop ESKF correct function.
 
 ### Removed
 

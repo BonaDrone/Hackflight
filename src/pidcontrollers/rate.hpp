@@ -195,7 +195,6 @@ namespace hf {
 
             bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
             {
-                // (void)currentTime;
                 static float lastTime = 0.0;
                 
                 float deltat = currentTime - lastTime;

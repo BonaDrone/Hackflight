@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "board.hpp"
 #include "filters/eskf_sensor.hpp"
+#include "board.hpp"
 
 namespace hf {
 

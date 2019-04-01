@@ -52,9 +52,6 @@ namespace hf {
 
             virtual bool getJacobianObservation(float * H, float * x) override
             {
-                
-                // Serial.println("Range correct");
-              
                 float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
                 // 1 column
                 H[0] =  0;
@@ -102,7 +99,7 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 0.005f;
+                R[0] = 0.6f;
             }
 
             virtual bool Zinverse(float * Z, float * invZ) override
@@ -130,7 +127,7 @@ namespace hf {
                 float newDistance;
                 if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) {
                     _time = time;
-                    if (_distance < 0.0 && _distance > 4.5)
+                    if (_distance < 0.0 || _distance > 4.5)
                     {
                       return false;
                     }

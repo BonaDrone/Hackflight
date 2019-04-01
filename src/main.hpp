@@ -34,7 +34,7 @@
 
 // Additional Sensors
 // (Gyrometer and accelerometer are included by default)
-#include <VL53L1X.h>
+#include <PMW3901.h>
 #include "sensors/rangefinders/vl53l1x.hpp"
 #include "sensors/opticalflow.hpp"
 
@@ -89,7 +89,6 @@ namespace hf {
               float _max[4] = {0,0,0,0}; 
 
               // Required objects to run Hackflight
-              hf::Hackflight h;
               hf::MixerQuadX mixer;
               hf::SBUS_Receiver rc = hf::SBUS_Receiver(CHANNEL_MAP, SERIAL_SBUS, &SBUS_SERIAL);
                   
@@ -259,6 +258,8 @@ namespace hf {
 
         public:
 
+            hf::Hackflight h;
+
             void init()
             {  
               
@@ -288,7 +289,7 @@ namespace hf {
                 if (_hasPositioningBoard)
                 {
                     hf::AltitudeHold * althold = new hf::AltitudeHold(
-                        _altHoldP,   // Altitude Hold P -> this will set velTarget to 0
+                        _altHoldP,      // Altitude Hold P -> this will set velTarget to 0
                         _altHoldVelP,   // Altitude Hold Velocity P
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
@@ -307,9 +308,7 @@ namespace hf {
                     {
                       calibrateESCsMultiShot();
                       uint8_t config = EEPROM.read(GENERAL_CONFIG);
-                      Serial.println(config);
                       EEPROM.write(GENERAL_CONFIG, config & ~(1 << CALIBRATE_ESC));
-                      Serial.println(config);
                     }
                     h.init(new hf::BonadroneMultiShot(), &rc, &mixer, ratePid);
                 }
@@ -327,7 +326,7 @@ namespace hf {
                     h.addSensor(opticalflow);
                     h.eskf.addSensorESKF(opticalflow);
                     
-                    _positionBoardConnected = _rangeConnected & _opticalConnected;                 
+                    _positionBoardConnected = _rangeConnected & _opticalConnected;
                 }
 
                 // Set parameters in hackflight instance so that they can be queried
@@ -335,11 +334,6 @@ namespace hf {
                 h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
             } // init
-
-            void update(void)
-            {
-                h.update();
-            } // update 
 
     }; // class HackflightWrapper
 
