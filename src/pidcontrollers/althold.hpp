@@ -35,8 +35,8 @@ namespace hf {
         private: 
 
               // Arbitrary constants
-              const float WINDUP_MAX      = 0.40f;
-              const float HOVER_THROTTLE  = 0.05f;
+              const float WINDUP_MAX      = 2.00f;
+              const float HOVER_THROTTLE  = -0.14f;
 
               // Setpoint class for PID control
               Setpoint setpoint;
