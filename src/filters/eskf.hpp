@@ -132,12 +132,11 @@ namespace hf {
           float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
           float vels[3];
           velocityToIMUFrame(vels, world_vels, q);
-          
-          // Cap velocities to 3d decimal (mm)
+
           state.linearVelocities[0] = _lpVelX.update(vels[0]);
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
-          
+
           // XXX print for debugging
           // if (isCorrection)
           // {
