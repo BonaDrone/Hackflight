@@ -31,7 +31,7 @@ namespace hf {
 
         private: 
 
-            // PID ants set by ructor
+            // PID constants set by constructor
             float _posP;
             float _velP;
             float _velI;
@@ -39,6 +39,10 @@ namespace hf {
 
             // Parameter to avoid integral windup
             float _windupMax;
+            // Parameters for velocity control outside deadband,
+            // Perform a linearl map from stick position to desired velocity
+            float _m;
+            float _n;
 
             // Values modified in-flight
             float deltaT;
@@ -48,6 +52,9 @@ namespace hf {
             float _integralError;
             float _altitudeTarget;
             float _previousTime;
+            // derivative error control variable to avoid high values
+            // on controller activation 
+            bool _firstIteration = true;
 
             bool inBand(float demand)
             {
@@ -58,6 +65,26 @@ namespace hf {
             {
                 _lastError = 0;
                 _integralError = 0;
+                _firstIteration = true;
+            }
+            
+            float computeCorrection(float velTarget, float velActual, float deltaT)
+            {
+                float velError = velTarget - velActual;
+                // Update error integral and error derivative
+                _integralError = Filter::constrainAbs(_integralError + velError * deltaT, _windupMax);
+                float deltaError = (velError - _lastError) / deltaT;
+                // Avoid high derivative errors on controller activation by skipping
+                // the first derivative computation, where _lastError is 0
+                if (_firstIteration)
+                {
+                  deltaError = 0;
+                  _firstIteration = false;
+                }
+                _lastError = velError;
+
+                // Compute control correction
+                return _velP * velError + _velD * deltaError + _velI * _integralError;                       
             }
 
         public:
@@ -75,32 +102,38 @@ namespace hf {
                     _posTarget = posActual;
                     resetErrors();
                 }
+                // Reset errors when moving stick out of deadband
+                // and changing to velocity control
+                if (!inBandCurr && _inBandPrev)
+                {
+                      resetErrors();
+                }
+                // compute velocity setpoint: inside deadband from altitude error,
+                // outside deadband velocity control
+                float velTarget;
+                if(inBandCurr)
+                {
+                  velTarget = (_posTarget - posActual) * _posP;
+                }
+                else {
+                  velTarget = demand >= 0 ? _m * fabs(demand) + _n : -(_m * fabs(demand) + _n);
+                }
+                
+                correction = computeCorrection(velTarget, velActual, deltaT);
                 _inBandPrev = inBandCurr;
-
-                if (!inBandCurr) return false;
-            
-                // compute velocity setpoint and error
-                float velTarget = (_posTarget - posActual) * _posP;
-                float velError = velTarget - velActual;
-
-                // Update error integral and error derivative
-                _integralError = Filter::constrainAbs(_integralError + velError * deltaT, _windupMax);
-                float deltaError = (velError - _lastError) / deltaT;
-                _lastError = velError;
-
-                // Compute control correction
-                correction = _velP * velError + _velD * deltaError + _velI * _integralError;                       
-
+                
                 return true;
             }
 
-            void init(float posP, float velP, float velI, float velD, float windupMax)
+            void init(float posP, float velP, float velI, float velD, float windupMax, float vMax, float vMin)
             {
                 _posP = posP; 
                 _velP = velP; 
                 _velI = velI; 
                 _velD = velD; 
                 _windupMax = windupMax;
+                _m = (vMax - vMin) / (1.0f - Receiver::STICK_DEADBAND);
+                _n = vMin - _m * Receiver::STICK_DEADBAND;
                 resetErrors();
                 _posTarget = 0;
                 _previousTime = 0;

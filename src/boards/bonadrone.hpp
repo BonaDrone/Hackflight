@@ -51,7 +51,6 @@ namespace hf {
             float ACCEL_BIAS[3] = {0.0,0.0,0.0};
             float GYRO_BIAS[3]  = {0.0,0.0,0.0};
 
-
             // Instance variables -----------------------------------------------------------------------------------
 
             LSM6DSM _lsm6dsm = LSM6DSM(Ascale, Gscale, AODR, GODR, ACCEL_BIAS, GYRO_BIAS);
