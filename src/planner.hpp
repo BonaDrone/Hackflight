@@ -49,10 +49,14 @@ namespace hf {
           static const uint8_t WP_CHANGE_ALTITUDE = 9;
           static const uint8_t WP_HOVER           = 11;
           
+          const float DISTANCE_THRESHOLD = 0.1;
+          
           // Variables used to store the programmed mission
           action_t _mission[256];
-          int _currentActionIndex = 0;
+          uint8_t _currentActionIndex = 0;
           action_t _currentAction;
+          // mission length
+          uint8_t _missionLength = 0;
           
           // for actions that involve time
           uint32_t _startActionTime = micros();
@@ -89,6 +93,8 @@ namespace hf {
                 // If we reach this point is because at least one instruction
                 // has been loaded
                 _hasMission = true;
+                // update mission length
+                _missionLength += 1;
               }
           } // loadMission
           
@@ -99,41 +105,48 @@ namespace hf {
             switch (value) {
               
               case WP_ARM:
+              {
                   action.action = WP_ARM;
                   break;
-              
+              }
               case WP_DISARM:
+              {
                   action.action = WP_DISARM;
                   break;
-              
+              }
               case WP_TAKE_OFF:
+              {
                   action.action = WP_TAKE_OFF;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = EEPROM.read(++address);
                   break;
-              
+              }
               case WP_LAND:
+              {
                   action.action = WP_LAND;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = 0;
                   break;
-              
+              }
               case WP_CHANGE_ALTITUDE:
+              {
                   action.action = WP_CHANGE_ALTITUDE;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = EEPROM.read(++address);
                   break;
-              
+              }
               case WP_HOVER:
+              {
                   action.action = WP_HOVER;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
                   action.position[2] = _integralPosition[2];
                   action.duration = EEPROM.read(++address);
                   break;
+              }
             }
             mission[actionIndex] = action;
             return address;
@@ -141,23 +154,50 @@ namespace hf {
 
         protected:
 
-            bool isActionComplete(eskf_state_t & state, demands_t & demands)
+            bool isActionComplete(action_t action, state_t & state, demands_t & demands)
             {
-              // XXX each action with its own validator ?
-              bool actionComplete = true;
-              if (abs(demands.altitude - state.position[2]) > 0.05)
-              {
-                actionComplete = false;
-              }
-              if (((micros() - _startActionTime) / 1000000.0f) < _currentAction.duration)
-              {
-                actionComplete = false;
-              }
-              return actionComplete;
+                // Action validators
+                bool actionComplete = false;
+                
+                switch (action.action) {
+                  case WP_ARM:
+                  {
+                      actionComplete = state.armed;
+                      break;
+                  }
+                  case WP_DISARM:
+                  {
+                      actionComplete = !state.armed;
+                      break;
+                  }
+                  case WP_TAKE_OFF:
+                  case WP_CHANGE_ALTITUDE:
+                  {
+                      if (fabs(action.position[2] - state.UAVState->position[2]) < DISTANCE_THRESHOLD)
+                      {
+                          actionComplete = true;
+                      }
+                      break;
+                  }
+                  case WP_LAND:
+                  {
+                      actionComplete = (state.UAVState->position[2] < DISTANCE_THRESHOLD);
+                      break;
+                  }
+                  case WP_HOVER:
+                  {
+                      float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
+                      actionComplete =  (elapsedTime > action.duration);
+                      break;
+                  }
+                }
+                
+                return actionComplete;
+
             }
 
         public:
-          
+
             void init(int startingAddress)
             {
                 _hasMission = false;
@@ -166,23 +206,35 @@ namespace hf {
                 _currentAction = _mission[_currentActionIndex];
             }
             
-            void executeAction(eskf_state_t & state, demands_t & demands)
+            void executeAction(state_t & state, demands_t & demands)
             {
-                // XXX Handle arm and disarm actions, also land
-                if (isActionComplete(state, demands))
+                switch (_currentAction.action) {
+                  case WP_ARM:
+                  {
+                    
+                  }
+                }
+              
+              
+                // If the action is complete, load the next one
+                if (isActionComplete(_currentAction, state, demands))
                 {
+                  // We've reached the end of the mission
+                  if (_currentActionIndex == _missionLength)
+                  {
+                      state.executingMission = false;
+                      return;
+                  }
                   // Load next action
                   _currentActionIndex += 1;
                   _currentAction = _mission[_currentActionIndex];
-                  // update setpoint
-                  demands.altitude = _currentAction.position[2];
                   // update starting time
-                  _startActionTime  = micros(); 
-                  return;
+                  _startActionTime  = micros();
                 }
                 
+                
             }
-            
+
             // XXX only for debuging purposes
             void printMission(void)
             {
