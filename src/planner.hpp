@@ -245,7 +245,8 @@ namespace hf {
                 // If the action is complete, load the next one
                 if (isActionComplete(_currentAction, state, demands))
                 {
-                  // We've reached the end of the mission
+                  // We've reached the end of the mission, reset executing flag
+                  // and return
                   if (_currentActionIndex == _missionLength)
                   {
                       state.executingMission = false;
