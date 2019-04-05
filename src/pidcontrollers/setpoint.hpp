@@ -96,7 +96,7 @@ namespace hf {
                 _previousTime = currentTime;
                 if (deltaT == currentTime) return false;
 
-                // Reset altitude target if moved into stick deadband
+                // Reset position target if moved into stick deadband
                 bool inBandCurr = inBand(demand);
                 if (inBandCurr && !_inBandPrev) {
                     _posTarget = posActual;
@@ -108,7 +108,7 @@ namespace hf {
                 {
                       resetErrors();
                 }
-                // compute velocity setpoint: inside deadband from altitude error,
+                // compute velocity setpoint: inside deadband from distance error,
                 // outside deadband velocity control
                 float velTarget;
                 if(inBandCurr)
