@@ -211,7 +211,33 @@ namespace hf {
                 switch (_currentAction.action) {
                   case WP_ARM:
                   {
+                    state.armed = true;
+                    break;                    
+                  }
+                  case WP_DISARM:
+                  {
+                    state.armed = false;
+                    break;
+                  }
+                  case WP_TAKE_OFF:
+                  {
                     
+                    break;
+                  }
+                  case WP_LAND:
+                  {
+
+                    break;                    
+                  }
+                  case WP_CHANGE_ALTITUDE:
+                  {
+                    
+                    break;                    
+                  }
+                  case WP_HOVER:
+                  {
+                    
+                      break;
                   }
                 }
               
