@@ -66,14 +66,14 @@ namespace hf {
             {
             }
 
-            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
 
                 float _demands[2] = {demands.roll, demands.pitch};
                 for (int axis=0; axis<2; ++axis)
                 {
-                  float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
+                  float error = _demands[axis] * _demandsToAngle - state.UAVState->eulerAngles[axis];
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 

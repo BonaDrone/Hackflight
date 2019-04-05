@@ -212,7 +212,7 @@ namespace hf {
 
                     // XXX we should allow associating PID controllers with particular aux states
                     if (pidController->auxState <= auxState) {
-                        if (pidController->modifyDemands(*_state.UAVState, _demands, currentTime) && pidController->shouldFlashLed()) {
+                        if (pidController->modifyDemands(_state, _demands, currentTime) && pidController->shouldFlashLed()) {
                             shouldFlash = true;
                         }
                     }

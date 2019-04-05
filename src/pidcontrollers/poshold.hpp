@@ -54,11 +54,11 @@ namespace hf {
 
         protected:
 
-        virtual bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime) 
+        virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) 
         {
-            bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.positionX, state.velocityForward,   
+            bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.UAVState->positionX, state.UAVState->velocityForward,   
                     currentTime);
-            bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.positionY, state.velocityRightward, 
+            bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.UAVState->positionY, state.UAVState->velocityRightward, 
                     currentTime);
 
             return correctedPitch || correctedRoll;

@@ -193,7 +193,7 @@ namespace hf {
                 _DConstants[1] = gyroRollPitchD;
             }
 
-            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
             {
                 static float lastTime = 0.0;
                 
@@ -204,13 +204,13 @@ namespace hf {
                 _PTerm[1] = demands.pitch;
 
                 // Pitch, roll use Euler angles
-                demands.roll  = computeCyclicPid(demands.roll,  state.angularVelocities, deltat, AXIS_ROLL);
-                demands.pitch = computeCyclicPid(demands.pitch, state.angularVelocities, deltat, AXIS_PITCH);
+                demands.roll  = computeCyclicPid(demands.roll,  state.UAVState->angularVelocities, deltat, AXIS_ROLL);
+                demands.pitch = computeCyclicPid(demands.pitch, state.UAVState->angularVelocities, deltat, AXIS_PITCH);
 
                 // For gyroYaw, P term comes directly from RC command, and D term is zero
-                float yawError = demands.yaw * _demandsToRate - state.angularVelocities[AXIS_YAW];
-                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, demands.yaw, state.angularVelocities, deltat, AXIS_YAW);
-                demands.yaw = computePid(_gyroYawP, demands.yaw, ITermGyroYaw, 0, state.angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
+                float yawError = demands.yaw * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
+                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, demands.yaw, state.UAVState->angularVelocities, deltat, AXIS_YAW);
+                demands.yaw = computePid(_gyroYawP, demands.yaw, ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
                 demands.yaw = Filter::constrainAbs(demands.yaw, 0.1 + fabs(demands.yaw));
