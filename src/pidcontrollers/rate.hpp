@@ -148,7 +148,7 @@ namespace hf {
             float _demandsToRate;
 
             // proportion of cyclic demand compared to its maximum
-            float _proportionalCyclicDemand;
+            // float _proportionalCyclicDemand;
 
             void resetIntegral(void)
             {
@@ -222,7 +222,7 @@ namespace hf {
             void updateReceiver(demands_t & demands, bool throttleIsDown)
             {
                 // Compute proportion of cyclic demand compared to its maximum
-                _proportionalCyclicDemand = Filter::max(fabs(demands.roll), fabs(demands.pitch)) / 0.5f;
+                // _proportionalCyclicDemand = Filter::max(fabs(demands.roll), fabs(demands.pitch)) / 0.5f;
                 
                 // When landed, reset integral component of PID
                 if (throttleIsDown) {
