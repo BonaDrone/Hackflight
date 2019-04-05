@@ -247,7 +247,9 @@ namespace hf {
                 _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
 
                 // Disarm
-                if (_state.armed && !_receiver->getAux2State()) {
+                if (  _state.armed && 
+                      !_receiver->getAux2State() &&
+                      !_state.executingMission) {
                     _state.armed = false;
                 }
 
@@ -269,7 +271,7 @@ namespace hf {
                 }
 
                 // Cut motors on throttle-down
-                if (_state.armed && _receiver->throttleIsDown()) {
+                if (_state.armed && _receiver->throttleIsDown() && !_state.executingMission) {
                     _mixer->cutMotors();
                 }
 
@@ -684,7 +686,7 @@ namespace hf {
             
             virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
             {
-                // XXX This should trigger a land action 
+                // XXX This should trigger a land action or a disarm
                 (void)flag;
                 digitalWrite(25, LOW);
             }
