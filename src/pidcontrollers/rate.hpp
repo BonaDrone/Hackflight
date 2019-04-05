@@ -48,7 +48,9 @@ namespace hf {
         private: 
 
             // Arbitrary constants
-            const float GYRO_WINDUP_MAX             = 2.5f;
+            const float GYRO_WINDUP_MAX             = 2.2f;
+            const float MAX_OUTPUT_LIMIT            = 2.2f;   // Should be tuned?
+            const float MIN_OUTPUT_LIMIT            = -2.2f;  // Should be tuned?
             const float BIG_GYRO_DEGREES_PER_SECOND = 180.0f; 
             const float BIG_YAW_DEMAND              = 0.1f;
             const float MAX_ARMING_ANGLE_DEGREES    = 25.0f;
@@ -62,7 +64,7 @@ namespace hf {
 
             // Arrays of PID constants for pitch and roll
             float _PConstants[2];
-            float _IConstants[2];
+            float _IConstants[3];
             float _DConstants[2];
             // Yaw PID constants set in constructor
            float _gyroYawP; 
@@ -172,6 +174,7 @@ namespace hf {
                 _PConstants[1] = gyroPitchP;
                 _IConstants[0] = gyroRollI;
                 _IConstants[1] = gyroPitchI;
+                _IConstants[1] = gyroYawI;
                 _DConstants[0] = gyroRollD;
                 _DConstants[1] = gyroPitchD;
 
@@ -189,6 +192,7 @@ namespace hf {
                 _PConstants[1] = gyroRollPitchP;
                 _IConstants[0] = gyroRollPitchI;
                 _IConstants[1] = gyroRollPitchI;
+                _IConstants[2] = gyroYawI;
                 _DConstants[0] = gyroRollPitchD;
                 _DConstants[1] = gyroRollPitchD;
             }
@@ -214,6 +218,23 @@ namespace hf {
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
                 demands.yaw = Filter::constrainAbs(demands.yaw, 0.1 + fabs(demands.yaw));
+
+                float _demands[3] = {demands.roll, demands.pitch, demands.yaw};
+                
+                // Avoid windup lag
+                for (int axis=0; axis<2; ++axis)
+                {
+                    if (_demands[axis] > MAX_OUTPUT_LIMIT) {
+                        _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
+                        _demands[axis] = MAX_OUTPUT_LIMIT;
+                    } else if (_demands[axis] < MIN_OUTPUT_LIMIT) {
+                        _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
+                        _demands[axis] = MIN_OUTPUT_LIMIT;
+                    }  
+                }
+                demands.roll = _demands[0];
+                demands.pitch = _demands[1];
+                // demands.yaw = _demands[2];
 
                 // We've always gotta do this!
                 return true;

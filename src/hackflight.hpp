@@ -266,6 +266,8 @@ namespace hf {
                         safeAngle(AXIS_PITCH)) {
                     _state.armed = true;
                     _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
+                    // Reset estimations each time the quad is armed 
+                    eskf.init();
                 }
 
                 // Cut motors on throttle-down

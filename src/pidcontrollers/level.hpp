@@ -40,16 +40,20 @@ namespace hf {
 
         private:
           
-            const float FEED_FORWARD = 1.0;
+            // const float FEED_FORWARD = 0.5;
+            const float FEED_FORWARD = 0.6;
+            const float FF_THRESHOLD = 0.1;
+            // const float WINDUP_MAX = 1.0;
             
             float PTerms[2];
             
             float _demandsToAngle;
             float _demandsToRate;
 
+
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30, float demandsToRate = 6.0)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -74,9 +78,13 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                   float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
-                  _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
+                  float FF = 0;
+                  if (fabs(_demands[axis]) > FF_THRESHOLD) 
+                      FF = FEED_FORWARD * _demands[axis];
+                  _demands[axis] = error * PTerms[axis] + FF;
+
                 }
-                
+                // Output of Level controller should be the desired rates
                 demands.roll = _demands[0]/_demandsToRate;
                 demands.pitch = _demands[1]/_demandsToRate;
 

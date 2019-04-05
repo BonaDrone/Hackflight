@@ -147,9 +147,9 @@ namespace hf {
           //   Serial.print(",");
           //   Serial.print(micros() / 1000000.0, 8);
           //   Serial.print(",");
-          //   Serial.print(state.linearVelocities[0], 8);
-          //   Serial.print(",");
-          //   Serial.print(state.linearVelocities[1], 8);
+            // Serial.print(state.linearVelocities[0], 8);
+            // Serial.print(",");
+            // Serial.println(state.linearVelocities[1], 8);
           //   Serial.print(",");
           //   Serial.println(state.position[2], 8);
           // }
@@ -228,68 +228,73 @@ namespace hf {
       void init(void)
       {
           eskfp_init(&eskf, nominalStates, errorStates, observations, mnQuat);
-          /* zero-out matrices */
-          zeros(eskfp.qL, mnQuat, mnQuat);
-          zeros(eskfp.P, errorStates, errorStates);
-          zeros(eskfp.Q, errorStates, errorStates);
-          zeros(eskfp.R, observations, observations);
-          zeros(eskfp.K, errorStates, observations);
-          zeros(eskfp.Fdx, errorStates, errorStates);
-          zeros(eskfp.H, observations, errorStates);
+          reset();
+      }
 
-          // intialize lpfs
-          _lpVelX.init();
-          _lpVelY.init();
+      void reset(void)
+      {
+        /* zero-out matrices */
+        zeros(eskfp.qL, mnQuat, mnQuat);
+        zeros(eskfp.P, errorStates, errorStates);
+        zeros(eskfp.Q, errorStates, errorStates);
+        zeros(eskfp.R, observations, observations);
+        zeros(eskfp.K, errorStates, observations);
+        zeros(eskfp.Fdx, errorStates, errorStates);
+        zeros(eskfp.H, observations, errorStates);
 
-          // initial state
-          eskfp.x[0] = 0.0; // position
-          eskfp.x[1] = 0.0;
-          eskfp.x[2] = 0.0;
-          eskfp.x[3] = 0.0; // velocity
-          eskfp.x[4] = 0.0;
-          eskfp.x[5] = 0.0;
-          eskfp.x[6] = 1.0; // orientation (quaternion)
-          eskfp.x[7] = 0.0;
-          eskfp.x[8] = 0.0;
-          eskfp.x[9] = 0.0;
-          eskfp.x[10] = 0.0; // accel bias
-          eskfp.x[11] = 0.0;
-          eskfp.x[12] = 0.3;
-          eskfp.x[13] = 0.0; // gyro bias
-          eskfp.x[14] = 0.0;
-          eskfp.x[15] = 0.0;
+        // intialize lpfs
+        _lpVelX.init();
+        _lpVelY.init();
 
-          // Since P has already been zero-ed only elements != 0 have to be set
-          // 1 column
-          eskfp.P[0] = 0.0;
-          // 2 column
-          eskfp.P[16] = 0.0;
-          // 3 column
-          eskfp.P[32] = 0.0;
-          // 4 column
-          eskfp.P[48] = 0.0;
-          // 5 column
-          eskfp.P[64] = 0.0;
-          // 6 column
-          eskfp.P[80] = 0.0;
-          // 7 column
-          eskfp.P[96] = 0.01;
-          // 8 column
-          eskfp.P[112] = 0.01;
-          // 9 column
-          eskfp.P[128] = 0.0;
-          // 10 column
-          eskfp.P[144] = 0.000001;
-          // 11 column
-          eskfp.P[160] = 0.000001;
-          // 12 column
-          eskfp.P[176] = 0.000001;
-          // 13 column
-          eskfp.P[192] = 0.000001;
-          // 14 column
-          eskfp.P[208] = 0.000001;
-          // 15 column
-          eskfp.P[224] = 0.000001;
+        // initial state
+        eskfp.x[0] = 0.0; // position
+        eskfp.x[1] = 0.0;
+        eskfp.x[2] = 0.0;
+        eskfp.x[3] = 0.0; // velocity
+        eskfp.x[4] = 0.0;
+        eskfp.x[5] = 0.0;
+        eskfp.x[6] = 1.0; // orientation (quaternion)
+        eskfp.x[7] = 0.0;
+        eskfp.x[8] = 0.0;
+        eskfp.x[9] = 0.0;
+        eskfp.x[10] = 0.0; // accel bias
+        eskfp.x[11] = 0.0;
+        eskfp.x[12] = 0.3;
+        eskfp.x[13] = 0.0; // gyro bias
+        eskfp.x[14] = 0.0;
+        eskfp.x[15] = 0.0;
+
+        // Since P has already been zero-ed only elements != 0 have to be set
+        // 1 column
+        eskfp.P[0] = 0.0;
+        // 2 column
+        eskfp.P[16] = 0.0;
+        // 3 column
+        eskfp.P[32] = 0.0;
+        // 4 column
+        eskfp.P[48] = 0.0;
+        // 5 column
+        eskfp.P[64] = 0.0;
+        // 6 column
+        eskfp.P[80] = 0.0;
+        // 7 column
+        eskfp.P[96] = 0.01;
+        // 8 column
+        eskfp.P[112] = 0.01;
+        // 9 column
+        eskfp.P[128] = 0.0;
+        // 10 column
+        eskfp.P[144] = 0.000001;
+        // 11 column
+        eskfp.P[160] = 0.000001;
+        // 12 column
+        eskfp.P[176] = 0.000001;
+        // 13 column
+        eskfp.P[192] = 0.000001;
+        // 14 column
+        eskfp.P[208] = 0.000001;
+        // 15 column
+        eskfp.P[224] = 0.000001;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
