@@ -53,7 +53,7 @@ namespace hf {
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30, float demandsToRate = 6.0)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -78,6 +78,18 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                   float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
+                  // 0.0175 rad ~ 1 degree
+                  error = fabs(error) > 0.0175 ? error : 0.0;
+                  
+                  // XXX Debug 
+                  // Serial.println(error, 8);
+                  if (fabs(error) > 0.0175) {
+                    pinMode(25, OUTPUT);
+                    digitalWrite(25, LOW);
+                  } else {
+                    digitalWrite(25, HIGH);
+                  }
+                  
                   float FF = 0;
                   if (fabs(_demands[axis]) > FF_THRESHOLD) 
                       FF = FEED_FORWARD * _demands[axis];
