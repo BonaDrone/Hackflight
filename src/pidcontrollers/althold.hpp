@@ -50,15 +50,29 @@ namespace hf {
             
               bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
               {
+                  // XXX Comment it now, rethink later
                   // Don't do anything till we've reached sufficient altitude
-                  if (state.UAVState->position[2] < _minAltitude) return false;
+                  // if (state.UAVState->position[2] < _minAltitude) return false;
 
                   float correction = 0;
-                  if (setpoint.gotCorrection(demands.throttle, state.UAVState->position[2], state.UAVState->linearVelocities[2], currentTime, correction)) {
+                  if (state.executingMission)
+                  {
+                    if(setpoint.gotSetpointCorrection(demands.setpoint[2],
+                          state.UAVState->position[2], 
+                          state.UAVState->linearVelocities[2], 
+                          currentTime, correction)){
                       demands.throttle = correction + HOVER_THROTTLE;
-                      return true;
+                      return true;                      
+                    }
+                  } else {
+                    if (setpoint.gotManualCorrection(demands.throttle, 
+                            state.UAVState->position[2], 
+                            state.UAVState->linearVelocities[2], 
+                            currentTime, correction)) {
+                        demands.throttle = correction + HOVER_THROTTLE;
+                        return true;
+                    }
                   }
-
                   return false;
 
               }

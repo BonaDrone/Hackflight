@@ -49,7 +49,7 @@ namespace hf {
           static const uint8_t WP_CHANGE_ALTITUDE = 9;
           static const uint8_t WP_HOVER           = 11;
           
-          const float DISTANCE_THRESHOLD = 0.1;
+          const float DISTANCE_THRESHOLD = 0.2;
           
           // Variables used to store the programmed mission
           action_t _mission[256];
@@ -220,14 +220,14 @@ namespace hf {
                     break;
                   }
                   case WP_TAKE_OFF:
-                  {
-                    
-                    break;
-                  }
                   case WP_LAND:
                   {
-
-                    break;                    
+                    // Update setpoint
+                    for (int i=0; i<3; i++)
+                    {
+                      demands.setpoint[i] = _currentAction.position[i];
+                    }
+                    break;
                   }
                   case WP_CHANGE_ALTITUDE:
                   {
@@ -240,7 +240,6 @@ namespace hf {
                       break;
                   }
                 }
-              
               
                 // If the action is complete, load the next one
                 if (isActionComplete(_currentAction, state, demands))

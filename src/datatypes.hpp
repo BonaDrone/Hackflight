@@ -29,8 +29,7 @@ typedef struct {
     float roll;
     float pitch;
     float yaw;
-    float altitude;
-
+    float setpoint[3];            // X, Y, Z setpoint
 } demands_t;
 
 typedef struct {
@@ -38,7 +37,6 @@ typedef struct {
     bool  armed;
     bool  executingMission;
     float batteryVoltage;         // current Voltage
-    float setpoint[3];            // X, Y, Z setpoint
 } state_t;
 
 typedef struct {

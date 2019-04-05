@@ -308,6 +308,7 @@ namespace hf {
             void checkPlanner(void)
             {
               if (_state.executingMission == false) return;
+              planner.executeAction(_state, _demands);
             }
 
             // XXX only for debuging purposes

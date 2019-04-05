@@ -40,10 +40,12 @@ namespace hf {
             // Parameter to avoid integral windup
             float _windupMax;
             // Parameters for velocity control outside deadband,
-            // Perform a linearl map from stick position to desired velocity
+            // Perform a linear map from stick position to desired velocity
             float _m;
             float _n;
-
+            
+            float THRESHOLD = 0.1;
+            float VERTICAL_VELOCITY = 0.15;
             // Values modified in-flight
             float deltaT;
             float _posTarget;
@@ -89,7 +91,31 @@ namespace hf {
 
         public:
 
-            bool gotCorrection(float demand, float posActual, float velActual, float currentTime, float & correction)
+            bool gotSetpointCorrection(float setpoint, float posActual,
+               float velActual, float currentTime, float & correction)
+            {
+              // Don't do anything until we have a positive deltaT
+              float deltaT = currentTime - _previousTime;
+              _previousTime = currentTime;
+              if (deltaT == currentTime) return false;
+
+              // compute velocity setpoint
+              float velTarget;
+              if(fabs(setpoint - posActual) < THRESHOLD)
+              {
+                velTarget = (setpoint - posActual) * _posP;
+              }
+              else {
+                float sign = (setpoint - posActual) > 0 ? 1 : -1;
+                velTarget = VERTICAL_VELOCITY * sign;
+              }
+              correction = computeCorrection(velTarget, velActual, deltaT);
+              
+              return true;              
+            }
+            
+            bool gotManualCorrection(float demand, float posActual, 
+              float velActual, float currentTime, float & correction)
             {
                 // Don't do anything until we have a positive deltaT
                 float deltaT = currentTime - _previousTime;
@@ -125,7 +151,8 @@ namespace hf {
                 return true;
             }
 
-            void init(float posP, float velP, float velI, float velD, float windupMax, float vMax, float vMin)
+            void init(float posP, float velP, float velI, float velD,
+               float windupMax, float vMax, float vMin)
             {
                 _posP = posP; 
                 _velP = velP; 
