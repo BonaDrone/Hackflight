@@ -34,11 +34,11 @@ typedef struct {
 } demands_t;
 
 typedef struct {
-    hf::eskf_state_t * UAVState;
+    hf::eskf_state_t * UAVState;  // Mosquito status 
     bool  armed;
     bool  executingMission;
-    float batteryVoltage; 
-
+    float batteryVoltage;         // current Voltage
+    float setpoint[3];            // X, Y, Z setpoint
 } state_t;
 
 typedef struct {
