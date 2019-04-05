@@ -56,9 +56,9 @@ namespace hf {
 
         virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) 
         {
-            bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.UAVState->positionX, state.UAVState->velocityForward,   
+            bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.UAVState->position[0], state.UAVState->linearVelocities[0],   
                     currentTime);
-            bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.UAVState->positionY, state.UAVState->velocityRightward, 
+            bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.UAVState->position[1], state.UAVState->linearVelocities[1], 
                     currentTime);
 
             return correctedPitch || correctedRoll;
