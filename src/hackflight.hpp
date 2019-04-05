@@ -687,7 +687,9 @@ namespace hf {
             virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
             {
                 // XXX This should trigger a land action or a disarm
+                // as well as stop executing a mission
                 (void)flag;
+                _state.executingMission = false;
                 digitalWrite(25, LOW);
             }
 
