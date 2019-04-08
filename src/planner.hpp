@@ -67,6 +67,7 @@ namespace hf {
           
           // for actions that involve time
           uint32_t _startActionTime = micros();
+          float _startActionYaw;
           
           // Each action will be linked to a position with respect to the starting
           // point. This position marks where the drone should be at the end of
@@ -154,7 +155,7 @@ namespace hf {
                   action.duration = EEPROM.read(++address);
                   break;
               }
-              case WP_GO_FORWARD:
+              case WP_GO_FORWARD: // For the moment, movement is time based
               {
                 action.action = WP_GO_FORWARD;
                 action.position[0] = _integralPosition[0];
@@ -253,6 +254,43 @@ namespace hf {
                       actionComplete =  (elapsedTime > action.duration);
                       break;
                   }
+                  // We are ot coupling validators here because when changing
+                  // to distance based programing we will need different validators
+                  case WP_GO_FORWARD: // For the moment, movement is time based
+                  {
+                    float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
+                    actionComplete =  (elapsedTime > action.duration);
+                    break;
+                  }
+                  case WP_GO_BACKWARD:
+                  {
+                    float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
+                    actionComplete =  (elapsedTime > action.duration);
+                    break;                    
+                  }
+                  case WP_GO_LEFT:
+                  {
+                    float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
+                    actionComplete =  (elapsedTime > action.duration);
+                    break;                  
+                  }
+                  case WP_GO_RIGHT:
+                  {
+                    float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
+                    actionComplete =  (elapsedTime > action.duration);
+                    break;
+                  }
+                  case WP_TURN_CW: // End yaw smaller than starting yaw 
+                  { 
+                    actionComplete = (state.UAVState->eulerAngles[2] < _startActionYaw - action.rotationDegrees);
+                    break;                                
+                  }
+                  case WP_TURN_CCW: // End yaw bigger than starting yaw
+                  {
+                    actionComplete = (state.UAVState->eulerAngles[2] > _startActionYaw + action.rotationDegrees);
+                    break;                                                
+                  }
+
                 }
                 
                 return actionComplete;
@@ -317,8 +355,9 @@ namespace hf {
                   // Load next action
                   _currentActionIndex += 1;
                   _currentAction = _mission[_currentActionIndex];
-                  // update starting time
+                  // update starting time and angle
                   _startActionTime  = micros();
+                  _startActionYaw = state.UAVState->eulerAngles[2];
                 }
                 
                 
