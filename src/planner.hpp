@@ -46,8 +46,15 @@ namespace hf {
           static const uint8_t WP_DISARM          = 2;
           static const uint8_t WP_LAND            = 3;
           static const uint8_t WP_TAKE_OFF        = 4;
+          static const uint8_t WP_GO_FORWARD      = 5;
+          static const uint8_t WP_GO_BACKWARD     = 6;
+          static const uint8_t WP_GO_LEFT         = 7;
+          static const uint8_t WP_GO_RIGHT        = 8;
           static const uint8_t WP_CHANGE_ALTITUDE = 9;
+          static const uint8_t WP_CHANGE_SPEED    = 10; // XXX To be implemented
           static const uint8_t WP_HOVER           = 11;
+          static const uint8_t WP_TURN_CW         = 12;
+          static const uint8_t WP_TURN_CCW        = 13;
           
           const float DISTANCE_THRESHOLD = 0.2;
           
@@ -146,6 +153,62 @@ namespace hf {
                   action.position[2] = _integralPosition[2];
                   action.duration = EEPROM.read(++address);
                   break;
+              }
+              case WP_GO_FORWARD:
+              {
+                action.action = WP_GO_FORWARD;
+                action.position[0] = _integralPosition[0];
+                action.position[1] = _integralPosition[1];
+                action.position[2] = _integralPosition[2];
+                action.duration = EEPROM.read(++address);
+                break;
+              }
+              case WP_GO_BACKWARD:
+              {
+                action.action = WP_GO_BACKWARD;
+                action.position[0] = _integralPosition[0];
+                action.position[1] = _integralPosition[1];
+                action.position[2] = _integralPosition[2];
+                action.duration = EEPROM.read(++address);
+                break;                
+              }
+              case WP_GO_LEFT:
+              {
+                action.action = WP_GO_LEFT;
+                action.position[0] = _integralPosition[0];
+                action.position[1] = _integralPosition[1];
+                action.position[2] = _integralPosition[2];
+                action.duration = EEPROM.read(++address);
+                break;                
+              }
+              case WP_GO_RIGHT:
+              {
+                action.action = WP_GO_RIGHT;
+                action.position[0] = _integralPosition[0];
+                action.position[1] = _integralPosition[1];
+                action.position[2] = _integralPosition[2];
+                action.duration = EEPROM.read(++address);
+                break;                
+              }
+              case WP_TURN_CW:
+              {
+                action.action = WP_TURN_CW;
+                action.position[0] = _integralPosition[0];
+                action.position[1] = _integralPosition[1];
+                action.position[2] = _integralPosition[2];
+                action.rotationDegrees = EEPROM.read(++address);
+                action.clockwise = true;
+                break;                                
+              }
+              case WP_TURN_CCW:
+              {
+                action.action = WP_TURN_CCW;
+                action.position[0] = _integralPosition[0];
+                action.position[1] = _integralPosition[1];
+                action.position[2] = _integralPosition[2];
+                action.rotationDegrees = EEPROM.read(++address);
+                action.clockwise = false;
+                break;                                                
               }
             }
             mission[actionIndex] = action;
