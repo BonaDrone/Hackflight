@@ -24,6 +24,9 @@
 
 namespace hf {
 
+    // XXX It can be a good idea to create an Action class that is in charge 
+    // of validating himself (and maybe executing?) so that validation and 
+    // creation code can be delegated there
     typedef struct {
 
       uint8_t action;
@@ -254,7 +257,7 @@ namespace hf {
                       actionComplete =  (elapsedTime > action.duration);
                       break;
                   }
-                  // We are ot coupling validators here because when changing
+                  // We are not coupling validators here because when changing
                   // to distance based programing we will need different validators
                   case WP_GO_FORWARD: // For the moment, movement is time based
                   {
@@ -386,7 +389,7 @@ namespace hf {
                   // Load next action
                   _currentActionIndex += 1;
                   _currentAction = _mission[_currentActionIndex];
-                  // update starting time and angle
+                  // update starting time and yaw
                   _startActionTime  = micros();
                   _startActionYaw = state.UAVState->eulerAngles[2];
                 }
