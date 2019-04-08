@@ -332,14 +332,45 @@ namespace hf {
                   }
                   case WP_CHANGE_ALTITUDE:
                   {
-                    
-                    break;                    
+                      break;                    
                   }
                   case WP_HOVER:
                   {
-                    
                       break;
                   }
+                  // We are ot coupling validators here because when changing
+                  // to distance based programing we will need different validators
+                  case WP_GO_FORWARD: // For the moment, movement is time based
+                  {
+                      // Set level pitch
+                      break;
+                  }
+                  case WP_GO_BACKWARD:
+                  {
+                      // Set level pitch
+                      break;                    
+                  }
+                  case WP_GO_LEFT:
+                  {
+                      // Set level roll
+                      break;                  
+                  }
+                  case WP_GO_RIGHT:
+                  {
+                      // Set level roll
+                      break;
+                  }
+                  case WP_TURN_CW: // End yaw smaller than starting yaw 
+                  { 
+                      // Set rate yaw
+                      break;                                
+                  }
+                  case WP_TURN_CCW: // End yaw bigger than starting yaw
+                  {
+                      // Set rate yaw
+                      break;                                                
+                  }
+                  
                 }
               
                 // If the action is complete, load the next one
