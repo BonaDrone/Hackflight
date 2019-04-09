@@ -45,8 +45,19 @@ namespace hf {
             float PTerms[2];
             
             float _demandsToAngle;
-            float _angleToDemands;
             float _demandsToRate;
+            
+            void computeReferenceDemands(float _demands[2], state_t &  state, demands_t & demands)
+            {
+                if (state.executingMission)
+                {
+                    _demands[0] = demands.setpointAngle[0];
+                    _demands[1] = demands.setpointAngle[1];
+                } else {
+                    _demands[0] = demands.roll * _demandsToAngle;
+                    _demands[1] = demands.pitch * _demandsToAngle;
+                }
+            }
 
         public:
 
@@ -60,7 +71,6 @@ namespace hf {
                 // Since we work in radians:
                 // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
-                _angleToDemands = 1 / _demandsToAngle;
                 _demandsToRate = demandsToRate;
             }
 
@@ -72,12 +82,11 @@ namespace hf {
             {
                 (void)currentTime;
 
-                float _demands[2] = {demands.roll, demands.pitch};
+                float _demands[2];
+                computeReferenceDemands(_demands, state, demands);
                 for (int axis=0; axis<2; ++axis)
                 {
-                  // Target angle computation
-                  float targetAngle = state.executingMission ? demands.setpointAngle[axis] :  _demands[axis] * _demandsToAngle;
-                  float error = targetAngle - state.UAVState->eulerAngles[axis];
+                  float error = _demands[axis] - state.UAVState->eulerAngles[axis];
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 

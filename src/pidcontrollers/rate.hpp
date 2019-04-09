@@ -137,6 +137,13 @@ namespace hf {
 
                 return PTerm + ITerm + DTerm;
             }
+            
+            void computeReferenceDemands(float _demands[3], state_t &  state, demands_t & demands)
+            {
+              _demands[0] = demands.roll;
+              _demands[0] = demands.pitch;
+              _demands[2] = state.executingMission ? demands.setpointRate[2] : demands.yaw;
+            }
 
         protected:
 
@@ -199,23 +206,23 @@ namespace hf {
                 
                 float deltat = currentTime - lastTime;
                 lastTime = currentTime ;
-                   
-                _PTerm[0] = demands.roll;
-                _PTerm[1] = demands.pitch;
+                
+                float _demands[3];
+                computeReferenceDemands(_demands, state, demands);
+                _PTerm[0] = _demands[0];
+                _PTerm[1] = _demands[1];
 
                 // Pitch, roll use Euler angles
-                demands.roll  = computeCyclicPid(demands.roll,  state.UAVState->angularVelocities, deltat, AXIS_ROLL);
-                demands.pitch = computeCyclicPid(demands.pitch, state.UAVState->angularVelocities, deltat, AXIS_PITCH);
-
-                // For gyroYaw, P term comes directly from RC command or rate setpoint, and D term is zero
-                float yawDemand = state.executingMission ? demands.setpointRate[2] : demads.yaw;
+                demands.roll  = computeCyclicPid(_demands[0],  state.UAVState->angularVelocities, deltat, AXIS_ROLL);
+                demands.pitch = computeCyclicPid(_demands[1], state.UAVState->angularVelocities, deltat, AXIS_PITCH);
                 
-                float yawError = yawDemand * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
-                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, yawDemand, state.UAVState->angularVelocities, deltat, AXIS_YAW);
-                yawDemand = computePid(_gyroYawP, yawDemand, ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
+                // For gyroYaw, P term comes directly from RC command or rate setpoint, and D term is zero
+                float yawError = _demands[2] * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
+                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, _demands[2], state.UAVState->angularVelocities, deltat, AXIS_YAW);
+                _demands[2] = computePid(_gyroYawP, yawDemand, ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
-                demands.yaw = Filter::constrainAbs(yawDemand, 0.1 + fabs(yawDemand));
+                demands.yaw = Filter::constrainAbs(_demands[2], 0.1 + fabs(_demands[2]));
 
                 // We've always gotta do this!
                 return true;
