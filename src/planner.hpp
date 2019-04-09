@@ -303,9 +303,7 @@ namespace hf {
                   }
 
                 }
-                
                 return actionComplete;
-
             }
 
         public:
@@ -421,8 +419,6 @@ namespace hf {
                     demands.setpointRate[i] = 0;
                   }
                 }
-                
-                
             }
 
             // XXX only for debuging purposes
