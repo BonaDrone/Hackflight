@@ -318,6 +318,7 @@ namespace hf {
             
             void executeAction(state_t & state, demands_t & demands)
             {
+                // XXX Remove prints for oficial release
                 Serial.println("Executing action:");
                 switch (_currentAction.action) {
                   case WP_ARM:
@@ -395,7 +396,8 @@ namespace hf {
                   
                 }
               
-                // If the action is complete, load the next one
+                // If the action is complete, load the next one and reset angle
+                // and rate targets
                 if (isActionComplete(_currentAction, state, demands))
                 {
                   // We've reached the end of the mission, reset executing flag
@@ -404,6 +406,9 @@ namespace hf {
                   {
                       Serial.println("Mission END");
                       state.executingMission = false;
+                      // Reset action pointer to enable mission execution again
+                      _currentActionIndex = 0;
+                      _currentAction = _mission[0];
                       return;
                   }
                   // Load next action
