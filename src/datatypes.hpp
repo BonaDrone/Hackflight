@@ -30,6 +30,7 @@ typedef struct {
     float pitch;
     float yaw;
     float setpoint[3];            // X, Y, Z setpoint
+    float setpointAngle[3];       // Roll, pitch, yaw, setpoint
 } demands_t;
 
 typedef struct {
