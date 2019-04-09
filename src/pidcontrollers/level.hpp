@@ -45,6 +45,7 @@ namespace hf {
             float PTerms[2];
             
             float _demandsToAngle;
+            float _angleToDemands;
             float _demandsToRate;
 
         public:
@@ -59,6 +60,7 @@ namespace hf {
                 // Since we work in radians:
                 // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
+                _angleToDemands = 1 / _demandsToAngle;
                 _demandsToRate = demandsToRate;
             }
 
@@ -73,7 +75,9 @@ namespace hf {
                 float _demands[2] = {demands.roll, demands.pitch};
                 for (int axis=0; axis<2; ++axis)
                 {
-                  float error = _demands[axis] * _demandsToAngle - state.UAVState->eulerAngles[axis];
+                  // Target angle computation
+                  float targetAngle = state.executingMission ? demands.targetAngle[i] :  _demands[axis] * _demandsToAngle;
+                  float error = targetAngle - state.UAVState->eulerAngles[axis];
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
                 
