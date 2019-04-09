@@ -385,13 +385,13 @@ namespace hf {
                   case WP_TURN_CW: // End yaw smaller than starting yaw 
                   { 
                       Serial.println("Turn CW");
-                      // Set rate yaw
+                      demads.setpointRate[2] = -TARGET_YAW_RATE;
                       break;                                
                   }
                   case WP_TURN_CCW: // End yaw bigger than starting yaw
                   {
                       Serial.println("Turn CCW");
-                      // Set rate yaw
+                      demads.setpointRate[2] = TARGET_YAW_RATE;
                       break;                                                
                   }
                   
@@ -404,6 +404,7 @@ namespace hf {
                   // and return
                   if (_currentActionIndex == _missionLength - 1)
                   {
+                      Serial.println("Mission END");
                       state.executingMission = false;
                       return;
                   }
@@ -413,10 +414,11 @@ namespace hf {
                   // update starting time and yaw
                   _startActionTime  = micros();
                   _startActionYaw = state.UAVState->eulerAngles[2];
-                  // reset target angles
+                  // reset target angles and rates
                   for(int i=0; i<3; ++i)
                   {
                     demands.setpointAngle[i] = 0;
+                    demands.setpointRate[i] = 0;
                   }
                 }
                 
