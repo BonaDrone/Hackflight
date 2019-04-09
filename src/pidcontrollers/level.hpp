@@ -76,7 +76,7 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                   // Target angle computation
-                  float targetAngle = state.executingMission ? demands.targetAngle[i] :  _demands[axis] * _demandsToAngle;
+                  float targetAngle = state.executingMission ? demands.setpointAngle[axis] :  _demands[axis] * _demandsToAngle;
                   float error = targetAngle - state.UAVState->eulerAngles[axis];
                   _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
                 }
