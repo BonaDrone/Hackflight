@@ -219,7 +219,7 @@ namespace hf {
                 // For gyroYaw, P term comes directly from RC command or rate setpoint, and D term is zero
                 float yawError = _demands[2] * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
                 float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, _demands[2], state.UAVState->angularVelocities, deltat, AXIS_YAW);
-                _demands[2] = computePid(_gyroYawP, yawDemand, ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
+                _demands[2] = computePid(_gyroYawP, _demands[2], ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
                 demands.yaw = Filter::constrainAbs(_demands[2], 0.1 + fabs(_demands[2]));

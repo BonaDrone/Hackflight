@@ -385,13 +385,13 @@ namespace hf {
                   case WP_TURN_CW: // End yaw smaller than starting yaw 
                   { 
                       Serial.println("Turn CW");
-                      demads.setpointRate[2] = -TARGET_YAW_RATE;
+                      demands.setpointRate[2] = -TARGET_YAW_RATE;
                       break;                                
                   }
                   case WP_TURN_CCW: // End yaw bigger than starting yaw
                   {
                       Serial.println("Turn CCW");
-                      demads.setpointRate[2] = TARGET_YAW_RATE;
+                      demands.setpointRate[2] = TARGET_YAW_RATE;
                       break;                                                
                   }
                   
