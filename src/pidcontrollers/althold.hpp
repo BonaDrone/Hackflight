@@ -46,6 +46,11 @@ namespace hf {
               // Minimum altitude, set by constructor
               float _minAltitude;
 
+              bool setpointIsActive(state_t & state)
+              {
+                  return state.executingMission;
+              }
+
           protected:
             
               bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
@@ -55,8 +60,9 @@ namespace hf {
                   // if (state.UAVState->position[2] < _minAltitude) return false;
 
                   float correction = 0;
-                  if (state.executingMission)
+                  if (setpointIsActive(state))
                   {
+                    // Correct based on setpoint
                     if(setpoint.gotSetpointCorrection(demands.setpoint[2],
                           state.UAVState->position[2], 
                           state.UAVState->linearVelocities[2], 
@@ -65,6 +71,7 @@ namespace hf {
                       return true;                      
                     }
                   } else {
+                    // Correct based on throttle
                     if (setpoint.gotManualCorrection(demands.throttle, 
                             state.UAVState->position[2], 
                             state.UAVState->linearVelocities[2], 
