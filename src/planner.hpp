@@ -112,7 +112,7 @@ namespace hf {
           int addActionToMission(uint8_t value, action_t mission[256],
                                  int actionIndex, int address)
           {
-            action_t action;
+            action_t action = {};
             switch (value) {
               
               case WP_ARM:
@@ -130,7 +130,8 @@ namespace hf {
                   action.action = WP_TAKE_OFF;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
-                  action.position[2] = EEPROM.read(++address);
+                  _integralPosition[2] = EEPROM.read(++address);
+                  action.position[2] = _integralPosition[2];
                   break;
               }
               case WP_LAND:
@@ -146,7 +147,8 @@ namespace hf {
                   action.action = WP_CHANGE_ALTITUDE;
                   action.position[0] = _integralPosition[0];
                   action.position[1] = _integralPosition[1];
-                  action.position[2] = EEPROM.read(++address);
+                  _integralPosition[2] = EEPROM.read(++address); 
+                  action.position[2] = _integralPosition[2];
                   break;
               }
               case WP_HOVER:
@@ -312,20 +314,24 @@ namespace hf {
             
             void executeAction(state_t & state, demands_t & demands)
             {
+                Serial.println("Executing action:");
                 switch (_currentAction.action) {
                   case WP_ARM:
                   {
+                    Serial.println("Arm");
                     state.armed = true;
                     break;                    
                   }
                   case WP_DISARM:
                   {
+                    Serial.println("Disarm");
                     state.armed = false;
                     break;
                   }
                   case WP_TAKE_OFF:
                   case WP_LAND:
                   {
+                    _currentAction.action == WP_TAKE_OFF ? Serial.println("Take off") : Serial.println("Land");
                     // Update setpoint
                     for (int i=0; i<3; i++)
                     {
@@ -335,41 +341,50 @@ namespace hf {
                   }
                   case WP_CHANGE_ALTITUDE:
                   {
+                      Serial.println("Change altitude");
+                      demands.setpoint[2] = _currentAction.position[2];
                       break;                    
                   }
                   case WP_HOVER:
                   {
+                      Serial.println("Hover");
                       break;
                   }
                   // We are ot coupling validators here because when changing
                   // to distance based programing we will need different validators
                   case WP_GO_FORWARD: // For the moment, movement is time based
                   {
+                      Serial.println("Go forward");
                       // Set level pitch
                       break;
                   }
                   case WP_GO_BACKWARD:
                   {
+                      Serial.println("Go backward");
                       // Set level pitch
                       break;                    
                   }
                   case WP_GO_LEFT:
                   {
+                      Serial.println("Go Left");
                       // Set level roll
                       break;                  
                   }
                   case WP_GO_RIGHT:
                   {
+                      Serial.println("Go right");
                       // Set level roll
                       break;
                   }
                   case WP_TURN_CW: // End yaw smaller than starting yaw 
                   { 
+                      Serial.println("Turn CW");
                       // Set rate yaw
                       break;                                
                   }
                   case WP_TURN_CCW: // End yaw bigger than starting yaw
                   {
+                      Serial.println("Turn CCW");
                       // Set rate yaw
                       break;                                                
                   }
@@ -381,7 +396,7 @@ namespace hf {
                 {
                   // We've reached the end of the mission, reset executing flag
                   // and return
-                  if (_currentActionIndex == _missionLength)
+                  if (_currentActionIndex == _missionLength - 1)
                   {
                       state.executingMission = false;
                       return;
