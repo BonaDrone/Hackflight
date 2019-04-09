@@ -207,13 +207,15 @@ namespace hf {
                 demands.roll  = computeCyclicPid(demands.roll,  state.UAVState->angularVelocities, deltat, AXIS_ROLL);
                 demands.pitch = computeCyclicPid(demands.pitch, state.UAVState->angularVelocities, deltat, AXIS_PITCH);
 
-                // For gyroYaw, P term comes directly from RC command, and D term is zero
-                float yawError = demands.yaw * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
-                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, demands.yaw, state.UAVState->angularVelocities, deltat, AXIS_YAW);
-                demands.yaw = computePid(_gyroYawP, demands.yaw, ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
+                // For gyroYaw, P term comes directly from RC command or rate setpoint, and D term is zero
+                float yawDemand = state.executingMission ? demands.setpointRate[2] : demads.yaw;
+                
+                float yawError = yawDemand * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
+                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, yawDemand, state.UAVState->angularVelocities, deltat, AXIS_YAW);
+                yawDemand = computePid(_gyroYawP, yawDemand, ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
-                demands.yaw = Filter::constrainAbs(demands.yaw, 0.1 + fabs(demands.yaw));
+                demands.yaw = Filter::constrainAbs(yawDemand, 0.1 + fabs(yawDemand));
 
                 // We've always gotta do this!
                 return true;
