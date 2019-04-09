@@ -59,7 +59,13 @@ namespace hf {
           static const uint8_t WP_TURN_CW         = 12;
           static const uint8_t WP_TURN_CCW        = 13;
           
+          // Required constants and values
           const float DISTANCE_THRESHOLD = 0.2;
+          // To achieve desired movement (F/B, L/R and rotations)
+          // XXX Must be tuned
+          const float TARGET_ROLL        = 5;
+          const float TARGET_PITCH       = 5; // angle in degrees
+          const float TARGET_YAW_RATE    = 2; // angular velocity in degrees per second
           
           // Variables used to store the programmed mission
           action_t _mission[256];
@@ -355,25 +361,25 @@ namespace hf {
                   case WP_GO_FORWARD: // For the moment, movement is time based
                   {
                       Serial.println("Go forward");
-                      // Set level pitch
+                      demands.setpointAngle[0] = -TARGET_PITCH;
                       break;
                   }
                   case WP_GO_BACKWARD:
                   {
                       Serial.println("Go backward");
-                      // Set level pitch
+                      demands.setpointAngle[0] = TARGET_PITCH;
                       break;                    
                   }
                   case WP_GO_LEFT:
                   {
                       Serial.println("Go Left");
-                      // Set level roll
+                      demands.setpointAngle[1] = -TARGET_ROLL;
                       break;                  
                   }
                   case WP_GO_RIGHT:
                   {
                       Serial.println("Go right");
-                      // Set level roll
+                      demands.setpointAngle[1] = TARGET_ROLL;
                       break;
                   }
                   case WP_TURN_CW: // End yaw smaller than starting yaw 
