@@ -413,6 +413,11 @@ namespace hf {
                   // update starting time and yaw
                   _startActionTime  = micros();
                   _startActionYaw = state.UAVState->eulerAngles[2];
+                  // reset target angles
+                  for(int i=0; i<3, ++i)
+                  {
+                    state.setpointAngle[i] = 0;
+                  }
                 }
                 
                 

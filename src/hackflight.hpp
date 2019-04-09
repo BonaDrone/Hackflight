@@ -691,6 +691,7 @@ namespace hf {
                 // as well as stop executing a mission
                 (void)flag;
                 _state.executingMission = false;
+                _state.armed = false;
                 digitalWrite(25, LOW);
             }
 
@@ -737,7 +738,8 @@ namespace hf {
                 // Initialize the planner
                 planner.init(PARAMETER_SLOTS);
                 // XXX Only for debuging purposes.
-                //planner.printMission();
+                // planner.printMission();
+                // readEEPROM();
 
                 // Tell the mixer which board to use
                 _mixer->board = board;
