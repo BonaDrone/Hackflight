@@ -39,7 +39,8 @@
 
 #include "filters/eskf.hpp"
 
-#include "planner.hpp"
+//#include "planner.hpp"
+#include "planners/mission.hpp"
 
 namespace hf {
 
@@ -63,7 +64,7 @@ namespace hf {
             Receiver   * _receiver;
             Rate       * _ratePid;
             Mixer      * _mixer;
-            Planner      planner;
+            MissionPlanner      planner;
 
             ESKF eskf = ESKF();
 
