@@ -696,6 +696,82 @@ namespace hf {
                 _state.armed = false;
                 digitalWrite(25, LOW);
             }
+            
+            // Action handlers
+            virtual void handle_WP_ARM_Request(uint8_t & code) override
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_DISARM_Request(uint8_t & code) override
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_LAND_Request(uint8_t & code) override
+            {
+                (void)code;
+            }
+
+            virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_FORWARD_Request(uint8_t & meters, uint8_t & code) override
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_BACKWARD_Request(uint8_t & meters, uint8_t & code) override
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_LEFT_Request(uint8_t & meters, uint8_t & code) override
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_GO_RIGHT_Request(uint8_t & meters, uint8_t & code) override
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
+            {
+                (void)meters;
+                (void)code;
+            }
+
+            virtual void handle_WP_CHANGE_SPEED_Request(uint8_t & speed, uint8_t & code) override
+            {
+                (void)speed;
+                (void)code;
+            }
+
+            virtual void handle_WP_HOVER_Request(uint8_t & seconds, uint8_t & code) override
+            {
+                (void)seconds;
+                (void)code;
+            }
+
+            virtual void handle_WP_TURN_CW_Request(uint8_t & degrees, uint8_t & code) override
+            {
+                (void)degrees;
+                (void)code;
+            }
+
+            virtual void handle_WP_TURN_CCW_Request(uint8_t & degrees, uint8_t & code) override
+            {
+                (void)degrees;
+                (void)code;
+            }
 
         public:
 

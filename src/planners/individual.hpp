@@ -146,7 +146,7 @@
           _stack[_stackIndex] = action;
           _stackIndex = (_stackIndex + 1) % STACK_LENGTH;
           _actionsInStack += 1;
-        } // buildAction
+        } // addActionToStack
 
         virtual void endOfAction(state_t & state) override
         {
@@ -160,7 +160,7 @@
             } else {
                 state.executingStack = false;
             }
-        }
+        } // endOfAction
     
     public:
       
