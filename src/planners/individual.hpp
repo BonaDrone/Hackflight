@@ -47,6 +47,11 @@
             if (_actionsInStack > 0)
             {
                 _currentAction = _stack[_currentActionIndex];
+                // Set target height as the end height of the previous action
+                // except for land action
+                _currentAction.position[2] = _currentAction.position[2] == 0 ? state.UAVState->position[0] : _currentAction.position[2];
+                if (_currentAction.action == WP_LAND) _currentAction.position[2] = 0;
+                
             } else {
                 state.executingStack = false;
             }
@@ -85,78 +90,78 @@
             case WP_TAKE_OFF:
             {
                 action.action = WP_TAKE_OFF;
-                action.position[0] = state.UAVState->position[0];
-                action.position[1] = state.UAVState->position[1];
+                action.position[0] = 0;
+                action.position[1] = 0;
                 action.position[2] = data;
                 break;
             }
             case WP_LAND:
             {
                 action.action = WP_LAND;
-                action.position[0] = state.UAVState->position[0];
-                action.position[1] = state.UAVState->position[1];
+                action.position[0] = 0;
+                action.position[1] = 0;
                 action.position[2] = 0;
                 break;
             }
             case WP_CHANGE_ALTITUDE:
             {
                 action.action = WP_CHANGE_ALTITUDE;
-                action.position[0] = state.UAVState->position[0];
-                action.position[1] = state.UAVState->position[1];
+                action.position[0] = 0;
+                action.position[1] = 0;
                 action.position[2] = data;
                 break;
             }
             case WP_HOVER:
             {
                 action.action = WP_HOVER;
-                action.position[0] = state.UAVState->position[0];
-                action.position[1] = state.UAVState->position[1];
-                action.position[2] = state.UAVState->position[2];
+                action.position[0] = 0;
+                action.position[1] = 0;
+                action.position[2] = 0;
                 action.duration = data;
                 break;
             }
             case WP_GO_FORWARD: // For the moment, movement is time based
             {
               action.action = WP_GO_FORWARD;
-              action.position[0] = state.UAVState->position[0];
-              action.position[1] = state.UAVState->position[1];
-              action.position[2] = state.UAVState->position[2];
+              action.position[0] = 0;
+              action.position[1] = 0;
+              action.position[2] = 0;
               action.duration = data;
               break;
             }
             case WP_GO_BACKWARD:
             {
               action.action = WP_GO_BACKWARD;
-              action.position[0] = state.UAVState->position[0];
-              action.position[1] = state.UAVState->position[1];
-              action.position[2] = state.UAVState->position[2];
+              action.position[0] = 0;
+              action.position[1] = 0;
+              action.position[2] = 0;
               action.duration = data;
               break;                
             }
             case WP_GO_LEFT:
             {
               action.action = WP_GO_LEFT;
-              action.position[0] = state.UAVState->position[0];
-              action.position[1] = state.UAVState->position[1];
-              action.position[2] = state.UAVState->position[2];
+              action.position[0] = 0;
+              action.position[1] = 0;
+              action.position[2] = 0;
               action.duration = data;
               break;                
             }
             case WP_GO_RIGHT:
             {
               action.action = WP_GO_RIGHT;
-              action.position[0] = state.UAVState->position[0];
-              action.position[1] = state.UAVState->position[1];
-              action.position[2] = state.UAVState->position[2];
+              action.position[0] = 0;
+              action.position[1] = 0;
+              action.position[2] = 0;
               action.duration = data;
               break;                
             }
             case WP_TURN_CW:
             {
               action.action = WP_TURN_CW;
-              action.position[0] = state.UAVState->position[0];
-              action.position[1] = state.UAVState->position[1];
-              action.position[2] = state.UAVState->position[2];
+              action.position[0] = 0;
+              action.position[1] = 0;
+              action.position[2] = 0;
               action.rotationDegrees = data;
               action.clockwise = true;
               break;                                
@@ -164,9 +169,9 @@
             case WP_TURN_CCW:
             {
               action.action = WP_TURN_CCW;
-              action.position[0] = state.UAVState->position[0];
-              action.position[1] = state.UAVState->position[1];
-              action.position[2] = state.UAVState->position[2];
+              action.position[0] = 0;
+              action.position[1] = 0;
+              action.position[2] = 0;
               action.rotationDegrees = data;
               action.clockwise = false;
               break;                                                
