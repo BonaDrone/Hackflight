@@ -90,8 +90,8 @@
             case WP_TAKE_OFF:
             {
                 action.action = WP_TAKE_OFF;
-                action.position[0] = _integralPosition[0];
-                action.position[1] = _integralPosition[1];
+                // action.position[0] = _integralPosition[0];
+                // action.position[1] = _integralPosition[1];
                 _integralPosition[2] = EEPROM.read(++address);
                 action.position[2] = _integralPosition[2];
                 break;
@@ -99,16 +99,16 @@
             case WP_LAND:
             {
                 action.action = WP_LAND;
-                action.position[0] = _integralPosition[0];
-                action.position[1] = _integralPosition[1];
+                // action.position[0] = _integralPosition[0];
+                // action.position[1] = _integralPosition[1];
                 action.position[2] = 0;
                 break;
             }
             case WP_CHANGE_ALTITUDE:
             {
                 action.action = WP_CHANGE_ALTITUDE;
-                action.position[0] = _integralPosition[0];
-                action.position[1] = _integralPosition[1];
+                // action.position[0] = _integralPosition[0];
+                // action.position[1] = _integralPosition[1];
                 _integralPosition[2] = EEPROM.read(++address); 
                 action.position[2] = _integralPosition[2];
                 break;
@@ -116,8 +116,8 @@
             case WP_HOVER:
             {
                 action.action = WP_HOVER;
-                action.position[0] = _integralPosition[0];
-                action.position[1] = _integralPosition[1];
+                // action.position[0] = _integralPosition[0];
+                // action.position[1] = _integralPosition[1];
                 action.position[2] = _integralPosition[2];
                 action.duration = EEPROM.read(++address);
                 break;
@@ -125,8 +125,8 @@
             case WP_GO_FORWARD: // For the moment, movement is time based
             {
               action.action = WP_GO_FORWARD;
-              action.position[0] = _integralPosition[0];
-              action.position[1] = _integralPosition[1];
+              // action.position[0] = _integralPosition[0];
+              // action.position[1] = _integralPosition[1];
               action.position[2] = _integralPosition[2];
               action.duration = EEPROM.read(++address);
               break;
@@ -134,8 +134,8 @@
             case WP_GO_BACKWARD:
             {
               action.action = WP_GO_BACKWARD;
-              action.position[0] = _integralPosition[0];
-              action.position[1] = _integralPosition[1];
+              // action.position[0] = _integralPosition[0];
+              // action.position[1] = _integralPosition[1];
               action.position[2] = _integralPosition[2];
               action.duration = EEPROM.read(++address);
               break;                
@@ -143,8 +143,8 @@
             case WP_GO_LEFT:
             {
               action.action = WP_GO_LEFT;
-              action.position[0] = _integralPosition[0];
-              action.position[1] = _integralPosition[1];
+              // action.position[0] = _integralPosition[0];
+              // action.position[1] = _integralPosition[1];
               action.position[2] = _integralPosition[2];
               action.duration = EEPROM.read(++address);
               break;                
@@ -152,8 +152,8 @@
             case WP_GO_RIGHT:
             {
               action.action = WP_GO_RIGHT;
-              action.position[0] = _integralPosition[0];
-              action.position[1] = _integralPosition[1];
+              // action.position[0] = _integralPosition[0];
+              // action.position[1] = _integralPosition[1];
               action.position[2] = _integralPosition[2];
               action.duration = EEPROM.read(++address);
               break;                
@@ -161,8 +161,8 @@
             case WP_TURN_CW:
             {
               action.action = WP_TURN_CW;
-              action.position[0] = _integralPosition[0];
-              action.position[1] = _integralPosition[1];
+              // action.position[0] = _integralPosition[0];
+              // action.position[1] = _integralPosition[1];
               action.position[2] = _integralPosition[2];
               action.rotationDegrees = EEPROM.read(++address);
               action.clockwise = true;
@@ -171,8 +171,8 @@
             case WP_TURN_CCW:
             {
               action.action = WP_TURN_CCW;
-              action.position[0] = _integralPosition[0];
-              action.position[1] = _integralPosition[1];
+              // action.position[0] = _integralPosition[0];
+              // action.position[1] = _integralPosition[1];
               action.position[2] = _integralPosition[2];
               action.rotationDegrees = EEPROM.read(++address);
               action.clockwise = false;
