@@ -142,7 +142,7 @@ namespace hf {
             {
               _demands[0] = demands.roll;
               _demands[0] = demands.pitch;
-              _demands[2] = state.executingMission ? demands.setpointRate[2] : demands.yaw;
+              _demands[2] = (state.executingMission || state.executingStack) ? demands.setpointRate[2] : demands.yaw;
             }
 
         protected:
