@@ -40,6 +40,10 @@ namespace hf {
             // Number of EEPROM reserved slots for parameters
             static const int PARAMETER_SLOTS = 150;
             uint8_t MISSION_COMMANDS[13] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+            
+        protected:
+
+          bool incomingMission = false;
 
         private:
 
@@ -47,7 +51,6 @@ namespace hf {
             static const int OUTBUF_SIZE = 128;
 
             int EEPROMindex = PARAMETER_SLOTS;
-            bool incomingMission = false;
 
             typedef enum serialState_t {
                 IDLE,
