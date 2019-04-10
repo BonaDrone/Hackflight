@@ -38,6 +38,34 @@
         // // the action and takes in to account the position of the previous action 
         // float _integralPosition[3] = {0, 0, 0};
 
+        virtual void endOfAction(state_t & state) override
+        {
+            _actionsInStack -= 1;
+            // Update index from where to grab the next action
+            _currentActionIndex = (_currentActionIndex + 1) % STACK_LENGTH;
+            // If there are still actions to be performed load the next one
+            if (_actionsInStack > 0)
+            {
+                _currentAction = _stack[_currentActionIndex];
+            } else {
+                state.executingStack = false;
+            }
+        } // endOfAction
+    
+    public:
+      
+        void init()
+        {
+            reset();
+        }
+
+        void reset()
+        {
+          _currentActionIndex = 0;
+          _stackIndex = 0;
+          _actionsInStack = 0;
+        }
+        
         void addActionToStack(state_t & state, uint8_t actionCode, int data)
         {
           action_t action = {};
@@ -147,34 +175,7 @@
           _stackIndex = (_stackIndex + 1) % STACK_LENGTH;
           _actionsInStack += 1;
         } // addActionToStack
-
-        virtual void endOfAction(state_t & state) override
-        {
-            _actionsInStack -= 1;
-            // Update index from where to grab the next action
-            _currentActionIndex = (_currentActionIndex + 1) % STACK_LENGTH;
-            // If there are still actions to be performed load the next one
-            if (_actionsInStack > 0)
-            {
-                _currentAction = _stack[_currentActionIndex];
-            } else {
-                state.executingStack = false;
-            }
-        } // endOfAction
-    
-    public:
-      
-        void init()
-        {
-            reset();
-        }
-
-        void reset()
-        {
-          _currentActionIndex = 0;
-          _stackIndex = 0;
-          _actionsInStack = 0;
-        }
+        
       
     }; // class IndividualPlanner
 

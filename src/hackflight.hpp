@@ -307,10 +307,19 @@ namespace hf {
                 _sensors[_sensor_count++] = sensor;
             }
 
-            void checkPlanner(void)
+            void checkPlanners(void)
             {
-              if (_state.executingMission == false) return;
-              planner.executeAction(_state, _demands);
+                if (_state.executingStack)
+                {
+                    // turn off mission execution since individual commands have
+                    // a higher priority
+                    _state.executingMission = false;
+                    individualPlanner.executeAction(_state, _demands);
+                }
+                else if (_state.executingMission)
+                {
+                   planner.executeAction(_state, _demands);
+                }
             }
 
             // XXX only for debuging purposes
@@ -700,77 +709,74 @@ namespace hf {
             // Action handlers
             virtual void handle_WP_ARM_Request(uint8_t & code) override
             {
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_ARM, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_DISARM_Request(uint8_t & code) override
             {
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_DISARM, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_LAND_Request(uint8_t & code) override
             {
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
             {
-                (void)meters;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_GO_FORWARD_Request(uint8_t & meters, uint8_t & code) override
             {
-                (void)meters;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_FORWARD, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_GO_BACKWARD_Request(uint8_t & meters, uint8_t & code) override
             {
-                (void)meters;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_BACKWARD, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_GO_LEFT_Request(uint8_t & meters, uint8_t & code) override
             {
-                (void)meters;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_LEFT, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_GO_RIGHT_Request(uint8_t & meters, uint8_t & code) override
             {
-                (void)meters;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_RIGHT, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
             {
-                (void)meters;
-                (void)code;
-            }
-
-            virtual void handle_WP_CHANGE_SPEED_Request(uint8_t & speed, uint8_t & code) override
-            {
-                (void)speed;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_HOVER_Request(uint8_t & seconds, uint8_t & code) override
             {
-                (void)seconds;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_HOVER, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_TURN_CW_Request(uint8_t & degrees, uint8_t & code) override
             {
-                (void)degrees;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CW, _lastCommandData);
+                _state.executingStack = true;
             }
 
             virtual void handle_WP_TURN_CCW_Request(uint8_t & degrees, uint8_t & code) override
             {
-                (void)degrees;
-                (void)code;
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CCW, _lastCommandData);
+                _state.executingStack = true;
             }
 
         public:
@@ -860,8 +866,8 @@ namespace hf {
             {
                 // Check Battery
                 checkBattery();
-                // Check planner
-                checkPlanner();
+                // Check planners
+                checkPlanners();
                 // Grab control signal if available
                 checkReceiver();
                 // Check serials for messages

@@ -40,6 +40,7 @@ namespace hf {
             // Number of EEPROM reserved slots for parameters
             static const int PARAMETER_SLOTS = 150;
             uint8_t MISSION_COMMANDS[13] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+            uint8_t _lastCommandData = 0;
             
         protected:
 
@@ -187,15 +188,23 @@ namespace hf {
 
             void processMissionCommand(uint8_t command)
             {
-                if (incomingMission && isMissionCommand(command))
+                if (isMissionCommand(command))
                 {
-                    EEPROM.write(EEPROMindex, command);
-                    EEPROMindex += 1;
+                    int commandData = -1;
                     if (command != 1 && command != 2 && command != 3)
                     {
-                        uint8_t commandData = readCommandData();
-                        EEPROM.write(EEPROMindex, commandData);
+                        commandData = readCommandData();
+                        _lastCommandData = (uint8_t)commandData;
+                    }
+                    if (incomingMission)
+                    {
+                        EEPROM.write(EEPROMindex, command);
                         EEPROMindex += 1;
+                        if (commandData!=-1)
+                        {
+                          EEPROM.write(EEPROMindex, (uint8_t)commandData);
+                          EEPROMindex += 1;
+                        }
                     }
                 }
             }

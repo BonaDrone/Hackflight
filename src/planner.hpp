@@ -44,20 +44,6 @@ namespace hf {
             virtual void endOfAction(state_t & state) = 0;
 
         protected:
-            // Set of possible actions
-            static const uint8_t WP_ARM             = 1;
-            static const uint8_t WP_DISARM          = 2;
-            static const uint8_t WP_LAND            = 3;
-            static const uint8_t WP_TAKE_OFF        = 4;
-            static const uint8_t WP_GO_FORWARD      = 5;
-            static const uint8_t WP_GO_BACKWARD     = 6;
-            static const uint8_t WP_GO_LEFT         = 7;
-            static const uint8_t WP_GO_RIGHT        = 8;
-            static const uint8_t WP_CHANGE_ALTITUDE = 9;
-            static const uint8_t WP_CHANGE_SPEED    = 10; // XXX To be implemented
-            static const uint8_t WP_HOVER           = 11;
-            static const uint8_t WP_TURN_CW         = 12;
-            static const uint8_t WP_TURN_CCW        = 13;
             
             static const uint16_t STACK_LENGTH = 256;
             
@@ -155,6 +141,21 @@ namespace hf {
 
         public:
             
+            // Set of possible actions
+            static const uint8_t WP_ARM             = 1;
+            static const uint8_t WP_DISARM          = 2;
+            static const uint8_t WP_LAND            = 3;
+            static const uint8_t WP_TAKE_OFF        = 4;
+            static const uint8_t WP_GO_FORWARD      = 5;
+            static const uint8_t WP_GO_BACKWARD     = 6;
+            static const uint8_t WP_GO_LEFT         = 7;
+            static const uint8_t WP_GO_RIGHT        = 8;
+            static const uint8_t WP_CHANGE_ALTITUDE = 9;
+            static const uint8_t WP_CHANGE_SPEED    = 10; // XXX To be implemented
+            static const uint8_t WP_HOVER           = 11;
+            static const uint8_t WP_TURN_CW         = 12;
+            static const uint8_t WP_TURN_CCW        = 13;
+
             void executeAction(state_t & state, demands_t & demands)
             {
                 switch (_currentAction.action) {
