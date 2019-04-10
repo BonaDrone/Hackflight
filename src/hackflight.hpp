@@ -39,7 +39,6 @@
 
 #include "filters/eskf.hpp"
 
-//#include "planner.hpp"
 #include "planners/mission.hpp"
 
 namespace hf {
