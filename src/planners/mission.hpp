@@ -183,12 +183,13 @@
           return address;
         } // buildAction
 
-        virtual void endOfAction(state_t & state) override
+        virtual void endOfAction(state_t & state, demands_t & demands) override
         {
           // Load next action
           _currentActionIndex += 1;
           _currentAction = _mission[_currentActionIndex];
-          // We've reached the end of the mission, reset executing flag
+          _startActionYaw = state.UAVState->eulerAngles[2];
+          // If we have reached the end of the mission, reset executing flag
           // and return
           if (_currentActionIndex == _missionLength - 1)
           {

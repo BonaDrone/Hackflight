@@ -38,7 +38,7 @@
         // // the action and takes in to account the position of the previous action 
         // float _integralPosition[3] = {0, 0, 0};
 
-        virtual void endOfAction(state_t & state) override
+        virtual void endOfAction(state_t & state, demands_t & demands) override
         {
             _actionsInStack -= 1;
             // Update index from where to grab the next action
@@ -64,6 +64,7 @@
           _currentActionIndex = 0;
           _stackIndex = 0;
           _actionsInStack = 0;
+          _actionStart = true;
         }
         
         void addActionToStack(state_t & state, uint8_t actionCode, int data)
@@ -174,6 +175,7 @@
           _stack[_stackIndex] = action;
           _stackIndex = (_stackIndex + 1) % STACK_LENGTH;
           _actionsInStack += 1;
+          _currentAction = _stack[_currentActionIndex];
         } // addActionToStack
         
       

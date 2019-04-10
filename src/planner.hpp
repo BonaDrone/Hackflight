@@ -41,7 +41,7 @@ namespace hf {
         
         private:
                       
-            virtual void endOfAction(state_t & state) = 0;
+            virtual void endOfAction(state_t & state, demands_t & demands) = 0;
 
         protected:
             
@@ -56,7 +56,8 @@ namespace hf {
             const float TARGET_YAW_RATE    = 2; // angular velocity in degrees per second
           
             // for actions that involve time
-            uint32_t _startActionTime = micros();
+            bool _actionStart = true;
+            uint32_t _startActionTime;
             float _startActionYaw;
 
             uint8_t _currentActionIndex = 0;
@@ -158,6 +159,12 @@ namespace hf {
 
             void executeAction(state_t & state, demands_t & demands)
             {
+                if (_actionStart)
+                {
+                    _actionStart = false; 
+                    _startActionTime = micros();
+                    _startActionYaw = state.UAVState->eulerAngles[2];
+                } 
                 switch (_currentAction.action) {
                   case WP_ARM:
                   {
@@ -222,25 +229,19 @@ namespace hf {
                   }
                   
                 }
-              
-                // If the action is complete, load the next one and reset angle
-                // and rate targets
+
                 if (isActionComplete(_currentAction, state, demands))
-                {
-                  // update starting time and yaw
-                  _startActionTime  = micros();
-                  _startActionYaw = state.UAVState->eulerAngles[2];
-                  // reset target angles and rates
-                  for(int i=0; i<3; ++i)
-                  {
-                    demands.setpointAngle[i] = 0;
-                    demands.setpointRate[i] = 0;
-                  }
-                  
-                  // This enables us to define planner specific behaviour that
-                  // gets executed when an action is finished
-                  endOfAction(state);
-                  
+                {   
+                    // reset target angles and rates
+                    for(int i=0; i<3; ++i)
+                    {
+                        demands.setpointAngle[i] = 0;
+                        demands.setpointRate[i] = 0;
+                    }
+                    // This enables us to define planner specific behaviour that
+                    // gets executed when an action is finished
+                    endOfAction(state, demands);
+                    _actionStart  = true;
                 }
             }
 
