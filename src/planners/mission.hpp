@@ -31,7 +31,7 @@
 
         bool _hasMission;
         // Variables used to store the programmed mission
-        action_t _mission[256];
+        action_t _mission[STACK_LENGTH];
         // mission length
         uint8_t _missionLength = 0;
         // Each action will be linked to a position with respect to the starting
@@ -39,7 +39,7 @@
         // the action and takes in to account the position of the previous action 
         float _integralPosition[3] = {0, 0, 0};
 
-        void loadMission(action_t mission[256], int startingAddress)
+        void loadMission(action_t mission[STACK_LENGTH], int startingAddress)
         {
             int address = startingAddress;
             int actionIndex = 0;
@@ -71,7 +71,7 @@
             }
         } // loadMission
         
-        int addActionToMission(uint8_t value, action_t mission[256],
+        int addActionToMission(uint8_t value, action_t mission[STACK_LENGTH],
                                int actionIndex, int address)
         {
           action_t action = {};
@@ -216,7 +216,7 @@
             {
                 return;
             }
-            for (int i = 0; i<256; i++)
+            for (int i = 0; i<STACK_LENGTH; i++)
             {
                 action_t action = _mission[i];
                 Serial.print("Action ");

@@ -59,6 +59,8 @@ namespace hf {
             static const uint8_t WP_TURN_CW         = 12;
             static const uint8_t WP_TURN_CCW        = 13;
             
+            static const uint16_t STACK_LENGTH = 256;
+            
             // Required constants and values
             const float DISTANCE_THRESHOLD = 0.2;
             // To achieve desired movement (F/B, L/R and rotations)

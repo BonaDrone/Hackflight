@@ -38,6 +38,7 @@ typedef struct {
     hf::eskf_state_t * UAVState;  // Mosquito status 
     bool  armed;
     bool  executingMission;
+    bool  executingStack;
     float batteryVoltage;         // current Voltage
 } state_t;
 

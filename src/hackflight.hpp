@@ -40,6 +40,7 @@
 #include "filters/eskf.hpp"
 
 #include "planners/mission.hpp"
+#include "planners/individual.hpp"
 
 namespace hf {
 
@@ -59,11 +60,12 @@ namespace hf {
             tx_calibration_t _tx_calibration;
 
             // Passed to Hackflight::init() for a particular build
-            Board      * _board;
-            Receiver   * _receiver;
-            Rate       * _ratePid;
-            Mixer      * _mixer;
+            Board               * _board;
+            Receiver            * _receiver;
+            Rate                * _ratePid;
+            Mixer               * _mixer;
             MissionPlanner      planner;
+            IndividualPlanner   individualPlanner;
 
             ESKF eskf = ESKF();
 
@@ -728,6 +730,8 @@ namespace hf {
                 _state.armed = armed;
                 // Will be set to true when start mission message is received
                 _state.executingMission = false;
+                // Will be set to true when an inmediate action is to be received
+                _state.executingStack = false;
 
                 // Initialize MPS parser for serial comms
                 MspParser::init();
@@ -737,6 +741,8 @@ namespace hf {
 
                 // Initialize the planner
                 planner.init(PARAMETER_SLOTS);
+                // and the stack planner
+                individualPlanner.init();
                 // XXX Only for debuging purposes.
                 // planner.printMission();
                 // readEEPROM();
