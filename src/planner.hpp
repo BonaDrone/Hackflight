@@ -319,24 +319,20 @@ namespace hf {
             void executeAction(state_t & state, demands_t & demands)
             {
                 // XXX Remove prints for oficial release
-                Serial.println("Executing action:");
                 switch (_currentAction.action) {
                   case WP_ARM:
                   {
-                    Serial.println("Arm");
                     state.armed = true;
                     break;                    
                   }
                   case WP_DISARM:
                   {
-                    Serial.println("Disarm");
                     state.armed = false;
                     break;
                   }
                   case WP_TAKE_OFF:
                   case WP_LAND:
                   {
-                    _currentAction.action == WP_TAKE_OFF ? Serial.println("Take off") : Serial.println("Land");
                     // Update setpoint
                     for (int i=0; i<3; i++)
                     {
@@ -346,50 +342,42 @@ namespace hf {
                   }
                   case WP_CHANGE_ALTITUDE:
                   {
-                      Serial.println("Change altitude");
                       demands.setpoint[2] = _currentAction.position[2];
                       break;                    
                   }
                   case WP_HOVER:
                   {
-                      Serial.println("Hover");
                       break;
                   }
                   // We are ot coupling validators here because when changing
                   // to distance based programing we will need different validators
                   case WP_GO_FORWARD: // For the moment, movement is time based
                   {
-                      Serial.println("Go forward");
                       demands.setpointAngle[0] = -TARGET_PITCH;
                       break;
                   }
                   case WP_GO_BACKWARD:
                   {
-                      Serial.println("Go backward");
                       demands.setpointAngle[0] = TARGET_PITCH;
                       break;                    
                   }
                   case WP_GO_LEFT:
                   {
-                      Serial.println("Go Left");
                       demands.setpointAngle[1] = -TARGET_ROLL;
                       break;                  
                   }
                   case WP_GO_RIGHT:
                   {
-                      Serial.println("Go right");
                       demands.setpointAngle[1] = TARGET_ROLL;
                       break;
                   }
                   case WP_TURN_CW: // End yaw smaller than starting yaw 
                   { 
-                      Serial.println("Turn CW");
                       demands.setpointRate[2] = -TARGET_YAW_RATE;
                       break;                                
                   }
                   case WP_TURN_CCW: // End yaw bigger than starting yaw
                   {
-                      Serial.println("Turn CCW");
                       demands.setpointRate[2] = TARGET_YAW_RATE;
                       break;                                                
                   }
@@ -404,7 +392,6 @@ namespace hf {
                   // and return
                   if (_currentActionIndex == _missionLength - 1)
                   {
-                      Serial.println("Mission END");
                       state.executingMission = false;
                       // Reset action pointer to enable mission execution again
                       _currentActionIndex = 0;
