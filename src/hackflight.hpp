@@ -92,9 +92,6 @@ namespace hf {
             bool _failsafe;
             bool _lowBattery;
 
-            // XXX Store it as an MSP parameter
-            const float _BAT_MIN = 3.3; // Minimum voltage for 1S Battery
-
             // Support for headless mode
             float _yawInitial;
 
@@ -124,7 +121,7 @@ namespace hf {
               if (_board->getTime() - lastTime > 0.5)
               {
                 // Look if the battery is below the limit
-                if (_state.batteryVoltage < _BAT_MIN && _state.batteryVoltage > 2.5)
+                if (_state.batteryVoltage < _board->getLowBatteryLimit() && _state.batteryVoltage > 2.5)
                 {
                   // Save the first time it detects low battery
                   lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
@@ -137,6 +134,9 @@ namespace hf {
                   {
                     pinMode(25, OUTPUT);
                     digitalWrite(25, LOW);
+                    // XXX Ring the buzzer 
+                    individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, 0);
+                    switchToStackExecution();
                   }
 
                   isLastLowBattery = true;
@@ -233,14 +233,14 @@ namespace hf {
             void checkFailsafe(void)
             {
                 if (_state.armed &&
-                   (_receiver->lostSignal(_receiver->getBypassReceiver()) || _board->isBatteryLow())) {
+                   (_receiver->lostSignal(_receiver->getBypassReceiver()))) {
                     _mixer->cutMotors();
                     _state.armed = false;
                     _failsafe = true;
                     _board->showArmedStatus(false);
                     if (_receiver->getLostSignal())
                     {
-                      _receiver->setBypassReceiver(false);
+                        _receiver->setBypassReceiver(false);
                     }
                 }
             }

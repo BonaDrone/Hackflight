@@ -184,6 +184,7 @@ namespace hf {
             // Min, max PWM values
             const uint16_t PWM_MIN = 100;
             const uint16_t PWM_MAX = 500;
+            const float _lowBattery = 10.8;
 
         protected:
             
@@ -206,10 +207,19 @@ namespace hf {
                     analogWrite(MOTOR_PINS[k], PWM_MIN);
                 }
             }
+            
+            virtual float getLowBatteryLimit(void) override
+            {
+                return _lowBattery;
+            }
 
     }; // class BonadroneMultiShot
 
     class BonadroneBrushed : public Bonadrone {
+
+        private:
+          
+          const float _lowBattery = 3.3;
 
         protected:
 
@@ -230,6 +240,12 @@ namespace hf {
                 analogWrite(MOTOR_PINS[k], 0);  
             }
         }
+        
+        virtual float getLowBatteryLimit(void) override
+        {
+          return _lowBattery;
+        }
+
 
     }; // class BonadroneBrushed
 
