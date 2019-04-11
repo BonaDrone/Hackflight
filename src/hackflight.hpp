@@ -154,7 +154,9 @@ namespace hf {
                 runPidControllers();
 
                 // Use updated demands to run motors
-                if (_state.armed && !_failsafe && !_receiver->throttleIsDown()) {
+                if (_state.armed && !_failsafe && 
+                  (!_receiver->throttleIsDown() || _state.executingStack || _state.executingAction))
+                {
                   _mixer->runArmed(_demands);
 
                 }
