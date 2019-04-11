@@ -264,7 +264,7 @@ namespace hf {
                 }
 
                 // Disarm
-                if (  _state.armed && !_receiver->getAux2State()) {
+                if (  _state.armed && !_receiver->getAux2State() && _receiver->aux2Changed()) {
                     _state.armed = false;
                 }
 
