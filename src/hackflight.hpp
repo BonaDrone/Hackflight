@@ -248,11 +248,22 @@ namespace hf {
 
                 // Update ratePid with cyclic demands
                 _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
+                
+                // Check if aux1 has changed value. In that case, stop executing 
+                // actions and return control to TX
+                if (_receiver->aux1Changed())
+                {
+                    _state.executingMission = false;
+                    _state.executingStack = false;
+                    planner.reset();
+                    individualPlanner.reset();
+                }
 
                 // Disarm
                 if (  _state.armed && 
                       !_receiver->getAux2State() &&
-                      !_state.executingMission) {
+                      !_state.executingMission &&
+                      !_state.executingStack) {
                     _state.armed = false;
                 }
 

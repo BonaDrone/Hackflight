@@ -206,8 +206,13 @@
         {
               _hasMission = false;
               loadMission(_mission, startingAddress);
-              _currentActionIndex = 0;
-              _currentAction = _mission[_currentActionIndex];
+              reset();
+        }
+        
+        void reset()
+        {
+          _currentActionIndex = 0;
+          _currentAction = _mission[_currentActionIndex];
         }
         
         // XXX only for debuging purposes
