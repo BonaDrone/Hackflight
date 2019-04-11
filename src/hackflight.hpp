@@ -39,7 +39,8 @@
 
 #include "filters/eskf.hpp"
 
-#include "planner.hpp"
+#include "planners/mission.hpp"
+#include "planners/individual.hpp"
 
 namespace hf {
 
@@ -59,11 +60,12 @@ namespace hf {
             tx_calibration_t _tx_calibration;
 
             // Passed to Hackflight::init() for a particular build
-            Board      * _board;
-            Receiver   * _receiver;
-            Rate       * _ratePid;
-            Mixer      * _mixer;
-            Planner      planner;
+            Board               * _board;
+            Receiver            * _receiver;
+            Rate                * _ratePid;
+            Mixer               * _mixer;
+            MissionPlanner      planner;
+            IndividualPlanner   individualPlanner;
 
             ESKF eskf = ESKF();
 
@@ -96,6 +98,13 @@ namespace hf {
             // Support for headless mode
             float _yawInitial;
 
+            void switchToStackExecution()
+            {
+                _state.executingStack = true;
+                _state.executingMission = false;
+                planner.reset();
+            }
+
             bool safeAngle(uint8_t axis)
             {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
@@ -124,13 +133,11 @@ namespace hf {
                   // XXX it might be necessary to trigger the low battery action from here
                   _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
 
-                  // ---- Provisional
                   if (_lowBattery)
                   {
                     pinMode(25, OUTPUT);
                     digitalWrite(25, LOW);
                   }
-                  // ---- Provisional
 
                   isLastLowBattery = true;
                 }
@@ -140,7 +147,6 @@ namespace hf {
                 }
                 lastTime = _board->getTime();
               }
-
 
             }
 
@@ -152,9 +158,10 @@ namespace hf {
                 runPidControllers();
 
                 // Use updated demands to run motors
-                if (_state.armed && !_failsafe && !_receiver->throttleIsDown()) {
+                if (_state.armed && !_failsafe && 
+                  (!_receiver->throttleIsDown() || _state.executingStack || _state.executingMission))
+                {
                   _mixer->runArmed(_demands);
-
                 }
             }
 
@@ -245,11 +252,22 @@ namespace hf {
 
                 // Update ratePid with cyclic demands
                 _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
+                
+                // Check if aux1 has changed value. In that case, stop executing 
+                // actions and return control to TX
+                if (_receiver->aux1Changed())
+                {
+                    _state.executingMission = false;
+                    _state.executingStack = false;
+                    planner.reset();
+                    individualPlanner.reset();
+                }
 
                 // Disarm
                 if (  _state.armed && 
                       !_receiver->getAux2State() &&
-                      !_state.executingMission) {
+                      !_state.executingMission &&
+                      !_state.executingStack) {
                     _state.armed = false;
                 }
 
@@ -305,10 +323,16 @@ namespace hf {
                 _sensors[_sensor_count++] = sensor;
             }
 
-            void checkPlanner(void)
+            void checkPlanners(void)
             {
-              if (_state.executingMission == false) return;
-              planner.executeAction(_state, _demands);
+                if (_state.executingStack)
+                {
+                    individualPlanner.executeAction(_state, _demands);
+                }
+                else if (_state.executingMission)
+                {
+                    planner.executeAction(_state, _demands);
+                }
             }
 
             // XXX only for debuging purposes
@@ -691,8 +715,82 @@ namespace hf {
                 // as well as stop executing a mission
                 (void)flag;
                 _state.executingMission = false;
+                _state.executingStack = false;
                 _state.armed = false;
                 digitalWrite(25, LOW);
+            }
+            
+            // Action handlers
+            virtual void handle_WP_ARM_Request(uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_ARM, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_DISARM_Request(uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_DISARM, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_LAND_Request(uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_FORWARD_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_FORWARD, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_BACKWARD_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_BACKWARD, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_LEFT_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_LEFT, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_RIGHT_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_RIGHT, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_HOVER_Request(uint8_t & seconds, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_HOVER, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_TURN_CW_Request(uint8_t & degrees, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CW, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_TURN_CCW_Request(uint8_t & degrees, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CCW, _lastCommandData);
+                switchToStackExecution();
             }
 
         public:
@@ -728,6 +826,8 @@ namespace hf {
                 _state.armed = armed;
                 // Will be set to true when start mission message is received
                 _state.executingMission = false;
+                // Will be set to true when an inmediate action is to be received
+                _state.executingStack = false;
 
                 // Initialize MPS parser for serial comms
                 MspParser::init();
@@ -737,6 +837,8 @@ namespace hf {
 
                 // Initialize the planner
                 planner.init(PARAMETER_SLOTS);
+                // and the stack planner
+                individualPlanner.init();
                 // XXX Only for debuging purposes.
                 // planner.printMission();
                 // readEEPROM();
@@ -778,8 +880,8 @@ namespace hf {
             {
                 // Check Battery
                 checkBattery();
-                // Check planner
-                checkPlanner();
+                // Check planners
+                checkPlanners();
                 // Grab control signal if available
                 checkReceiver();
                 // Check serials for messages

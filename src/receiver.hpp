@@ -116,6 +116,7 @@ namespace hf {
         // maximum number of channels that any receiver will send (of which we'll use six)
         static const uint8_t MAXCHAN = 8;
 
+        uint8_t _lastAux1State;
         uint8_t _aux1State;
         uint8_t _aux2State;
 
@@ -239,6 +240,7 @@ namespace hf {
             demands.throttle = throttleFun(rawvals[_channelMap[CHANNEL_THROTTLE]]);
             
             // Store auxiliary switch state
+            _lastAux1State = _aux1State;
             _aux1State = getRawval(CHANNEL_AUX1) >= 0.0 ? (getRawval(CHANNEL_AUX1) > .4 ? 2 : 1) : 0;
             _aux2State = getRawval(CHANNEL_AUX2) >= 0.4 ? 1 : 0;
 
@@ -292,6 +294,11 @@ namespace hf {
         void setCalibrationStatus(bool calibrated)
         {
             _calibrated = calibrated;
+        }
+        
+        bool aux1Changed()
+        {
+           return (_lastAux1State != _aux1State);
         }
         
         virtual void pollForFrame(void) {}

@@ -49,7 +49,7 @@ namespace hf {
             
             void computeReferenceDemands(float _demands[2], state_t &  state, demands_t & demands)
             {
-                if (state.executingMission)
+                if (state.executingMission || state.executingStack)
                 {
                     _demands[0] = demands.setpointAngle[0];
                     _demands[1] = demands.setpointAngle[1];

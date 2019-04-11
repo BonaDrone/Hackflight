@@ -48,7 +48,7 @@ namespace hf {
 
               bool setpointIsActive(state_t & state)
               {
-                  return state.executingMission;
+                  return (state.executingMission || state.executingStack);
               }
 
           protected:
