@@ -158,7 +158,6 @@ namespace hf {
                   (!_receiver->throttleIsDown() || _state.executingStack || _state.executingAction))
                 {
                   _mixer->runArmed(_demands);
-
                 }
             }
 
