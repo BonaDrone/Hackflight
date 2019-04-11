@@ -117,6 +117,7 @@ namespace hf {
         static const uint8_t MAXCHAN = 8;
 
         uint8_t _lastAux1State;
+        uint8_t _lastAux2State;
         uint8_t _aux1State;
         uint8_t _aux2State;
 
@@ -241,6 +242,7 @@ namespace hf {
             
             // Store auxiliary switch state
             _lastAux1State = _aux1State;
+            _lastAux2State = _aux2State;
             _aux1State = getRawval(CHANNEL_AUX1) >= 0.0 ? (getRawval(CHANNEL_AUX1) > .4 ? 2 : 1) : 0;
             _aux2State = getRawval(CHANNEL_AUX2) >= 0.4 ? 1 : 0;
 
@@ -300,6 +302,12 @@ namespace hf {
         {
            return (_lastAux1State != _aux1State);
         }
+
+        bool aux2Changed()
+        {
+           return (_lastAux2State != _aux2State);
+        }
+
         
         virtual void pollForFrame(void) {}
         

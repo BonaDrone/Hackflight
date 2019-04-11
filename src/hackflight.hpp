@@ -278,9 +278,11 @@ namespace hf {
                         !_state.armed &&
                         _receiver->throttleIsDown() &&
                         _receiver->getAux2State() &&
+                        _receiver->aux2Changed() &&
                         !_failsafe &&
                         safeAngle(AXIS_ROLL) &&
-                        safeAngle(AXIS_PITCH)) {
+                        safeAngle(AXIS_PITCH &&
+                        !_lowBattery)) {
                     _state.armed = true;
                     _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
                 }

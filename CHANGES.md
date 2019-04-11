@@ -41,6 +41,7 @@
 * #80 Enable clearing EEPROM by sections
 * #107 Increase main loop speed
 * #111 Correct only with one sensor when calling the main loop ESKF correct function.
+* #119 Arming checks
 
 ### Removed
 
