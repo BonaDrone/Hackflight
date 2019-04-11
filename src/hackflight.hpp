@@ -98,6 +98,13 @@ namespace hf {
             // Support for headless mode
             float _yawInitial;
 
+            void switchToStackExecution()
+            {
+                _state.executingStack = true;
+                _state.executingMission = false;
+                planner.reset();
+            }
+
             bool safeAngle(uint8_t axis)
             {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
@@ -142,7 +149,6 @@ namespace hf {
                 }
                 lastTime = _board->getTime();
               }
-
 
             }
 
@@ -722,73 +728,73 @@ namespace hf {
             virtual void handle_WP_ARM_Request(uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_ARM, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_DISARM_Request(uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_DISARM, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_LAND_Request(uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_GO_FORWARD_Request(uint8_t & meters, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_FORWARD, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_GO_BACKWARD_Request(uint8_t & meters, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_BACKWARD, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_GO_LEFT_Request(uint8_t & meters, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_LEFT, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_GO_RIGHT_Request(uint8_t & meters, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_RIGHT, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_HOVER_Request(uint8_t & seconds, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_HOVER, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_TURN_CW_Request(uint8_t & degrees, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CW, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
             virtual void handle_WP_TURN_CCW_Request(uint8_t & degrees, uint8_t & code) override
             {
                 individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CCW, _lastCommandData);
-                _state.executingStack = true;
+                switchToStackExecution();
             }
 
         public:
