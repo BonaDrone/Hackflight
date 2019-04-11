@@ -133,13 +133,11 @@ namespace hf {
                   // XXX it might be necessary to trigger the low battery action from here
                   _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
 
-                  // ---- Provisional
                   if (_lowBattery)
                   {
                     pinMode(25, OUTPUT);
                     digitalWrite(25, LOW);
                   }
-                  // ---- Provisional
 
                   isLastLowBattery = true;
                 }
@@ -329,14 +327,11 @@ namespace hf {
             {
                 if (_state.executingStack)
                 {
-                    // turn off mission execution since individual commands have
-                    // a higher priority
-                    _state.executingMission = false;
                     individualPlanner.executeAction(_state, _demands);
                 }
                 else if (_state.executingMission)
                 {
-                   planner.executeAction(_state, _demands);
+                    planner.executeAction(_state, _demands);
                 }
             }
 
@@ -720,6 +715,7 @@ namespace hf {
                 // as well as stop executing a mission
                 (void)flag;
                 _state.executingMission = false;
+                _state.executingStack = false;
                 _state.armed = false;
                 digitalWrite(25, LOW);
             }
