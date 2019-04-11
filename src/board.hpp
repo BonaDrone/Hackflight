@@ -55,6 +55,7 @@ namespace hf {
             virtual bool  getQuaternion(float quat[4]) = 0;
             virtual void  writeMotor(uint8_t index, float value) = 0;
             virtual float getTime(void) = 0;
+            virtual float getLowBatteryLimit(void) = 0;
 
             //------------------------- Support for additional surface-mount sensors -------------------------------------
             virtual bool  getGyrometer(float gyroRates[3]) { (void)gyroRates;  return false; }
@@ -74,7 +75,6 @@ namespace hf {
             //----------------------------------------- Safety -----------------------------------------------------------
             virtual void showArmedStatus(bool armed) { (void)armed; }
             virtual void flashLed(bool shouldflash) { (void)shouldflash; }
-            virtual bool isBatteryLow(void) { return false; }
 
             //--------------------------------------- Debugging ----------------------------------------------------------
             static void  outbuf(char * buf);
