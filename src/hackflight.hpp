@@ -741,7 +741,7 @@ namespace hf {
 
             virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
             {
-                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData);
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData / 100.f);
                 switchToStackExecution();
             }
 
@@ -771,7 +771,7 @@ namespace hf {
 
             virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
             {
-                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData);
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData / 100.f);
                 switchToStackExecution();
             }
 

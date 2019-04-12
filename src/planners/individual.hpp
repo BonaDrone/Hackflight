@@ -72,7 +72,7 @@
           _actionStart = true;
         }
         
-        void addActionToStack(state_t & state, uint8_t actionCode, int data)
+        void addActionToStack(state_t & state, uint8_t actionCode, float data)
         {
           action_t action = {};
           switch (actionCode) {

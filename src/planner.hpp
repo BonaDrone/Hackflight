@@ -30,9 +30,9 @@ namespace hf {
     typedef struct {
 
       uint8_t action;
-      uint8_t position[3];
-      uint8_t rotationDegrees;
-      uint8_t duration;
+      float position[3];
+      float rotationDegrees;
+      float duration;
       bool    clockwise;
 
     } action_t;
@@ -73,17 +73,20 @@ namespace hf {
                 switch (action.action) {
                   case WP_ARM:
                   {
+                      // Serial.println("Arm");
                       actionComplete = state.armed;
                       break;
                   }
                   case WP_DISARM:
                   {
+                      // Serial.println("Disarm");
                       actionComplete = !state.armed;
                       break;
                   }
                   case WP_TAKE_OFF:
                   case WP_CHANGE_ALTITUDE:
                   {
+                      // Serial.println("Takeoff or change alt");
                       if (fabs(action.position[2] - state.UAVState->position[2]) < DISTANCE_THRESHOLD)
                       {
                           actionComplete = true;
@@ -92,11 +95,13 @@ namespace hf {
                   }
                   case WP_LAND:
                   {
+                      // Serial.println("Land");
                       actionComplete = (state.UAVState->position[2] < DISTANCE_THRESHOLD);
                       break;
                   }
                   case WP_HOVER:
                   {
+                      // Serial.println("Hover");
                       float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
                       actionComplete =  (elapsedTime > action.duration);
                       break;
@@ -105,35 +110,41 @@ namespace hf {
                   // to distance based programing we will need different validators
                   case WP_GO_FORWARD: // For the moment, movement is time based
                   {
+                    // Serial.println("Forward");
                     float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
                     actionComplete =  (elapsedTime > action.duration);
                     break;
                   }
                   case WP_GO_BACKWARD:
                   {
+                    // Serial.println("Back");
                     float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
                     actionComplete =  (elapsedTime > action.duration);
                     break;                    
                   }
                   case WP_GO_LEFT:
                   {
+                    // Serial.println("Left");
                     float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
                     actionComplete =  (elapsedTime > action.duration);
                     break;                  
                   }
                   case WP_GO_RIGHT:
                   {
+                    // Serial.println("Right");
                     float elapsedTime = (micros() - _startActionTime) / 1000000.0f;
                     actionComplete =  (elapsedTime > action.duration);
                     break;
                   }
                   case WP_TURN_CW: // End yaw smaller than starting yaw 
                   { 
+                    // Serial.println("Turn CW");
                     actionComplete = (state.UAVState->eulerAngles[2] < _startActionYaw - action.rotationDegrees);
                     break;                                
                   }
                   case WP_TURN_CCW: // End yaw bigger than starting yaw
                   {
+                    // Serial.println("Turn CCW");
                     actionComplete = (state.UAVState->eulerAngles[2] > _startActionYaw + action.rotationDegrees);
                     break;                                                
                   }
