@@ -42,6 +42,7 @@
 * #107 Increase main loop speed
 * #111 Correct only with one sensor when calling the main loop ESKF correct function.
 * #119 Arming checks
+* #120 Limit maximum height when executing a mission
 
 ### Removed
 

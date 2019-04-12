@@ -54,6 +54,8 @@ namespace hf {
             const float TARGET_ROLL        = 5;
             const float TARGET_PITCH       = 5; // angle in degrees
             const float TARGET_YAW_RATE    = 2; // angular velocity in degrees per second
+            
+            const float MAX_HEIGHT         = 3;
           
             // for actions that involve time
             bool _actionStart = true;
@@ -164,6 +166,9 @@ namespace hf {
                     _actionStart = false; 
                     _startActionTime = micros();
                     _startActionYaw = state.UAVState->eulerAngles[2];
+                    // Limit maximum height of the actions
+                    if (_currentAction.position[2] > MAX_HEIGHT)
+                        _currentAction.position[2] = MAX_HEIGHT;
                 } 
                 switch (_currentAction.action) {
                   case WP_ARM:
