@@ -306,7 +306,7 @@ namespace hf {
                 }
 
                 // Cut motors on throttle-down
-                if (_state.armed && _receiver->throttleIsDown() && !_state.executingMission) {
+                if (_state.armed && _receiver->throttleIsDown() && !_state.executingMission && !_state.executingStack) {
                     _mixer->cutMotors();
                 }
 
