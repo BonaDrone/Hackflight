@@ -111,16 +111,17 @@ namespace hf {
             {
                 bool safe = false;
 
-                if (_safeToArm && !_state.armed && 
-                    !_failsafe && !_lowBattery &&
+                if (!_state.armed && !_failsafe && !_lowBattery &&
                     safeAngle(AXIS_ROLL) && safeAngle(AXIS_PITCH))
                 {
                     safe = true; 
                 }
+
                 if (_hasPositioningBoard && !_positionBoardConnected)
                 {
                     safe = false;
                 }
+
                 return safe;
             }
 
@@ -293,9 +294,8 @@ namespace hf {
                 if (!_safeToArm) {
                     _safeToArm = !_receiver->getAux2State();
                 }
-
-                // Arm (after lots of safety checks!)
-                if ( safeToArm() &&
+                
+                if (_safeToArm && safeToArm() &&
                     _receiver->throttleIsDown() &&
                     _receiver->getAux2State() &&
                     _receiver->aux2Changed()
