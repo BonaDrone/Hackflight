@@ -247,6 +247,10 @@ namespace hf {
 
             void checkReceiver(void)
             {
+              
+                // Set LED based on arming status                
+                _board->showArmedStatus(_state.armed);
+              
                 // Check whether receiver data is available
                 if (!_receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial)) return;
 
@@ -291,9 +295,6 @@ namespace hf {
                 if (_state.armed && _receiver->throttleIsDown() && !_state.executingMission) {
                     _mixer->cutMotors();
                 }
-
-                // Set LED based on arming status
-                _board->showArmedStatus(_state.armed);
 
             } // checkReceiver
 
