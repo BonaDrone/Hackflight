@@ -107,6 +107,23 @@ namespace hf {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
             }
 
+            bool safeToArm(void)
+            {
+                bool safe = false;
+
+                if (_safeToArm && !_state.armed && 
+                    !_failsafe && !_lowBattery &&
+                    safeAngle(AXIS_ROLL) && safeAngle(AXIS_PITCH))
+                {
+                    safe = true; 
+                }
+                if (_hasPositioningBoard && !_positionBoardConnected)
+                {
+                    safe = false;
+                }
+                return safe;
+            }
+
             void checkBattery()
             {
               // Frequency management
@@ -278,17 +295,14 @@ namespace hf {
                 }
 
                 // Arm (after lots of safety checks!)
-                if (    _safeToArm &&
-                        !_state.armed &&
-                        _receiver->throttleIsDown() &&
-                        _receiver->getAux2State() &&
-                        _receiver->aux2Changed() &&
-                        !_failsafe &&
-                        safeAngle(AXIS_ROLL) &&
-                        safeAngle(AXIS_PITCH &&
-                        !_lowBattery)) {
-                    _state.armed = true;
-                    _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
+                if ( safeToArm() &&
+                    _receiver->throttleIsDown() &&
+                    _receiver->getAux2State() &&
+                    _receiver->aux2Changed()
+                    ) 
+                {
+                        _state.armed = true;
+                        _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
                 }
 
                 // Cut motors on throttle-down
@@ -327,11 +341,11 @@ namespace hf {
             {
                 if (_state.executingStack)
                 {
-                    individualPlanner.executeAction(_state, _demands);
+                    individualPlanner.executeAction(_state, _demands, safeToArm());
                 }
                 else if (_state.executingMission)
                 {
-                    planner.executeAction(_state, _demands);
+                    planner.executeAction(_state, _demands, safeToArm());
                 }
             }
 

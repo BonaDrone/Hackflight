@@ -170,7 +170,7 @@ namespace hf {
             static const uint8_t WP_TURN_CW         = 12;
             static const uint8_t WP_TURN_CCW        = 13;
 
-            void executeAction(state_t & state, demands_t & demands)
+            void executeAction(state_t & state, demands_t & demands, bool safeToArm)
             {
                 if (_actionStart)
                 {
@@ -184,7 +184,8 @@ namespace hf {
                 switch (_currentAction.action) {
                   case WP_ARM:
                   {
-                    state.armed = true;
+                    if (safeToArm)
+                        state.armed = true;
                     break;                    
                   }
                   case WP_DISARM:
