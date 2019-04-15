@@ -117,6 +117,7 @@ namespace hf {
     float eulerAngles[3];
     float linearVelocities[3];
     float angularVelocities[3];
+    float gyroBias[3];
     float position[3];
     
   } eskf_state_t;
