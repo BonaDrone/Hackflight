@@ -139,11 +139,15 @@ namespace hf {
                 }
 
                 delay(100);
-
                 // Clear the interrupt
                 _lsm6dsm.clearInterrupt();
 
                 setLed(false);
+            }
+            
+            virtual void calibrateIMUBias(void) override
+            {
+                _lsm6dsm.calibrate(GYRO_BIAS, ACCEL_BIAS, 127);
             }
 
     }; // class Bonadrone
