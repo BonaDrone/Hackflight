@@ -264,6 +264,19 @@ namespace hf {
                         !_failsafe &&
                         safeAngle(AXIS_ROLL) &&
                         safeAngle(AXIS_PITCH)) {
+
+                    pinMode(26, OUTPUT);
+                    digitalWrite(26, LOW);
+                    
+                    // reset PID errors
+                    for (uint8_t k=0; k<_pid_controller_count; ++k) {
+                        _pid_controllers[k]->resetErrors();
+                    }
+                    // Calibrate IMU
+                    _board->calibrateIMUBias();
+                    
+                    digitalWrite(26, HIGH);
+                    
                     _state.armed = true;
                     _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
                     // Reset estimations each time the quad is armed 
