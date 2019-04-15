@@ -137,6 +137,11 @@ namespace hf {
           state.linearVelocities[0] = _lpVelX.update(vels[0]);
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
+          
+          // Update gyro bias
+          state.gyroBias[0] = eskf.x[13];
+          state.gyroBias[1] = eskf.x[14];
+          state.gyroBias[2] = eskf.x[15];
 
           // XXX print for debugging
           // if (isCorrection)
@@ -444,7 +449,9 @@ namespace hf {
 
           }
 
-          eskfp.x[15] = 0.00; // Brute force yaw bias to 0
+          eskf.x[13] = 0; // gyro bias
+          eskf.x[14] = 0;
+          eskf.x[15] = 0;
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
