@@ -135,7 +135,8 @@ namespace hf {
 
             float computePid(float rateP, float PTerm, float ITerm, float DTerm, float gyro[3], float offset, uint8_t axis)
             {
-                PTerm = (PTerm * _demandsToRate - gyro[axis] + offset) * rateP;
+                float error = PTerm * _demandsToRate - gyro[axis] + offset;
+                PTerm = error * rateP;
 
                 return PTerm + ITerm + DTerm;
             }
@@ -174,7 +175,7 @@ namespace hf {
                 _PConstants[1] = gyroPitchP;
                 _IConstants[0] = gyroRollI;
                 _IConstants[1] = gyroPitchI;
-                _IConstants[1] = gyroYawI;
+                _IConstants[2] = gyroYawI;
                 _DConstants[0] = gyroRollD;
                 _DConstants[1] = gyroPitchD;
 
@@ -205,7 +206,7 @@ namespace hf {
                 lastTime = currentTime ;
                    
                 _PTerm[0] = demands.roll;
-                _PTerm[1] = demands.pitch;
+                _PTerm[1] = demands.pitch;               
 
                 // Pitch, roll use Euler angles
                 demands.roll  = computeCyclicPid(demands.roll,  state.angularVelocities, deltat, AXIS_ROLL);
@@ -225,16 +226,17 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                     if (_demands[axis] > MAX_OUTPUT_LIMIT) {
-                        _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
+                        // _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
                         _demands[axis] = MAX_OUTPUT_LIMIT;
                     } else if (_demands[axis] < MIN_OUTPUT_LIMIT) {
-                        _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
+                        // _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
                         _demands[axis] = MIN_OUTPUT_LIMIT;
                     }  
                 }
-                demands.roll = _demands[0];
+                
+                demands.roll  = _demands[0];
                 demands.pitch = _demands[1];
-                // demands.yaw = _demands[2];
+                demands.yaw   = _demands[2];
 
                 // We've always gotta do this!
                 return true;
@@ -249,6 +251,11 @@ namespace hf {
                 if (throttleIsDown) {
                     resetIntegral();
                 }
+            }
+            
+            virtual void resetErrors(void) override
+            {
+                resetIntegral();
             }
 
     };  // class Rate
