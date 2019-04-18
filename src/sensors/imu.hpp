@@ -575,6 +575,7 @@ namespace hf {
             virtual void modifyState(eskf_state_t & state, float time) override
             {
                 (void)time;
+                // Serial.println(_rates[0]);
                 state.angularVelocities[0] = _rates[0] - state.gyroBias[0];
                 state.angularVelocities[1] = _rates[1] - state.gyroBias[1];
                 state.angularVelocities[2] = _rates[2] - state.gyroBias[2];                

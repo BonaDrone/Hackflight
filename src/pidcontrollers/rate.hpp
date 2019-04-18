@@ -49,11 +49,12 @@ namespace hf {
 
             // Arbitrary constants
             const float GYRO_WINDUP_MAX             = 2.2f;
-            const float MAX_OUTPUT_LIMIT            = 2.2f;   // Should be tuned?
-            const float MIN_OUTPUT_LIMIT            = -2.2f;  // Should be tuned?
-            const float BIG_GYRO_DEGREES_PER_SECOND = 180.0f; 
+            const float MAX_OUTPUT_LIMIT            = 1.0f;   // Should be tuned?
+            const float MIN_OUTPUT_LIMIT            = -1.0f;  // Should be tuned?
+            const float BIG_GYRO_DEGREES_PER_SECOND = 100.0f; 
             const float BIG_YAW_DEMAND              = 0.1f;
             const float MAX_ARMING_ANGLE_DEGREES    = 25.0f;
+            const float ERROR_THRESHOLD             = 0.02;
 
             float _bigGyroRate;
             
@@ -103,6 +104,7 @@ namespace hf {
             float computeITermGyro(float error, float rateI, float rcCommand, float gyro[3], float deltat, uint8_t axis)
             {
                 // Avoid integral windup
+                // if (fabs(error) > ERROR_THRESHOLD)
                 _errorGyroI[axis] = Filter::constrainAbs(_errorGyroI[axis] + error*deltat, GYRO_WINDUP_MAX);
                 
                 // Reset integral on quick gyro change or large gyroYaw command
@@ -226,10 +228,10 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                     if (_demands[axis] > MAX_OUTPUT_LIMIT) {
-                        // _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
+                        _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
                         _demands[axis] = MAX_OUTPUT_LIMIT;
                     } else if (_demands[axis] < MIN_OUTPUT_LIMIT) {
-                        // _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
+                        _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
                         _demands[axis] = MIN_OUTPUT_LIMIT;
                     }  
                 }

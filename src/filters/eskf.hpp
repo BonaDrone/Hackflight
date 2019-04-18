@@ -139,9 +139,9 @@ namespace hf {
           state.linearVelocities[2] = vels[2];
           
           // Update gyro bias
-          state.gyroBias[0] = eskf.x[13];
-          state.gyroBias[1] = eskf.x[14];
-          state.gyroBias[2] = eskf.x[15];
+          state.gyroBias[0] = 0; //eskf.x[13];
+          state.gyroBias[1] = 0; //eskf.x[14];
+          state.gyroBias[2] = 0; //eskf.x[15];
 
           // XXX print for debugging
           // if (isCorrection)

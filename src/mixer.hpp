@@ -105,8 +105,8 @@ namespace hf {
 
                     // This is a way to still have good gyro corrections if at least one motor reaches its max
                     if (maxMotor > 1) {
-                        motors[i] -= maxMotor - 1;
-                        // motors[i] /= maxMotor; 
+                        //motors[i] -= maxMotor - 1;
+                        motors[i] /= maxMotor; 
                     }
 
                     // Keep motor values in interval [0,1]
