@@ -284,6 +284,7 @@ namespace hf {
                   _demandsToRate);
 
                 hf::Level * level = new hf::Level(_levelP);  // Pitch Level P
+                level->setDemandsToRate(_demandsToRate);
 
                 // Add additional sensors
                 if (_hasPositioningBoard)
@@ -294,12 +295,12 @@ namespace hf {
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
-                    h.addPidController(althold, 2);
+                    // h.addPidController(althold, 2);
                 }
 
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
-                h.addPidController(level, 0);
+                h.addPidController(level, 2);
 
                 if (_isMosquito90) {
                     h.init(new hf::BonadroneBrushed(), &rc, &mixer, ratePid);

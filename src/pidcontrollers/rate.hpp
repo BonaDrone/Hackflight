@@ -49,9 +49,9 @@ namespace hf {
 
             // Arbitrary constants
             const float GYRO_WINDUP_MAX             = 2.2f;
-            const float MAX_OUTPUT_LIMIT            = 1.0f;   // Should be tuned?
-            const float MIN_OUTPUT_LIMIT            = -1.0f;  // Should be tuned?
-            const float BIG_GYRO_DEGREES_PER_SECOND = 100.0f; 
+            const float MAX_OUTPUT_LIMIT            = 2.2f;   // Should be tuned?
+            const float MIN_OUTPUT_LIMIT            = -2.2f;  // Should be tuned?
+            const float BIG_GYRO_DEGREES_PER_SECOND = 180.0f; 
             const float BIG_YAW_DEMAND              = 0.1f;
             const float MAX_ARMING_ANGLE_DEGREES    = 25.0f;
             const float ERROR_THRESHOLD             = 0.02;
@@ -166,7 +166,7 @@ namespace hf {
 
             Rate(float gyroRollP, float gyroRollI, float gyroRollD,
                        float gyroPitchP, float gyroPitchI, float gyroPitchD,
-                       float gyroYawP, float gyroYawI, float demandsToRate = 1.0f) :
+                       float gyroYawP, float gyroYawI, float demandsToRate = 5.0f) :
                 _gyroYawP(gyroYawP), 
                 _gyroYawI(gyroYawI),
                 _demandsToRate(demandsToRate)
@@ -184,7 +184,7 @@ namespace hf {
             }
             
             Rate(float gyroRollPitchP, float gyroRollPitchI, float gyroRollPitchD,
-                       float gyroYawP, float gyroYawI, float demandsToRate = 1.0f) :
+                       float gyroYawP, float gyroYawI, float demandsToRate = 5.0f) :
                 _gyroYawP(gyroYawP), 
                 _gyroYawI(gyroYawI), 
                 _demandsToRate(demandsToRate)
@@ -228,10 +228,10 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                     if (_demands[axis] > MAX_OUTPUT_LIMIT) {
-                        _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
+                        // _errorGyroI[axis] -= (_demands[axis] - MAX_OUTPUT_LIMIT)/_IConstants[axis];
                         _demands[axis] = MAX_OUTPUT_LIMIT;
                     } else if (_demands[axis] < MIN_OUTPUT_LIMIT) {
-                        _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
+                        // _errorGyroI[axis] += (MIN_OUTPUT_LIMIT - _demands[axis])/_IConstants[axis];
                         _demands[axis] = MIN_OUTPUT_LIMIT;
                     }  
                 }

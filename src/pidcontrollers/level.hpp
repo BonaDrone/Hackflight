@@ -57,7 +57,7 @@ namespace hf {
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30, float demandsToRate = 6.0)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -67,13 +67,18 @@ namespace hf {
                 // Since we work in radians:
                 // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
-                _demandsToRate = demandsToRate;
+                // _demandsToRate = demandsToRate;
                 // _lpfRoll.init();
                 // _lpfPitch.init();
             }
 
             Level(float rollPitchLevelP) : Level(rollPitchLevelP, rollPitchLevelP)
             {
+            }
+
+            void setDemandsToRate(float demandsToRate)
+            {
+                _demandsToRate = demandsToRate;
             }
 
             bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
