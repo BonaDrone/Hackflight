@@ -52,6 +52,8 @@ namespace hf {
 
             virtual bool getJacobianObservation(float * H, float * x) override
             {
+                Serial.println("Range correct");
+              
                 float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
                 // 1 column
                 H[0] =  0;
@@ -71,18 +73,6 @@ namespace hf {
                 H[7] =  (2*x[2]*x[6]*x[8])/(aux1*aux1) - (2*x[2]*x[7]*x[9])/(aux1*aux1);
                 // 9 column
                 H[8] =  0;
-                // 10 column
-                H[9] =  0;
-                // 11 column
-                H[10] =  0;
-                // 12 column
-                H[11] =  0;
-                // 13 column
-                H[12] =  0;
-                // 14 column
-                H[13] =  0;
-                // 15 column
-                H[14] =  0;
                 
                 return true;
             }
@@ -121,7 +111,7 @@ namespace hf {
 
         protected:
 
-            virtual bool shouldUpdateESKF(float time) override
+            virtual bool shouldUpdateESKF(float time, state_t & state) override
             {
                 static float _time;
                 float newDistance;

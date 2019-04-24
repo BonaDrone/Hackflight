@@ -25,8 +25,8 @@
 
 #pragma once
 
-#define NNsta 16
-#define NEsta 15
+#define NNsta 10
+#define NEsta 9
 #define Mobs 3
 #define MNQuat 4
 
@@ -117,7 +117,6 @@ namespace hf {
     float eulerAngles[3];
     float linearVelocities[3];
     float angularVelocities[3];
-    float gyroBias[3];
     float position[3];
     
   } eskf_state_t;

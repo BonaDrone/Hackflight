@@ -137,11 +137,6 @@ namespace hf {
           state.linearVelocities[0] = _lpVelX.update(vels[0]);
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
-          
-          // Update gyro bias
-          state.gyroBias[0] = 0; //eskf.x[13];
-          state.gyroBias[1] = 0; //eskf.x[14];
-          state.gyroBias[2] = 0; //eskf.x[15];
 
           // XXX print for debugging
           // if (isCorrection)
@@ -162,9 +157,9 @@ namespace hf {
 
       void covariancePrediction(float * Fdx, float * P, float * Q)
       {
-          float tmp0[errorStates*errorStates];
-          float tmp6[errorStates*errorStates];
-          float Fdxt[errorStates*errorStates];
+          float tmp0[errorStates*errorStates] = {};
+          float tmp6[errorStates*errorStates] = {};
+          float Fdxt[errorStates*errorStates] = {};
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
           transpose(Fdx, Fdxt, errorStates, errorStates);
           mulmat(Fdx, P, tmp0, errorStates, errorStates, errorStates);
@@ -176,12 +171,12 @@ namespace hf {
       
       int computeGain(float * P, float * H, float * R, float * K, ESKF_Sensor * sensor)
       {
-          float tmp1[errorStates*observations];
-          float tmp2[observations*errorStates];
-          float tmp3[observations*observations];
-          float tmp4[observations*observations];
-          float tmp9[observations*observations];
-          float Ht[errorStates*observations];
+          float tmp1[errorStates*observations] = {};
+          float tmp2[observations*errorStates] = {};
+          float tmp3[observations*observations] = {};
+          float tmp4[observations*observations] = {};
+          float tmp9[observations*observations] = {};
+          float Ht[errorStates*observations] = {};
           
           transpose(H, Ht, observations, errorStates);
           mulmat(P, Ht, tmp1, errorStates, errorStates, observations); // P*H'
@@ -201,13 +196,13 @@ namespace hf {
       
       void covarianceUpdate(float * K, float * H, float * R, float * P)
       {
-          float tmp0[errorStates*errorStates];
-          float tmp2[observations*errorStates];
-          float tmp6[errorStates*errorStates];
-          float tmp7[errorStates*errorStates];
-          float tmp8[errorStates*errorStates];
-          float tmp9[errorStates*errorStates];
-          float Kt[observations*errorStates];
+          float tmp0[errorStates*errorStates] = {};
+          float tmp2[observations*errorStates] = {};
+          float tmp6[errorStates*errorStates] = {};
+          float tmp7[errorStates*errorStates] = {};
+          float tmp8[errorStates*errorStates] = {};
+          float tmp9[errorStates*errorStates] = {};
+          float Kt[observations*errorStates] = {};
           
           /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(K, H, tmp6, errorStates, observations, errorStates); // K*H
@@ -262,44 +257,26 @@ namespace hf {
         eskfp.x[7] = 0.0;
         eskfp.x[8] = 0.0;
         eskfp.x[9] = 0.0;
-        eskfp.x[10] = 0.0; // accel bias
-        eskfp.x[11] = 0.0;
-        eskfp.x[12] = 0.3;
-        eskfp.x[13] = 0.0; // gyro bias
-        eskfp.x[14] = 0.0;
-        eskfp.x[15] = 0.0;
 
         // Since P has already been zero-ed only elements != 0 have to be set
         // 1 column
         eskfp.P[0] = 0.0;
         // 2 column
-        eskfp.P[16] = 0.0;
+        eskfp.P[10] = 0.0;
         // 3 column
-        eskfp.P[32] = 0.0;
+        eskfp.P[20] = 0.0;
         // 4 column
-        eskfp.P[48] = 0.0;
+        eskfp.P[30] = 0.0;
         // 5 column
-        eskfp.P[64] = 0.0;
+        eskfp.P[40] = 0.0;
         // 6 column
-        eskfp.P[80] = 0.0;
+        eskfp.P[50] = 0.0;
         // 7 column
-        eskfp.P[96] = 0.01;
+        eskfp.P[60] = 0.01;
         // 8 column
-        eskfp.P[112] = 0.01;
+        eskfp.P[70] = 0.01;
         // 9 column
-        eskfp.P[128] = 0.0;
-        // 10 column
-        eskfp.P[144] = 0.000001;
-        // 11 column
-        eskfp.P[160] = 0.000001;
-        // 12 column
-        eskfp.P[176] = 0.000001;
-        // 13 column
-        eskfp.P[192] = 0.000001;
-        // 14 column
-        eskfp.P[208] = 0.000001;
-        // 15 column
-        eskfp.P[224] = 0.000001;
+        eskfp.P[80] = 0.0;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -319,10 +296,10 @@ namespace hf {
           */
 
           // Check sensor
-          if (sensor->shouldUpdateESKF(time)) {
-              // Update state with gyro rates
-              sensor->modifyState(state, time);
-          }
+          // if (sensor->shouldUpdateESKF(time)) {
+          //     // Update state with gyro rates
+          //     sensor->modifyState(state, time);
+          // }
 
           // Compute deltat
           double t_now = (double)micros();
@@ -408,16 +385,13 @@ namespace hf {
           covarianceUpdate(eskfp.K, eskfp.H, eskfp.R, eskfp.P);
 
           /* Error injection */
-          if (sensor->isOpticalFlow())
-          {
-              eskf.x[0] += eskf.dx[0]; // position
-              eskf.x[1] += eskf.dx[1];
-              eskf.x[3] += eskf.dx[3]; // velocity
-              eskf.x[4] += eskf.dx[4];
-              eskf.x[10] += eskf.dx[9]; // accel bias
-              eskf.x[11] += eskf.dx[10];
-              eskf.x[12] += eskf.dx[11];
-          } else {
+          // if (sensor->isOpticalFlow())
+          // {
+          //     eskf.x[0] += eskf.dx[0]; // position
+          //     eskf.x[1] += eskf.dx[1];
+          //     eskf.x[3] += eskf.dx[3]; // velocity
+          //     eskf.x[4] += eskf.dx[4];
+          // } else {
               // XXX Quaternion injection as a method
               float tmp[4];
               float tmp2[4];
@@ -440,18 +414,7 @@ namespace hf {
               eskf.x[3] += eskf.dx[3]; // velocity
               eskf.x[4] += eskf.dx[4];
               eskf.x[5] += eskf.dx[5];
-              eskf.x[10] += eskf.dx[9]; // accel bias
-              eskf.x[11] += eskf.dx[10];
-              eskf.x[12] += eskf.dx[11];
-              eskf.x[13] += eskf.dx[12]; // gyro bias
-              eskf.x[14] += eskf.dx[13];
-              eskf.x[15] += eskf.dx[14];
-
-          }
-
-          eskf.x[13] = 0; // gyro bias
-          eskf.x[14] = 0;
-          eskf.x[15] = 0;
+          // }
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;

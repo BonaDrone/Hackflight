@@ -59,7 +59,7 @@ namespace hf {
         // This method should be overriden if control over update/correct
         // frequency is desired. It should return true when the sensor is
         // ready to update/correct the state and false otherwise
-        virtual bool shouldUpdateESKF(float time) { return true; }
+        virtual bool shouldUpdateESKF(float time, state_t & state) { return true; }
         
         // This method might be overriden to return the appropriate inverse of Z
         virtual bool Zinverse(float * Z, float * invZ)
