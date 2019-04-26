@@ -42,10 +42,10 @@ namespace hf {
             // Paramters to experiment with ------------------------------------------------------------------------
 
             // LSM6DSM full-scale settings
-            static const LSM6DSM::Ascale_t Ascale = LSM6DSM::AFS_8G;
+            static const LSM6DSM::Ascale_t Ascale = LSM6DSM::AFS_4G;
             static const LSM6DSM::Gscale_t Gscale = LSM6DSM::GFS_2000DPS;
-            static const LSM6DSM::Rate_t   AODR   = LSM6DSM::ODR_1660Hz;
-            static const LSM6DSM::Rate_t   GODR   = LSM6DSM::ODR_1660Hz;
+            static const LSM6DSM::Rate_t   AODR   = LSM6DSM::ODR_833Hz;
+            static const LSM6DSM::Rate_t   GODR   = LSM6DSM::ODR_833Hz;
 
             // Gyro bias will be estimated by the ESKF filter
             float ACCEL_BIAS[3] = {0.0,0.0,0.0};
