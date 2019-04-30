@@ -51,7 +51,7 @@ namespace hf {
             virtual bool getJacobianObservation(float * H, float * x) override
             {
               
-              Serial.println("Accel Correct");
+              // Serial.println("Accel Correct");
               
               // 1 column
               H[0] =  0;
@@ -116,9 +116,12 @@ namespace hf {
             virtual void getCovarianceCorrection(float * R) override
             {
                 // Approximate the process noise using a small constant
-                R[0] = 0.10f;
-                R[4] = 0.10f;
-                R[8] = 0.10f;
+                R[0] = 0.70f;
+                R[4] = 0.70f;
+                R[8] = 0.70f;
+                // R[0] = 2.00f;
+                // R[4] = 2.00f;
+                // R[8] = 2.00f;
             }            
 
         protected:

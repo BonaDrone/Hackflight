@@ -137,6 +137,10 @@ namespace hf {
           state.linearVelocities[0] = _lpVelX.update(vels[0]);
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
+          
+          // Serial.print(state.position[2], 8);
+          // Serial.print(",");
+          // Serial.println(state.linearVelocities[2], 8);
 
           // XXX print for debugging
           // if (isCorrection)

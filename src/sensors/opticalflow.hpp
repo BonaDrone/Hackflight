@@ -93,7 +93,7 @@ namespace hf {
             }
             virtual bool getJacobianObservation(float * H, float * x) override
             {
-                Serial.println("Optical flow correct");
+                // Serial.println("Optical flow correct");
               
                 float z;
                 // Saturate z estimation to avoid singularities

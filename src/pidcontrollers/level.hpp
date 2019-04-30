@@ -42,7 +42,7 @@ namespace hf {
         private:
           
             // const float FEED_FORWARD = 0.5;
-            const float FEED_FORWARD = 0.5;
+            const float FEED_FORWARD = 1.0;
             const float FF_THRESHOLD = 0.1;
             // const float WINDUP_MAX = 1.0;
             // const uint8_t HISTORY = 10;

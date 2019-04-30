@@ -105,15 +105,17 @@ namespace hf {
 
                     // This is a way to still have good gyro corrections if at least one motor reaches its max
                     if (maxMotor > 1) {
-                        //motors[i] -= maxMotor - 1;
-                        motors[i] /= maxMotor; 
+                        motors[i] -= maxMotor - 1;
+                        //motors[i] /= maxMotor; 
                     }
 
                     // Keep motor values in interval [0,1]
                     motors[i] = Filter::constrainMinMax(motors[i], 0, 1);
                 }
 
+                // Serial.println("Motors");
                 for (uint8_t i = 0; i < nmotors; i++) {
+                    // Serial.println(motors[i]);
                     writeMotor(i, motors[i]);
                 }
 

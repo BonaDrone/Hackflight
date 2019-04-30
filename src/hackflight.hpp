@@ -185,13 +185,13 @@ namespace hf {
             void correctStateEstimate(void)
             {
               // static int iter2;
-              // static uint8_t correctionSensor;
+              static uint8_t correctionSensor;
               
               // if (iter2 == 0)
               // {
                 // Update index of the sensor that will correct the estimations 
 
-                // correctionSensor+=1;
+                correctionSensor+=1;
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
                 ESKF_Sensor * sensor = eskf.sensors[k];
@@ -206,7 +206,7 @@ namespace hf {
                 }
                 // make sure that the index of the sensor that corrects goes
                 // between 1-3
-                // correctionSensor = correctionSensor%3;     
+                correctionSensor = correctionSensor%3;     
                 }
                 
                 // iter2 += 1;
@@ -806,10 +806,10 @@ namespace hf {
             void update(void)
             {
               
-                static uint32_t lastTime;
-                uint32_t currentTime = micros();
-                Serial.println(1 / ((currentTime - lastTime) / 1000000.0));
-                lastTime = currentTime;
+                // static uint32_t lastTime;
+                // uint32_t currentTime = micros();
+                // Serial.println(1 / ((currentTime - lastTime) / 1000000.0));
+                // lastTime = currentTime;
                 
                 // Check Battery
                 checkBattery();

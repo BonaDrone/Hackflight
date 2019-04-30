@@ -122,6 +122,20 @@ namespace hf {
                     accel[0] = _ax*9.80665;
                     accel[1] = _ay*9.80665;
                     accel[2] = _az*9.80665;
+                    
+                    // Serial.print(micros()/1000000.0, 8);
+                    // Serial.print(",");
+                    // Serial.print(accel[0], 8);
+                    // Serial.print(",");
+                    // Serial.print(accel[1], 8);
+                    // Serial.print(",");
+                    // Serial.print(accel[2], 8);
+                    // Serial.print(",");
+                    // Serial.print(gyro[0], 8);
+                    // Serial.print(",");
+                    // Serial.print(gyro[1], 8);
+                    // Serial.print(",");
+                    // Serial.println(gyro[2], 8);
 
                     return true;
                 }
