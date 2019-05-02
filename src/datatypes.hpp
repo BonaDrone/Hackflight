@@ -29,16 +29,17 @@ typedef struct {
     float roll;
     float pitch;
     float yaw;
-    float altitude;
-
+    float setpoint[3];            // X, Y, Z setpoint
+    float setpointAngle[3];       // Roll, pitch, yaw, setpoint
+    float setpointRate[3];       // Roll, pitch, yaw, setpoint
 } demands_t;
 
 typedef struct {
-    hf::eskf_state_t * UAVState;
+    hf::eskf_state_t * UAVState;  // Mosquito status 
     bool  armed;
-    bool  executingMission;
-    float batteryVoltage; 
-
+    bool  executingMission = false;
+    bool  executingStack = false;
+    float batteryVoltage;         // current Voltage
 } state_t;
 
 typedef struct {

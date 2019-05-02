@@ -39,7 +39,8 @@
 
 #include "filters/eskf.hpp"
 
-#include "planner.hpp"
+#include "planners/mission.hpp"
+#include "planners/individual.hpp"
 
 namespace hf {
 
@@ -59,11 +60,12 @@ namespace hf {
             tx_calibration_t _tx_calibration;
 
             // Passed to Hackflight::init() for a particular build
-            Board      * _board;
-            Receiver   * _receiver;
-            Rate       * _ratePid;
-            Mixer      * _mixer;
-            Planner      planner;
+            Board               * _board;
+            Receiver            * _receiver;
+            Rate                * _ratePid;
+            Mixer               * _mixer;
+            MissionPlanner      planner;
+            IndividualPlanner   individualPlanner;
 
             ESKF eskf = ESKF();
 
@@ -90,15 +92,37 @@ namespace hf {
             bool _failsafe;
             bool _lowBattery;
 
-            // XXX Store it as an MSP parameter
-            const float _BAT_MIN = 3.3; // Minimum voltage for 1S Battery
-
             // Support for headless mode
             float _yawInitial;
+
+            void switchToStackExecution()
+            {
+                _state.executingStack = true;
+                _state.executingMission = false;
+                planner.reset();
+            }
 
             bool safeAngle(uint8_t axis)
             {
                 return fabs(_state.UAVState->eulerAngles[axis]) < _ratePid->maxArmingAngle;
+            }
+
+            bool safeToArm(void)
+            {
+                bool safe = false;
+
+                if (!_state.armed && !_failsafe && !_lowBattery &&
+                    safeAngle(AXIS_ROLL) && safeAngle(AXIS_PITCH))
+                {
+                    safe = true; 
+                }
+
+                if (_hasPositioningBoard && !_positionBoardConnected)
+                {
+                    safe = false;
+                }
+
+                return safe;
             }
 
             void checkBattery()
@@ -115,7 +139,7 @@ namespace hf {
               if (_board->getTime() - lastTime > 0.5)
               {
                 // Look if the battery is below the limit
-                if (_state.batteryVoltage < _BAT_MIN && _state.batteryVoltage > 2.5)
+                if (_state.batteryVoltage < _board->getLowBatteryLimit() && _state.batteryVoltage > 2.5)
                 {
                   // Save the first time it detects low battery
                   lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
@@ -124,13 +148,14 @@ namespace hf {
                   // XXX it might be necessary to trigger the low battery action from here
                   _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
 
-                  // ---- Provisional
                   if (_lowBattery)
                   {
                     pinMode(25, OUTPUT);
                     digitalWrite(25, LOW);
+                    // XXX Ring the buzzer 
+                    individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, 0);
+                    switchToStackExecution();
                   }
-                  // ---- Provisional
 
                   isLastLowBattery = true;
                 }
@@ -140,7 +165,6 @@ namespace hf {
                 }
                 lastTime = _board->getTime();
               }
-
 
             }
 
@@ -152,9 +176,10 @@ namespace hf {
                 runPidControllers();
 
                 // Use updated demands to run motors
-                if (_state.armed && !_failsafe && !_receiver->throttleIsDown()) {
+                if (_state.armed && !_failsafe && 
+                  (!_receiver->throttleIsDown() || _state.executingStack || _state.executingMission))
+                {
                   _mixer->runArmed(_demands);
-
                 }
             }
 
@@ -233,7 +258,7 @@ namespace hf {
 
                     // XXX we should allow associating PID controllers with particular aux states
                     if (pidController->auxState <= auxState) {
-                        if (pidController->modifyDemands(*_state.UAVState, _demands, currentTime) && pidController->shouldFlashLed()) {
+                        if (pidController->modifyDemands(_state, _demands, currentTime) && pidController->shouldFlashLed()) {
                             shouldFlash = true;
                         }
                     }
@@ -247,28 +272,42 @@ namespace hf {
             void checkFailsafe(void)
             {
                 if (_state.armed &&
-                   (_receiver->lostSignal(_receiver->getBypassReceiver()) || _board->isBatteryLow())) {
+                   (_receiver->lostSignal(_receiver->getBypassReceiver()))) {
                     _mixer->cutMotors();
                     _state.armed = false;
                     _failsafe = true;
                     _board->showArmedStatus(false);
                     if (_receiver->getLostSignal())
                     {
-                      _receiver->setBypassReceiver(false);
+                        _receiver->setBypassReceiver(false);
                     }
                 }
             }
 
             void checkReceiver(void)
             {
+              
+                // Set LED based on arming status                
+                _board->showArmedStatus(_state.armed);
+              
                 // Check whether receiver data is available
                 if (!_receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial)) return;
 
                 // Update ratePid with cyclic demands
                 _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
+                
+                // Check if aux1 has changed value. In that case, stop executing 
+                // actions and return control to TX
+                if (_receiver->aux1Changed())
+                {
+                    _state.executingMission = false;
+                    _state.executingStack = false;
+                    planner.reset();
+                    individualPlanner.reset();
+                }
 
                 // Disarm
-                if (_state.armed && !_receiver->getAux2State()) {
+                if (  _state.armed && !_receiver->getAux2State() && _receiver->aux2Changed()) {
                     _state.armed = false;
                 }
 
@@ -276,15 +315,13 @@ namespace hf {
                 if (!_safeToArm) {
                     _safeToArm = !_receiver->getAux2State();
                 }
-
-                // Arm (after lots of safety checks!)
-                if (    _safeToArm &&
-                        !_state.armed &&
-                        _receiver->throttleIsDown() &&
-                        _receiver->getAux2State() &&
-                        !_failsafe &&
-                        safeAngle(AXIS_ROLL) &&
-                        safeAngle(AXIS_PITCH)) {
+                
+                if (_safeToArm && safeToArm() &&
+                    _receiver->throttleIsDown() &&
+                    _receiver->getAux2State() &&
+                    _receiver->aux2Changed()
+                    ) 
+                {
 
                     pinMode(26, OUTPUT);
                     digitalWrite(26, LOW);
@@ -298,19 +335,16 @@ namespace hf {
                     
                     digitalWrite(26, HIGH);
                     
-                    _state.armed = true;
-                    _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
+                        _state.armed = true;
+                        _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
                     // Reset estimations each time the quad is armed 
                     eskf.init();
                 }
 
                 // Cut motors on throttle-down
-                if (_state.armed && _receiver->throttleIsDown()) {
+                if (_state.armed && _receiver->throttleIsDown() && !_state.executingMission && !_state.executingStack) {
                     _mixer->cutMotors();
                 }
-
-                // Set LED based on arming status
-                _board->showArmedStatus(_state.armed);
 
             } // checkReceiver
 
@@ -339,9 +373,16 @@ namespace hf {
                 _sensors[_sensor_count++] = sensor;
             }
 
-            void checkPlanner(void)
+            void checkPlanners(void)
             {
-              if (_state.executingMission == false) return;
+                if (_state.executingStack)
+                {
+                    individualPlanner.executeAction(_state, _demands, safeToArm());
+                }
+                else if (_state.executingMission)
+                {
+                    planner.executeAction(_state, _demands, safeToArm());
+                }
             }
 
             // XXX only for debuging purposes
@@ -720,9 +761,86 @@ namespace hf {
             
             virtual void handle_SET_EMERGENCY_STOP_Request(uint8_t  flag)
             {
-                // XXX This should trigger a land action 
+                // XXX This should trigger a land action or a disarm
+                // as well as stop executing a mission
                 (void)flag;
+                _state.executingMission = false;
+                _state.executingStack = false;
+                _state.armed = false;
                 digitalWrite(25, LOW);
+            }
+            
+            // Action handlers
+            virtual void handle_WP_ARM_Request(uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_ARM, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_DISARM_Request(uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_DISARM, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_LAND_Request(uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData / 100.f);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_FORWARD_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_FORWARD, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_BACKWARD_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_BACKWARD, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_LEFT_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_LEFT, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_GO_RIGHT_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_GO_RIGHT, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData / 100.f);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_HOVER_Request(uint8_t & seconds, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_HOVER, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_TURN_CW_Request(uint8_t & degrees, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CW, _lastCommandData);
+                switchToStackExecution();
+            }
+
+            virtual void handle_WP_TURN_CCW_Request(uint8_t & degrees, uint8_t & code) override
+            {
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TURN_CCW, _lastCommandData);
+                switchToStackExecution();
             }
 
         public:
@@ -758,6 +876,8 @@ namespace hf {
                 _state.armed = armed;
                 // Will be set to true when start mission message is received
                 _state.executingMission = false;
+                // Will be set to true when an inmediate action is to be received
+                _state.executingStack = false;
 
                 // Initialize MPS parser for serial comms
                 MspParser::init();
@@ -767,8 +887,11 @@ namespace hf {
 
                 // Initialize the planner
                 planner.init(PARAMETER_SLOTS);
+                // and the stack planner
+                individualPlanner.init();
                 // XXX Only for debuging purposes.
-                //planner.printMission();
+                // planner.printMission();
+                // readEEPROM();
 
                 // Tell the mixer which board to use
                 _mixer->board = board;
@@ -813,8 +936,8 @@ namespace hf {
                 
                 // Check Battery
                 checkBattery();
-                // Check planner
-                checkPlanner();
+                // Check planners
+                checkPlanners();
                 // Grab control signal if available
                 checkReceiver();
                 // Check serials for messages

@@ -334,7 +334,24 @@ namespace hf {
                 // via MSP
                 h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
+                // XXX Debuging
+                // hardcodeMission();
+                
             } // init
+            
+            // XXX Testing
+            void hardcodeMission(void)
+            {
+              EEPROM.write(150, 1);   // Arm
+              // EEPROM.write(151, 0);
+              EEPROM.write(151, 4);   // Takeoff to 1 m
+              EEPROM.write(152, 1);
+              EEPROM.write(153, 11);  // Hover for 3 seconds
+              EEPROM.write(154, 3);
+              EEPROM.write(155, 3);   // Land
+              // EEPROM.write(155, 0);
+              EEPROM.write(156, 2);   // Disarm
+            }
 
     }; // class HackflightWrapper
 

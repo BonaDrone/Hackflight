@@ -28,6 +28,10 @@
 * #103 Allow to define MSP messages with ID > 200 that do not acknowledge
 * #104 Vertical velocity control when in Altitude Hold mode and outside of the deadband 
 * #105 Filter ESKF estimated linear velocities with a LPF
+* #116 Enable immediate execution of actions
+* #116 When executing a flight mission, switching the value of the aux 1 in the remote returns the control of the drone to the TX or APP
+* #117 Flight missions planner
+* #118 Land when low battery is detected
 
 ### Changed
 
@@ -37,6 +41,8 @@
 * #80 Enable clearing EEPROM by sections
 * #107 Increase main loop speed
 * #111 Correct only with one sensor when calling the main loop ESKF correct function.
+* #119 Arming checks
+* #120 Limit maximum height when executing a mission
 
 ### Removed
 

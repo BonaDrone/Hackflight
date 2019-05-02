@@ -142,6 +142,13 @@ namespace hf {
 
                 return PTerm + ITerm + DTerm;
             }
+            
+            void computeReferenceDemands(float _demands[3], state_t &  state, demands_t & demands)
+            {
+              _demands[0] = demands.roll;
+              _demands[1] = demands.pitch;
+              _demands[2] = (state.executingMission || state.executingStack) ? demands.setpointRate[2] : demands.yaw;
+            }
 
         protected:
 
@@ -153,7 +160,7 @@ namespace hf {
             float _demandsToRate;
 
             // proportion of cyclic demand compared to its maximum
-            float _proportionalCyclicDemand;
+            // float _proportionalCyclicDemand;
 
             void resetIntegral(void)
             {
@@ -200,29 +207,31 @@ namespace hf {
                 _DConstants[1] = gyroRollPitchD;
             }
 
-            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
             {
                 static float lastTime = 0.0;
                 
                 float deltat = currentTime - lastTime;
                 lastTime = currentTime ;
-                   
-                _PTerm[0] = demands.roll;
-                _PTerm[1] = demands.pitch;               
+                
+                float _demands[3];
+                computeReferenceDemands(_demands, state, demands);
+                _PTerm[0] = _demands[0];
+                _PTerm[1] = _demands[1];
 
                 // Pitch, roll use Euler angles
-                demands.roll  = computeCyclicPid(demands.roll,  state.angularVelocities, deltat, AXIS_ROLL);
-                demands.pitch = computeCyclicPid(demands.pitch, state.angularVelocities, deltat, AXIS_PITCH);
-
-                // For gyroYaw, P term comes directly from RC command, and D term is zero
-                float yawError = demands.yaw * _demandsToRate - state.angularVelocities[AXIS_YAW];
-                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, demands.yaw, state.angularVelocities, deltat, AXIS_YAW);
-                demands.yaw = computePid(_gyroYawP, demands.yaw, ITermGyroYaw, 0, state.angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
+                _demands[0]  = computeCyclicPid(_demands[0],  state.UAVState->angularVelocities, deltat, AXIS_ROLL);
+                _demands[1] = computeCyclicPid(_demands[1], state.UAVState->angularVelocities, deltat, AXIS_PITCH);
+                
+                // For gyroYaw, P term comes directly from RC command or rate setpoint, and D term is zero
+                float yawError = _demands[2] * _demandsToRate - state.UAVState->angularVelocities[AXIS_YAW];
+                float ITermGyroYaw = computeITermGyro(yawError, _gyroYawI, _demands[2], state.UAVState->angularVelocities, deltat, AXIS_YAW);
+                _demands[2] = computePid(_gyroYawP, _demands[2], ITermGyroYaw, 0, state.UAVState->angularVelocities, _offsetError[AXIS_YAW], AXIS_YAW);
 
                 // Prevent "gyroYaw jump" during gyroYaw correction
-                demands.yaw = Filter::constrainAbs(demands.yaw, 0.1 + fabs(demands.yaw));
+                _demands[2] = Filter::constrainAbs(_demands[2], 0.1 + fabs(_demands[2]));
 
-                float _demands[3] = {demands.roll, demands.pitch, demands.yaw};
+                // float _demands[3] = {demands.roll, demands.pitch, demands.yaw};
                 
                 // Avoid windup lag
                 for (int axis=0; axis<2; ++axis)
@@ -247,7 +256,7 @@ namespace hf {
             void updateReceiver(demands_t & demands, bool throttleIsDown)
             {
                 // Compute proportion of cyclic demand compared to its maximum
-                _proportionalCyclicDemand = Filter::max(fabs(demands.roll), fabs(demands.pitch)) / 0.5f;
+                // _proportionalCyclicDemand = Filter::max(fabs(demands.roll), fabs(demands.pitch)) / 0.5f;
                 
                 // When landed, reset integral component of PID
                 if (throttleIsDown) {

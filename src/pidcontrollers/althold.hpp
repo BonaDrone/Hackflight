@@ -46,19 +46,40 @@ namespace hf {
               // Minimum altitude, set by constructor
               float _minAltitude;
 
+              bool setpointIsActive(state_t & state)
+              {
+                  return (state.executingMission || state.executingStack);
+              }
+
           protected:
             
-              bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
+              bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
               {
+                  // XXX Comment it now, rethink later
                   // Don't do anything till we've reached sufficient altitude
-                  if (state.position[2] < _minAltitude) return false;
+                  // if (state.UAVState->position[2] < _minAltitude) return false;
 
                   float correction = 0;
-                  if (setpoint.gotCorrection(demands.throttle, state.position[2], state.linearVelocities[2], currentTime, correction)) {
+                  if (setpointIsActive(state))
+                  {
+                    // Correct based on setpoint
+                    if(setpoint.gotSetpointCorrection(demands.setpoint[2],
+                          state.UAVState->position[2], 
+                          state.UAVState->linearVelocities[2], 
+                          currentTime, correction)){
                       demands.throttle = correction + HOVER_THROTTLE;
-                      return true;
+                      return true;                      
+                    }
+                  } else {
+                    // Correct based on throttle
+                    if (setpoint.gotManualCorrection(demands.throttle, 
+                            state.UAVState->position[2], 
+                            state.UAVState->linearVelocities[2], 
+                            currentTime, correction)) {
+                        demands.throttle = correction + HOVER_THROTTLE;
+                        return true;
+                    }
                   }
-
                   return false;
 
               }
