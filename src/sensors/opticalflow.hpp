@@ -33,7 +33,7 @@ namespace hf {
         private:
 
             static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
-            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
+            static constexpr float UPDATE_PERIOD = 1.0 / UPDATE_HZ;
             static const uint8_t HISTORY = 20;
 
             // Use digital pin 12 for chip select and SPI1 port for comms
@@ -68,10 +68,6 @@ namespace hf {
                     _time = time;
                     _deltaX = -(float)_filteredDeltaY / deltat;
                     _deltaY = (float)_filteredDeltaX / deltat;
-                    // Serial.print(_deltaX, 8);
-                    // Serial.print(",");
-                    // Serial.print(_deltaY, 8);
-                    // Serial.print(",");
                     return true; 
                 }
                 return false;
@@ -87,21 +83,19 @@ namespace hf {
                 _lpDeltaY.init();
                 bool connected = true;
                 if (!_flowSensor.begin()) {
-                  connected = false;
+                    connected = false;
                 }
                 return connected;
             }
             virtual bool getJacobianObservation(float * H, float * x) override
             {
-                // Serial.println("Optical flow correct");
-              
                 float z;
                 // Saturate z estimation to avoid singularities
                 if (x[2] < 0.1)
                 {
-                  z = 0.1;
+                    z = 0.1;
                 } else {
-                  z = x[2];
+                    z = x[2];
                 }
                 // 1 column
                 H[0] =  0;
@@ -131,58 +125,11 @@ namespace hf {
                 H[8] =  (x[7]*((2*f*x[8]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[6]*((2*f*x[9]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[9]*((2*f*x[6]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[8]*((2*f*x[7]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
                 H[17] =  (x[8]*((2*f*x[7]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[9]*((2*f*x[6]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[6]*((2*f*x[9]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[7]*((2*f*x[8]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
 
-                // // 1 column
-                // H[0] =  0;
-                // H[15] =  0;
-                // // 2 column
-                // H[1] =  0;
-                // H[16] =  0;
-                // // 3 column
-                // H[2] =  -(f*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9]))*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/(z*z);
-                // H[17] =   (f*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9]))*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/(z*z);
-                // // 4 column
-                // H[3] =  (f*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]))/z;
-                // H[18] =          (f*(2*x[6]*x[9] - 2*x[7]*x[8])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                // // 5 column
-                // H[4] =           (f*(2*x[6]*x[9] + 2*x[7]*x[8])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                // H[19] =  -(f*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]))/z;
-                // // 6 column
-                // H[5] =  -(f*(2*x[6]*x[8] - 2*x[7]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                // H[20] =  -(f*(2*x[6]*x[7] + 2*x[8]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                // // 7 column
-                // H[6] =  0;
-                // H[21] =  0;
-                // // 8 column
-                // H[7] =  0;
-                // H[22] =  0;
-                // // 9 column
-                // H[8] =  0;
-                // H[23] =  0;
-                // // 10 column
-                // H[9] =  0;
-                // H[24] =  0;
-                // // 11 column
-                // H[10] =  0;
-                // H[25] =  0;
-                // // 12 column
-                // H[11] =  0;
-                // H[26] =  0;
-                // // 13 column
-                // H[12] =  0;
-                // H[27] =  0;
-                // // 14 column
-                // H[13] =  0;
-                // H[28] =  0;
-                // // 15 column
-                // H[14] =  0;
-                // H[29] =  0;
-
                 return true;
             }
 
             virtual bool getInnovation(float * z, float * x) override
             {
-                
                 // Saturate z estimation to avoid singularities
                 float z_est;
                 if (x[2] < 0.1)

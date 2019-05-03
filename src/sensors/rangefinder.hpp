@@ -52,8 +52,6 @@ namespace hf {
 
             virtual bool getJacobianObservation(float * H, float * x) override
             {
-                // Serial.println("Range correct");
-              
                 float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
                 // 1 column
                 H[0] =  0;
@@ -96,7 +94,7 @@ namespace hf {
             {
                 if (Z[0] == 0)
                 {
-                  return 1;
+                    return 1;
                 }
                 invZ[0] = 1.0/Z[0];
                 return 0;
@@ -104,9 +102,9 @@ namespace hf {
             
             void setCalibration(float rx, float ry, float rz)
             {
-              _rx = rx;
-              _ry = ry;
-              _rz = rz;
+                _rx = rx;
+                _ry = ry;
+                _rz = rz;
             }
 
         protected:
@@ -115,11 +113,12 @@ namespace hf {
             {
                 static float _time;
                 float newDistance;
-                if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) {
+                if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) 
+                {
                     _time = time;
                     if (_distance < 0.0 || _distance > 4.5)
                     {
-                      return false;
+                        return false;
                     }
                     _distance = newDistance;
                     return true; 

@@ -140,8 +140,6 @@ namespace hf {
                 }
                 lastTime = _board->getTime();
               }
-
-
             }
 
             void updateControlSignal(void)
@@ -169,28 +167,15 @@ namespace hf {
 
                     if (sensor->isEstimation && sensor->shouldUpdateESKF(time, _state))
                     {
-                        if (iter == 0)
-                        {
-                          eskf.update(sensor, time);
-                          iter += 1;
-                        } else
-                        {
-                          iter += 1;
-                          if (iter==9) iter = 0; 
-                        }                        
+                        eskf.update(sensor, time);
                     }
                 }
             }
 
             void correctStateEstimate(void)
             {
-              // static int iter2;
-              static uint8_t correctionSensor;
+                static uint8_t correctionSensor;
               
-              // if (iter2 == 0)
-              // {
-                // Update index of the sensor that will correct the estimations 
-
                 correctionSensor+=1;
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
@@ -208,13 +193,7 @@ namespace hf {
                 // between 1-3
                 correctionSensor = correctionSensor%3;     
                 }
-                
-                // iter2 += 1;
-              // } else
-              // {
-                // iter2 += 1;
-                // if (iter2 == 9) iter2 = 0; 
-              // }               
+
             }
 
             void runPidControllers(void)
@@ -389,7 +368,7 @@ namespace hf {
                         _state.armed = true;
                     }
                 }
-                else {          // got disarming command: always disarm
+                else { // got disarming command: always disarm
                     _state.armed = false;
                 }
             }
@@ -804,13 +783,7 @@ namespace hf {
             }
 
             void update(void)
-            {
-              
-                // static uint32_t lastTime;
-                // uint32_t currentTime = micros();
-                // Serial.println(1 / ((currentTime - lastTime) / 1000000.0));
-                // lastTime = currentTime;
-                
+            {                
                 // Check Battery
                 checkBattery();
                 // Check planner

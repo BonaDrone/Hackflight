@@ -286,7 +286,7 @@ namespace hf {
                 (void)time;
 
                 board->getIMU(_rates, _accels);
-                // Serial.println(_rates[0]);
+
                 state.UAVState->angularVelocities[0] = _rates[0];
                 state.UAVState->angularVelocities[1] = _rates[1];
                 state.UAVState->angularVelocities[2] = _rates[2];                
