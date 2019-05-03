@@ -305,12 +305,12 @@ namespace hf {
                         _minAltitude);  // Min altitude
                     h.addPidController(althold, 2);
 
-                    // hf::PositionHold * poshold = new hf::PositionHold(
-                    //     0.0,            // Position Hold P -> this will set velTarget to 0
-                    //     _altHoldVelP,   // Position Hold Velocity P
-                    //     _altHoldVelI,   // Position Hold Velocity I
-                    //     _altHoldVelD);   // Position Hold Velocity D
-                    // h.addPidController(poshold, 2);
+                    hf::PositionHold * poshold = new hf::PositionHold(
+                        0.0,            // Position Hold P -> this will set velTarget to 0
+                        _posHoldVelP,   // Position Hold Velocity P
+                        _posHoldVelI,   // Position Hold Velocity I
+                        _posHoldVelD);   // Position Hold Velocity D
+                    h.addPidController(poshold, 2);
 
                 }
 
