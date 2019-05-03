@@ -71,18 +71,6 @@ namespace hf {
                 H[7] =  (2*x[2]*x[6]*x[8])/(aux1*aux1) - (2*x[2]*x[7]*x[9])/(aux1*aux1);
                 // 9 column
                 H[8] =  0;
-                // 10 column
-                H[9] =  0;
-                // 11 column
-                H[10] =  0;
-                // 12 column
-                H[11] =  0;
-                // 13 column
-                H[12] =  0;
-                // 14 column
-                H[13] =  0;
-                // 15 column
-                H[14] =  0;
                 
                 return true;
             }
@@ -106,7 +94,7 @@ namespace hf {
             {
                 if (Z[0] == 0)
                 {
-                  return 1;
+                    return 1;
                 }
                 invZ[0] = 1.0/Z[0];
                 return 0;
@@ -114,22 +102,23 @@ namespace hf {
             
             void setCalibration(float rx, float ry, float rz)
             {
-              _rx = rx;
-              _ry = ry;
-              _rz = rz;
+                _rx = rx;
+                _ry = ry;
+                _rz = rz;
             }
 
         protected:
 
-            virtual bool shouldUpdateESKF(float time) override
+            virtual bool shouldUpdateESKF(float time, state_t & state) override
             {
                 static float _time;
                 float newDistance;
-                if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) {
+                if (time - _time > UPDATE_PERIOD && distanceAvailable(newDistance)) 
+                {
                     _time = time;
                     if (_distance < 0.0 || _distance > 4.5)
                     {
-                      return false;
+                        return false;
                     }
                     _distance = newDistance;
                     return true; 

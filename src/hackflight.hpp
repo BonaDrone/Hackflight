@@ -140,8 +140,6 @@ namespace hf {
                 }
                 lastTime = _board->getTime();
               }
-
-
             }
 
             void updateControlSignal(void)
@@ -160,13 +158,14 @@ namespace hf {
 
             void updateStateEstimate(void)
             {
+                static int iter;
                 // Check all sensors if they need an update estimate
                 for (uint8_t k=0; k<eskf.sensor_count; ++k)
                 {
                     ESKF_Sensor * sensor = eskf.sensors[k];
                     float time = _board->getTime();
 
-                    if (sensor->isEstimation && sensor->shouldUpdateESKF(time))
+                    if (sensor->isEstimation && sensor->shouldUpdateESKF(time, _state))
                     {
                         eskf.update(sensor, time);
                     }
@@ -175,17 +174,17 @@ namespace hf {
 
             void correctStateEstimate(void)
             {
-                // Update index of the sensor that will correct the estimations 
                 static uint8_t correctionSensor;
+              
                 correctionSensor+=1;
-                // for (uint8_t k=0; k<eskf.sensor_count; ++k)
-                // {
-                ESKF_Sensor * sensor = eskf.sensors[correctionSensor];
+                for (uint8_t k=0; k<eskf.sensor_count; ++k)
+                {
+                ESKF_Sensor * sensor = eskf.sensors[k];
                 float time = _board->getTime();
 
                 // Check if the selected sensor is ready to correct and, if so,
                 // correct the estimated states
-                if (sensor->isCorrection && sensor->shouldUpdateESKF(time))
+                if (sensor->isCorrection && sensor->shouldUpdateESKF(time, _state))
                 {
                     sensor->getMeasures(*_state.UAVState);
                     eskf.correct(sensor, time);
@@ -193,7 +192,8 @@ namespace hf {
                 // make sure that the index of the sensor that corrects goes
                 // between 1-3
                 correctionSensor = correctionSensor%3;     
-                // }
+                }
+
             }
 
             void runPidControllers(void)
@@ -264,8 +264,23 @@ namespace hf {
                         !_failsafe &&
                         safeAngle(AXIS_ROLL) &&
                         safeAngle(AXIS_PITCH)) {
+
+                    pinMode(26, OUTPUT);
+                    digitalWrite(26, LOW);
+                    
+                    // reset PID errors
+                    for (uint8_t k=0; k<_pid_controller_count; ++k) {
+                        _pid_controllers[k]->resetErrors();
+                    }
+                    // Calibrate IMU
+                    _board->calibrateIMUBias();
+                    
+                    digitalWrite(26, HIGH);
+                    
                     _state.armed = true;
                     _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
+                    // Reset estimations each time the quad is armed 
+                    eskf.init();
                 }
 
                 // Cut motors on throttle-down
@@ -353,7 +368,7 @@ namespace hf {
                         _state.armed = true;
                     }
                 }
-                else {          // got disarming command: always disarm
+                else { // got disarming command: always disarm
                     _state.armed = false;
                 }
             }
@@ -768,7 +783,7 @@ namespace hf {
             }
 
             void update(void)
-            {
+            {                
                 // Check Battery
                 checkBattery();
                 // Check planner

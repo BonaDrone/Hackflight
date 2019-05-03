@@ -100,14 +100,14 @@ namespace hf {
                 bool inBandCurr = inBand(demand);
                 if (inBandCurr && !_inBandPrev) {
                     _posTarget = posActual;
-                    resetErrors();
+                    // resetErrors();
                 }
                 // Reset errors when moving stick out of deadband
                 // and changing to velocity control
-                if (!inBandCurr && _inBandPrev)
-                {
-                      resetErrors();
-                }
+                // if (!inBandCurr && _inBandPrev)
+                // {
+                    // resetErrors();
+                // }
                 // compute velocity setpoint: inside deadband from altitude error,
                 // outside deadband velocity control
                 float velTarget;

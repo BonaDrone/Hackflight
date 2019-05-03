@@ -36,10 +36,10 @@ namespace hf {
 
             // Custom mixer data per motor
             typedef struct motorMixer_t {
-                int8_t throttle; // T
-                int8_t roll; 	 // A
-                int8_t pitch;	 // E
-                int8_t yaw;	     // R
+                int8_t throttle;  // T
+                int8_t roll; 	    // A
+                int8_t pitch;	    // E
+                int8_t yaw;	      // R
             } motorMixer_t;
 
             // Arbitrary
@@ -106,6 +106,7 @@ namespace hf {
                     // This is a way to still have good gyro corrections if at least one motor reaches its max
                     if (maxMotor > 1) {
                         motors[i] -= maxMotor - 1;
+                        //motors[i] /= maxMotor; 
                     }
 
                     // Keep motor values in interval [0,1]

@@ -69,14 +69,18 @@ namespace hf {
                 if (imuRead()) {
 
                     // Convert gyrometer values from degrees/sec to radians/sec
-                    _gx = deg2rad(_gx);
-                    _gy = deg2rad(_gy);
-                    _gz = deg2rad(_gz);
+                    // _gx = deg2rad(_gx);
+                    // _gy = deg2rad(_gy);
+                    // _gz = deg2rad(_gz);
+                    
+                    gyro[0] = deg2rad(_gx);
+                    gyro[1] = deg2rad(_gy);
+                    gyro[2] = deg2rad(_gz);
 
-                    // Store output
-                    gyro[0] = int(_gx*100)/100.0;
-                    gyro[1] = int(_gy*100)/100.0;
-                    gyro[2] = int(_gz*100)/100.0;
+                    // // Store output
+                    // gyro[0] = int(_gx*100)/100.0;
+                    // gyro[1] = int(_gy*100)/100.0;
+                    // gyro[2] = int(_gz*100)/100.0;
 
                     return true;
                 }
@@ -105,14 +109,10 @@ namespace hf {
                 if (imuRead()) {
 
                     // Convert gyrometer values from degrees/sec to radians/sec
-                    _gx = deg2rad(_gx);
-                    _gy = deg2rad(_gy);
-                    _gz = deg2rad(_gz);
-
-                    // Store output
-                    gyro[0] = int(_gx*100)/100.0;
-                    gyro[1] = int(_gy*100)/100.0;
-                    gyro[2] = int(_gz*100)/100.0;
+                    // and store output
+                    gyro[0] = deg2rad(_gx);
+                    gyro[1] = deg2rad(_gy);
+                    gyro[2] = deg2rad(_gz);
 
                     // convert from Gs to m/s^2
                     accel[0] = _ax*9.80665;

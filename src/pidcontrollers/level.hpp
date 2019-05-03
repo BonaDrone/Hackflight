@@ -31,6 +31,7 @@
 #include "debug.hpp"
 #include "datatypes.hpp"
 #include "pidcontroller.hpp"
+#include "filters.h"
 
 namespace hf {
 
@@ -41,15 +42,17 @@ namespace hf {
         private:
           
             const float FEED_FORWARD = 1.0;
+            const float FF_THRESHOLD = 0.1;
             
             float PTerms[2];
             
             float _demandsToAngle;
             float _demandsToRate;
 
+
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -57,28 +60,35 @@ namespace hf {
                 // given max angle, the following relation must hold true:
                 // 0.5 * _demandsToAngle = maxAngle
                 // Since we work in radians:
-                // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
-                _demandsToRate = demandsToRate;
             }
 
             Level(float rollPitchLevelP) : Level(rollPitchLevelP, rollPitchLevelP)
             {
             }
 
+            void setDemandsToRate(float demandsToRate)
+            {
+                _demandsToRate = demandsToRate;
+            }
+
             bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
-
                 float _demands[2] = {demands.roll, demands.pitch};
+
                 for (int axis=0; axis<2; ++axis)
                 {
-                  float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
-                  _demands[axis] = error * PTerms[axis] + FEED_FORWARD * _demands[axis];
+                    float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
+                    float FF = 0;
+                    if (fabs(_demands[axis]) > FF_THRESHOLD) 
+                        FF = FEED_FORWARD * _demands[axis];
+                    _demands[axis] = error * PTerms[axis] + FF;
                 }
-                
-                demands.roll = _demands[0]/_demandsToRate;
-                demands.pitch = _demands[1]/_demandsToRate;
+
+                // Output of Level controller should be the desired rates
+                demands.roll = _demands[0] / _demandsToRate;
+                demands.pitch = _demands[1] / _demandsToRate;
 
                 // We've always gotta do this!
                 return true;

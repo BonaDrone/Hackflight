@@ -31,6 +31,8 @@ namespace hf {
         protected:
 
         virtual bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime) = 0;
+        
+        virtual void resetErrors(void) {}
 
         virtual bool shouldFlashLed(void) { return false; }
 

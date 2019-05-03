@@ -145,7 +145,7 @@ namespace hf {
             {
               // XXX each action with its own validator ?
               bool actionComplete = true;
-              if (abs(demands.altitude - state.position[2]) > 0.05)
+              if (fabs(demands.altitude - state.position[2]) > 0.05)
               {
                 actionComplete = false;
               }

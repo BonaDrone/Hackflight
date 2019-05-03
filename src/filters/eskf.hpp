@@ -72,18 +72,11 @@ namespace hf {
 
           eskfp.K = dptr;
           dptr += ne*m;
-          // eskfp.Kt = dptr;
-          // dptr += m*ne;
 
           eskfp.Fdx = dptr;
           dptr += ne*ne;
           eskfp.H = dptr;
           dptr += m*ne;
-
-          // eskfp.Ht = dptr;
-          // dptr += ne*m;
-          // eskfp.Fdxt = dptr;
-          // dptr += ne*ne;
 
           // eskfp.G = dptr;
           // dptr += ne*ne;
@@ -91,27 +84,6 @@ namespace hf {
           eskfp.fx = dptr;
           dptr += nn;
           eskfp.hx = dptr;
-          // dptr += m;
-          // 
-          // eskfp.tmp0 = dptr;
-          // dptr += ne*ne;
-          // eskfp.tmp1 = dptr;
-          // dptr += ne*m;
-          // eskfp.tmp2 = dptr;
-          // dptr += m*ne;
-          // eskfp.tmp3 = dptr;
-          // dptr += m*m;
-          // eskfp.tmp4 = dptr;
-          // dptr += m*m;
-          // eskfp.tmp5 = dptr;
-          // dptr += nn;
-          // eskfp.tmp6 = dptr;
-          // dptr += ne*ne;
-          // eskfp.tmp7 = dptr;
-          // dptr += ne*ne;
-          // eskfp.tmp8 = dptr;
-          // dptr += m*m;
-          // eskfp.tmp9 = dptr;
 
       }
 
@@ -138,28 +110,13 @@ namespace hf {
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
 
-          // XXX print for debugging
-          // if (isCorrection)
-          // {
-          //   Serial.print(state.position[0], 8);
-          //   Serial.print(",");
-          //   Serial.print(state.position[1], 8);
-          //   Serial.print(",");
-          //   Serial.print(micros() / 1000000.0, 8);
-          //   Serial.print(",");
-          //   Serial.print(state.linearVelocities[0], 8);
-          //   Serial.print(",");
-          //   Serial.print(state.linearVelocities[1], 8);
-          //   Serial.print(",");
-          //   Serial.println(state.position[2], 8);
-          // }
       }
 
       void covariancePrediction(float * Fdx, float * P, float * Q)
       {
-          float tmp0[errorStates*errorStates];
-          float tmp6[errorStates*errorStates];
-          float Fdxt[errorStates*errorStates];
+          float tmp0[errorStates*errorStates] = {};
+          float tmp6[errorStates*errorStates] = {};
+          float Fdxt[errorStates*errorStates] = {};
           /* P_k = Fdx_{k-1} P_{k-1} Fdx^T_{k-1} + Q_{k-1} */
           transpose(Fdx, Fdxt, errorStates, errorStates);
           mulmat(Fdx, P, tmp0, errorStates, errorStates, errorStates);
@@ -171,12 +128,12 @@ namespace hf {
       
       int computeGain(float * P, float * H, float * R, float * K, ESKF_Sensor * sensor)
       {
-          float tmp1[errorStates*observations];
-          float tmp2[observations*errorStates];
-          float tmp3[observations*observations];
-          float tmp4[observations*observations];
-          float tmp9[observations*observations];
-          float Ht[errorStates*observations];
+          float tmp1[errorStates*observations] = {};
+          float tmp2[observations*errorStates] = {};
+          float tmp3[observations*observations] = {};
+          float tmp4[observations*observations] = {};
+          float tmp9[observations*observations] = {};
+          float Ht[errorStates*observations] = {};
           
           transpose(H, Ht, observations, errorStates);
           mulmat(P, Ht, tmp1, errorStates, errorStates, observations); // P*H'
@@ -191,18 +148,25 @@ namespace hf {
           
           mulmat(tmp1, tmp4, K, errorStates, observations, observations); // K = P*H'*Z^-1
 
+          // Do not let optical flow correct height and vertical velocity
+          if (sensor->isOpticalFlow())
+          {
+            K[2] = 0;
+            K[5] = 0;
+          }
+
           return 0;
       }
       
       void covarianceUpdate(float * K, float * H, float * R, float * P)
       {
-          float tmp0[errorStates*errorStates];
-          float tmp2[observations*errorStates];
-          float tmp6[errorStates*errorStates];
-          float tmp7[errorStates*errorStates];
-          float tmp8[errorStates*errorStates];
-          float tmp9[errorStates*errorStates];
-          float Kt[observations*errorStates];
+          float tmp0[errorStates*errorStates] = {};
+          float tmp2[observations*errorStates] = {};
+          float tmp6[errorStates*errorStates] = {};
+          float tmp7[errorStates*errorStates] = {};
+          float tmp8[errorStates*errorStates] = {};
+          float tmp9[errorStates*errorStates] = {};
+          float Kt[observations*errorStates] = {};
           
           /* P = (I-KH)*P*(I-KH)' + KRK' */
           mulmat(K, H, tmp6, errorStates, observations, errorStates); // K*H
@@ -228,68 +192,55 @@ namespace hf {
       void init(void)
       {
           eskfp_init(&eskf, nominalStates, errorStates, observations, mnQuat);
-          /* zero-out matrices */
-          zeros(eskfp.qL, mnQuat, mnQuat);
-          zeros(eskfp.P, errorStates, errorStates);
-          zeros(eskfp.Q, errorStates, errorStates);
-          zeros(eskfp.R, observations, observations);
-          zeros(eskfp.K, errorStates, observations);
-          zeros(eskfp.Fdx, errorStates, errorStates);
-          zeros(eskfp.H, observations, errorStates);
+          reset();
+      }
 
-          // intialize lpfs
-          _lpVelX.init();
-          _lpVelY.init();
+      void reset(void)
+      {
+        /* zero-out matrices */
+        zeros(eskfp.qL, mnQuat, mnQuat);
+        zeros(eskfp.P, errorStates, errorStates);
+        zeros(eskfp.Q, errorStates, errorStates);
+        zeros(eskfp.R, observations, observations);
+        zeros(eskfp.K, errorStates, observations);
+        zeros(eskfp.Fdx, errorStates, errorStates);
+        zeros(eskfp.H, observations, errorStates);
 
-          // initial state
-          eskfp.x[0] = 0.0; // position
-          eskfp.x[1] = 0.0;
-          eskfp.x[2] = 0.0;
-          eskfp.x[3] = 0.0; // velocity
-          eskfp.x[4] = 0.0;
-          eskfp.x[5] = 0.0;
-          eskfp.x[6] = 1.0; // orientation (quaternion)
-          eskfp.x[7] = 0.0;
-          eskfp.x[8] = 0.0;
-          eskfp.x[9] = 0.0;
-          eskfp.x[10] = 0.0; // accel bias
-          eskfp.x[11] = 0.0;
-          eskfp.x[12] = 0.3;
-          eskfp.x[13] = 0.0; // gyro bias
-          eskfp.x[14] = 0.0;
-          eskfp.x[15] = 0.0;
+        // intialize lpfs
+        _lpVelX.init();
+        _lpVelY.init();
 
-          // Since P has already been zero-ed only elements != 0 have to be set
-          // 1 column
-          eskfp.P[0] = 0.0;
-          // 2 column
-          eskfp.P[16] = 0.0;
-          // 3 column
-          eskfp.P[32] = 0.0;
-          // 4 column
-          eskfp.P[48] = 0.0;
-          // 5 column
-          eskfp.P[64] = 0.0;
-          // 6 column
-          eskfp.P[80] = 0.0;
-          // 7 column
-          eskfp.P[96] = 0.01;
-          // 8 column
-          eskfp.P[112] = 0.01;
-          // 9 column
-          eskfp.P[128] = 0.0;
-          // 10 column
-          eskfp.P[144] = 0.000001;
-          // 11 column
-          eskfp.P[160] = 0.000001;
-          // 12 column
-          eskfp.P[176] = 0.000001;
-          // 13 column
-          eskfp.P[192] = 0.000001;
-          // 14 column
-          eskfp.P[208] = 0.000001;
-          // 15 column
-          eskfp.P[224] = 0.000001;
+        // initial state
+        eskfp.x[0] = 0.0; // position
+        eskfp.x[1] = 0.0;
+        eskfp.x[2] = 0.0;
+        eskfp.x[3] = 0.0; // velocity
+        eskfp.x[4] = 0.0;
+        eskfp.x[5] = 0.0;
+        eskfp.x[6] = 1.0; // orientation (quaternion)
+        eskfp.x[7] = 0.0;
+        eskfp.x[8] = 0.0;
+        eskfp.x[9] = 0.0;
+
+        // Since P has already been zero-ed only elements != 0 have to be set
+        // 1 column
+        eskfp.P[0] = 0.0;
+        // 2 column
+        eskfp.P[10] = 0.0;
+        // 3 column
+        eskfp.P[20] = 0.0;
+        // 4 column
+        eskfp.P[30] = 0.0;
+        // 5 column
+        eskfp.P[40] = 0.0;
+        // 6 column
+        eskfp.P[50] = 0.0;
+        // 7 column
+        eskfp.P[60] = 0.01;
+        // 8 column
+        eskfp.P[70] = 0.01;
+        // 9 column
+        eskfp.P[80] = 0.0;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -307,12 +258,6 @@ namespace hf {
                iteration covariance estimate the current Covariance (and enforce
                its symmetry?)
           */
-
-          // Check sensor
-          if (sensor->shouldUpdateESKF(time)) {
-              // Update state with gyro rates
-              sensor->modifyState(state, time);
-          }
 
           // Compute deltat
           double t_now = (double)micros();
@@ -398,48 +343,28 @@ namespace hf {
           covarianceUpdate(eskfp.K, eskfp.H, eskfp.R, eskfp.P);
 
           /* Error injection */
-          if (sensor->isOpticalFlow())
-          {
-              eskf.x[0] += eskf.dx[0]; // position
-              eskf.x[1] += eskf.dx[1];
-              eskf.x[3] += eskf.dx[3]; // velocity
-              eskf.x[4] += eskf.dx[4];
-              eskf.x[10] += eskf.dx[9]; // accel bias
-              eskf.x[11] += eskf.dx[10];
-              eskf.x[12] += eskf.dx[11];
-          } else {
-              // XXX Quaternion injection as a method
-              float tmp[4];
-              float tmp2[4];
-              tmp[0] = 1.0;
-              tmp[1] = eskf.dx[6]/2.0;
-              tmp[2] = eskf.dx[7]/2.0;
-              tmp[3] = eskf.dx[8]/2.0;
-              float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
-              Quaternion::computeqL(eskfp.qL, quat_tmp);
-              mulvec(eskfp.qL, tmp, tmp2, 4, 4);
-              norvec(tmp2, tmp, 4);
-              eskf.x[6] = tmp[0];
-              eskf.x[7] = tmp[1];
-              eskf.x[8] = tmp[2];
-              eskf.x[9] = tmp[3];
-              // Inject rest of errors
-              eskf.x[0] += eskf.dx[0]; // position
-              eskf.x[1] += eskf.dx[1];
-              eskf.x[2] += eskf.dx[2];
-              eskf.x[3] += eskf.dx[3]; // velocity
-              eskf.x[4] += eskf.dx[4];
-              eskf.x[5] += eskf.dx[5];
-              eskf.x[10] += eskf.dx[9]; // accel bias
-              eskf.x[11] += eskf.dx[10];
-              eskf.x[12] += eskf.dx[11];
-              eskf.x[13] += eskf.dx[12]; // gyro bias
-              eskf.x[14] += eskf.dx[13];
-              eskf.x[15] += eskf.dx[14];
-
-          }
-
-          eskfp.x[15] = 0.00; // Brute force yaw bias to 0
+          // XXX Quaternion injection as a method
+          float tmp[4];
+          float tmp2[4];
+          tmp[0] = 1.0;
+          tmp[1] = eskf.dx[6]/2.0;
+          tmp[2] = eskf.dx[7]/2.0;
+          tmp[3] = eskf.dx[8]/2.0;
+          float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
+          Quaternion::computeqL(eskfp.qL, quat_tmp);
+          mulvec(eskfp.qL, tmp, tmp2, 4, 4);
+          norvec(tmp2, tmp, 4);
+          eskf.x[6] = tmp[0];
+          eskf.x[7] = tmp[1];
+          eskf.x[8] = tmp[2];
+          eskf.x[9] = tmp[3];
+          // Inject rest of errors
+          eskf.x[0] += eskf.dx[0]; // position
+          eskf.x[1] += eskf.dx[1];
+          eskf.x[2] += eskf.dx[2];
+          eskf.x[3] += eskf.dx[3]; // velocity
+          eskf.x[4] += eskf.dx[4];
+          eskf.x[5] += eskf.dx[5];
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
@@ -467,22 +392,9 @@ namespace hf {
       void zeroCorrectMatrices(void)
       {
           zeros(eskfp.H, observations, errorStates);
-          // zeros(eskfp.Ht, errorStates, observations);
           zeros(eskfp.K, errorStates, observations);
-          // zeros(eskfp.Kt, observations, errorStates);
           zeros(eskfp.hx, observations, 1);
           zeros(eskfp.R, observations, observations);
-      
-          // zeros(eskfp.tmp0, errorStates, errorStates);
-          // zeros(eskfp.tmp1, errorStates, observations);
-          // zeros(eskfp.tmp2, observations, errorStates);
-          // zeros(eskfp.tmp3, observations, observations);
-          // zeros(eskfp.tmp4, observations, observations);
-          // zeros(eskfp.tmp5, nominalStates, 1);
-          // zeros(eskfp.tmp6, errorStates, errorStates);
-          // zeros(eskfp.tmp7, errorStates, errorStates);
-          // zeros(eskfp.tmp8, errorStates, errorStates);
-          // zeros(eskfp.tmp9, observations, observations);
       } // zeroCorrectMatrices
 
       // XXX Debug
@@ -506,7 +418,6 @@ namespace hf {
           }
       }
 
-      // XXX for debuging
       void velocityToIMUFrame(float vels[3], float world_vels[3], float q[4])
       {
           float R[9]; // Rotation matrix
