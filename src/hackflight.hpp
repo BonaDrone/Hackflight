@@ -407,6 +407,17 @@ namespace hf {
                 yaw   = _state.UAVState->eulerAngles[2];
             }
 
+            virtual void handle_GET_VELOCITIES_Request(float & velx, float & vely, float & velz) override
+            {
+                // XXX For debugging, only send vels while on poshold
+                if (_receiver->getAux1State())
+                {
+                  velx = _state.UAVState->linearVelocities[0];
+                  vely = _state.UAVState->linearVelocities[1];
+                  velz = _state.UAVState->linearVelocities[2];
+                }
+            }
+
             virtual void handle_SET_MOTOR_NORMAL_Request(float  m1, float  m2, float  m3, float  m4) override
             {
                 _mixer->motorsDisarmed[0] = m1;

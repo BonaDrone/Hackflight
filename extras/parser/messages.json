@@ -11,6 +11,12 @@
    {"magy": "short"},
    {"magz": "short"}],
 
+  "GET_VELOCITIES":
+  [{"ID": 103},
+   {"velx": "float"},
+   {"vely": "float"},
+   {"velz": "float"}],
+
   "RC_NORMAL":
   [{"ID": 121},
    {"comment": "16 channels in http://www.multiwii.com/wiki/index.php?title=Multiwii_Serial_Protocol"},
