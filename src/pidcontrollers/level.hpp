@@ -31,7 +31,7 @@
 #include "debug.hpp"
 #include "datatypes.hpp"
 #include "pidcontroller.hpp"
-#include "filters.h"
+// #include "filters.h"
 
 namespace hf {
 
@@ -41,13 +41,8 @@ namespace hf {
 
         private:
           
-            // const float FEED_FORWARD = 0.5;
             const float FEED_FORWARD = 1.0;
             const float FF_THRESHOLD = 0.1;
-            // const float WINDUP_MAX = 1.0;
-            // const uint8_t HISTORY = 10;
-            // hf::LowPassFilter _lpfRoll = hf::LowPassFilter(HISTORY);
-            // hf::LowPassFilter _lpfPitch = hf::LowPassFilter(HISTORY);
             
             float PTerms[2];
             
@@ -76,11 +71,7 @@ namespace hf {
                 // given max angle, the following relation must hold true:
                 // 0.5 * _demandsToAngle = maxAngle
                 // Since we work in radians:
-                // _demandsToAngle = (maxAngle*PI/180) * 2
                 _demandsToAngle = maxAngle * 2 * M_PI / 180.0f;
-                _demandsToRate = demandsToRate;
-                // _lpfRoll.init();
-                // _lpfPitch.init();
             }
 
             Level(float rollPitchLevelP) : Level(rollPitchLevelP, rollPitchLevelP)
@@ -101,50 +92,19 @@ namespace hf {
                 for (int axis=0; axis<2; ++axis)
                 {
                   float error = _demands[axis] - state.UAVState->eulerAngles[axis];
-                  // 0.0175 rad ~ 1 degree
-                  //error = fabs(error) > 0.0175 ? error : 0.0;
-                  // if(axis==0) {
-                  //   Serial.println("R:");
-                  //   Serial.println(_demands[axis]*_demandsToAngle, 8);
-                  //   Serial.println(state.eulerAngles[axis], 8);
-                  //   Serial.println(error, 8);
-                  // }
-                  // if(axis==1) {
-                  //   Serial.println("P:");
-                  //   Serial.println(_demands[axis]*_demandsToAngle, 8);
-                  //   Serial.println(state.eulerAngles[axis], 8);
-                  //   Serial.println(error, 8);
-                  // }
-
-                  // XXX Debug 
-                  // if (fabs(error) > 0.0175) {
-                  //   pinMode(25, OUTPUT);
-                  //   digitalWrite(25, LOW);
-                  // } else {
-                  //   digitalWrite(25, HIGH);
-                  // }
-                  
-                  float FF = 0;
-                  if (fabs(_demands[axis]) > FF_THRESHOLD) 
-                      FF = FEED_FORWARD * _demands[axis];
-                  _demands[axis] = error * PTerms[axis] + FF;
-
+                    float FF = 0;
+                    if (fabs(_demands[axis]) > FF_THRESHOLD) 
+                        FF = FEED_FORWARD * _demands[axis];
+                    _demands[axis] = error * PTerms[axis] + FF;
                 }
+
                 // Output of Level controller should be the desired rates
                 demands.roll = _demands[0] / _demandsToRate;
                 demands.pitch = _demands[1] / _demandsToRate;
-                // demands.roll = _lpfRoll.update(_demands[0]/_demandsToRate);
-                // demands.pitch = _lpfPitch.update(_demands[1]/_demandsToRate);
 
                 // We've always gotta do this!
                 return true;
             }
-
-            // virtual void resetErrors(void) override
-            // {
-            //     _lpfRoll.init();
-            //     _lpfPitch.init();
-            // }
 
     };  // class Level
 

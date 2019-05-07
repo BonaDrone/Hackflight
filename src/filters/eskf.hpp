@@ -72,18 +72,11 @@ namespace hf {
 
           eskfp.K = dptr;
           dptr += ne*m;
-          // eskfp.Kt = dptr;
-          // dptr += m*ne;
 
           eskfp.Fdx = dptr;
           dptr += ne*ne;
           eskfp.H = dptr;
           dptr += m*ne;
-
-          // eskfp.Ht = dptr;
-          // dptr += ne*m;
-          // eskfp.Fdxt = dptr;
-          // dptr += ne*ne;
 
           // eskfp.G = dptr;
           // dptr += ne*ne;
@@ -91,27 +84,6 @@ namespace hf {
           eskfp.fx = dptr;
           dptr += nn;
           eskfp.hx = dptr;
-          // dptr += m;
-          // 
-          // eskfp.tmp0 = dptr;
-          // dptr += ne*ne;
-          // eskfp.tmp1 = dptr;
-          // dptr += ne*m;
-          // eskfp.tmp2 = dptr;
-          // dptr += m*ne;
-          // eskfp.tmp3 = dptr;
-          // dptr += m*m;
-          // eskfp.tmp4 = dptr;
-          // dptr += m*m;
-          // eskfp.tmp5 = dptr;
-          // dptr += nn;
-          // eskfp.tmp6 = dptr;
-          // dptr += ne*ne;
-          // eskfp.tmp7 = dptr;
-          // dptr += ne*ne;
-          // eskfp.tmp8 = dptr;
-          // dptr += m*m;
-          // eskfp.tmp9 = dptr;
 
       }
 
@@ -137,28 +109,10 @@ namespace hf {
           state.linearVelocities[0] = _lpVelX.update(vels[0]);
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
-          
+
           // Serial.print(state.linearVelocities[0], 8);
           // Serial.print(",");
           // Serial.print(state.linearVelocities[1], 8);
-          // Serial.print(",");
-          // Serial.println(state.linearVelocities[2], 8);
-
-          // XXX print for debugging
-          // if (isCorrection)
-          // {
-          //   Serial.print(state.position[0], 8);
-          //   Serial.print(",");
-          //   Serial.print(state.position[1], 8);
-          //   Serial.print(",");
-          //   Serial.print(micros() / 1000000.0, 8);
-          //   Serial.print(",");
-            // Serial.print(state.linearVelocities[0], 8);
-            // Serial.print(",");
-            // Serial.println(state.linearVelocities[1], 8);
-          //   Serial.print(",");
-          //   Serial.println(state.position[2], 8);
-          // }
       }
 
       void covariancePrediction(float * Fdx, float * P, float * Q)
@@ -196,6 +150,13 @@ namespace hf {
           if (sensor->Zinverse(tmp9, tmp4)) return 1; // tmp4 = Z^-1
           
           mulmat(tmp1, tmp4, K, errorStates, observations, observations); // K = P*H'*Z^-1
+
+          // Do not let optical flow correct height and vertical velocity
+          if (sensor->isOpticalFlow())
+          {
+            K[2] = 0;
+            K[5] = 0;
+          }
 
           return 0;
       }
@@ -301,12 +262,6 @@ namespace hf {
                its symmetry?)
           */
 
-          // Check sensor
-          // if (sensor->shouldUpdateESKF(time)) {
-          //     // Update state with gyro rates
-          //     sensor->modifyState(state, time);
-          // }
-
           // Compute deltat
           double t_now = (double)micros();
           dt = (t_now - t_lastCall)/1000000.0f;
@@ -391,36 +346,28 @@ namespace hf {
           covarianceUpdate(eskfp.K, eskfp.H, eskfp.R, eskfp.P);
 
           /* Error injection */
-          // if (sensor->isOpticalFlow())
-          // {
-          //     eskf.x[0] += eskf.dx[0]; // position
-          //     eskf.x[1] += eskf.dx[1];
-          //     eskf.x[3] += eskf.dx[3]; // velocity
-          //     eskf.x[4] += eskf.dx[4];
-          // } else {
-              // XXX Quaternion injection as a method
-              float tmp[4];
-              float tmp2[4];
-              tmp[0] = 1.0;
-              tmp[1] = eskf.dx[6]/2.0;
-              tmp[2] = eskf.dx[7]/2.0;
-              tmp[3] = eskf.dx[8]/2.0;
-              float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
-              Quaternion::computeqL(eskfp.qL, quat_tmp);
-              mulvec(eskfp.qL, tmp, tmp2, 4, 4);
-              norvec(tmp2, tmp, 4);
-              eskf.x[6] = tmp[0];
-              eskf.x[7] = tmp[1];
-              eskf.x[8] = tmp[2];
-              eskf.x[9] = tmp[3];
-              // Inject rest of errors
-              eskf.x[0] += eskf.dx[0]; // position
-              eskf.x[1] += eskf.dx[1];
-              eskf.x[2] += eskf.dx[2];
-              eskf.x[3] += eskf.dx[3]; // velocity
-              eskf.x[4] += eskf.dx[4];
-              eskf.x[5] += eskf.dx[5];
-          // }
+          // XXX Quaternion injection as a method
+          float tmp[4];
+          float tmp2[4];
+          tmp[0] = 1.0;
+          tmp[1] = eskf.dx[6]/2.0;
+          tmp[2] = eskf.dx[7]/2.0;
+          tmp[3] = eskf.dx[8]/2.0;
+          float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
+          Quaternion::computeqL(eskfp.qL, quat_tmp);
+          mulvec(eskfp.qL, tmp, tmp2, 4, 4);
+          norvec(tmp2, tmp, 4);
+          eskf.x[6] = tmp[0];
+          eskf.x[7] = tmp[1];
+          eskf.x[8] = tmp[2];
+          eskf.x[9] = tmp[3];
+          // Inject rest of errors
+          eskf.x[0] += eskf.dx[0]; // position
+          eskf.x[1] += eskf.dx[1];
+          eskf.x[2] += eskf.dx[2];
+          eskf.x[3] += eskf.dx[3]; // velocity
+          eskf.x[4] += eskf.dx[4];
+          eskf.x[5] += eskf.dx[5];
 
           /* Update covariance*/
           /*eskfp.tmp5[0] = eskfp.dx[0]/2.0;
@@ -448,22 +395,9 @@ namespace hf {
       void zeroCorrectMatrices(void)
       {
           zeros(eskfp.H, observations, errorStates);
-          // zeros(eskfp.Ht, errorStates, observations);
           zeros(eskfp.K, errorStates, observations);
-          // zeros(eskfp.Kt, observations, errorStates);
           zeros(eskfp.hx, observations, 1);
           zeros(eskfp.R, observations, observations);
-      
-          // zeros(eskfp.tmp0, errorStates, errorStates);
-          // zeros(eskfp.tmp1, errorStates, observations);
-          // zeros(eskfp.tmp2, observations, errorStates);
-          // zeros(eskfp.tmp3, observations, observations);
-          // zeros(eskfp.tmp4, observations, observations);
-          // zeros(eskfp.tmp5, nominalStates, 1);
-          // zeros(eskfp.tmp6, errorStates, errorStates);
-          // zeros(eskfp.tmp7, errorStates, errorStates);
-          // zeros(eskfp.tmp8, errorStates, errorStates);
-          // zeros(eskfp.tmp9, observations, observations);
       } // zeroCorrectMatrices
 
       // XXX Debug
@@ -487,7 +421,6 @@ namespace hf {
           }
       }
 
-      // XXX for debuging
       void velocityToIMUFrame(float vels[3], float world_vels[3], float q[4])
       {
           float R[9]; // Rotation matrix

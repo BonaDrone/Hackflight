@@ -42,6 +42,7 @@
 // (Rate is included by default as it is always required)
 #include "pidcontrollers/level.hpp"
 #include "pidcontrollers/althold.hpp"
+#include "pidcontrollers/poshold.hpp"
 
 // Change this as needed
 #define SBUS_SERIAL Serial1
@@ -79,6 +80,10 @@ namespace hf {
               float _altHoldVelI;
               float _altHoldVelD;
               float _minAltitude;
+              // PosHold params
+              float _posHoldVelP;
+              float _posHoldVelI;
+              float _posHoldVelD;
               // range params
               float _rx;
               float _ry;
@@ -118,6 +123,9 @@ namespace hf {
                   EEPROM.get(PID_CONSTANTS + 12 * sizeof(float), _altHoldVelI);
                   EEPROM.get(PID_CONSTANTS + 13 * sizeof(float), _altHoldVelD);
                   EEPROM.get(PID_CONSTANTS + 14 * sizeof(float), _minAltitude);
+                  EEPROM.get(PID_CONSTANTS + 15 * sizeof(float), _posHoldVelP);
+                  EEPROM.get(PID_CONSTANTS + 16 * sizeof(float), _posHoldVelI);
+                  EEPROM.get(PID_CONSTANTS + 17 * sizeof(float), _posHoldVelD);
                   EEPROM.get(RANGE_PARAMS, _rx);
                   EEPROM.get(RANGE_PARAMS + 1 * sizeof(float), _ry);
                   EEPROM.get(RANGE_PARAMS + 2 * sizeof(float), _rz);
@@ -296,6 +304,14 @@ namespace hf {
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
                     h.addPidController(althold, 2);
+
+                    hf::PositionHold * poshold = new hf::PositionHold(
+                        0.0,            // Position Hold P -> this will set velTarget to 0
+                        _posHoldVelP,   // Position Hold Velocity P
+                        _posHoldVelI,   // Position Hold Velocity I
+                        _posHoldVelD);   // Position Hold Velocity D
+                    h.addPidController(poshold, 2);
+
                 }
 
                 // 0 means the controller will always be active, but by changing
@@ -318,7 +334,6 @@ namespace hf {
                 {
                     hf::VL53L1X_Rangefinder * rangefinder = new hf::VL53L1X_Rangefinder() ;
                     bool _rangeConnected = rangefinder->begin();
-                    //rangefinder->setCalibration(_rx, _ry, _rz);
                     h.addSensor(rangefinder);
                     h.eskf.addSensorESKF(rangefinder);
 
@@ -330,8 +345,8 @@ namespace hf {
                     _positionBoardConnected = _rangeConnected & _opticalConnected;
                 }
 
-                // Set parameters in hackflight instance so that they can be queried
-                // via MSP
+                // Set parameters in hackflight instance so that 
+                // they can be queried via MSP
                 h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
                 // XXX Debuging

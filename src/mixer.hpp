@@ -36,10 +36,10 @@ namespace hf {
 
             // Custom mixer data per motor
             typedef struct motorMixer_t {
-                int8_t throttle; // T
-                int8_t roll; 	 // A
-                int8_t pitch;	 // E
-                int8_t yaw;	     // R
+                int8_t throttle;  // T
+                int8_t roll; 	    // A
+                int8_t pitch;	    // E
+                int8_t yaw;	      // R
             } motorMixer_t;
 
             // Arbitrary
@@ -113,9 +113,7 @@ namespace hf {
                     motors[i] = Filter::constrainMinMax(motors[i], 0, 1);
                 }
 
-                // Serial.println("Motors");
                 for (uint8_t i = 0; i < nmotors; i++) {
-                    // Serial.println(motors[i]);
                     writeMotor(i, motors[i]);
                 }
 

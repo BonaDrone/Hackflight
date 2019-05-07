@@ -109,33 +109,15 @@ namespace hf {
                 if (imuRead()) {
 
                     // Convert gyrometer values from degrees/sec to radians/sec
+                    // and store output
                     gyro[0] = deg2rad(_gx);
                     gyro[1] = deg2rad(_gy);
                     gyro[2] = deg2rad(_gz);
-
-                    // // Store output
-                    // gyro[0] = int(_gx*100)/100.0;
-                    // gyro[1] = int(_gy*100)/100.0;
-                    // gyro[2] = int(_gz*100)/100.0;
 
                     // convert from Gs to m/s^2
                     accel[0] = _ax*9.80665;
                     accel[1] = _ay*9.80665;
                     accel[2] = _az*9.80665;
-                    
-                    // Serial.print(micros()/1000000.0, 8);
-                    // Serial.print(",");
-                    // Serial.print(accel[0], 8);
-                    // Serial.print(",");
-                    // Serial.print(accel[1], 8);
-                    // Serial.print(",");
-                    // Serial.print(accel[2], 8);
-                    // Serial.print(",");
-                    // Serial.print(gyro[0], 8);
-                    // Serial.print(",");
-                    // Serial.print(gyro[1], 8);
-                    // Serial.print(",");
-                    // Serial.println(gyro[2], 8);
 
                     return true;
                 }

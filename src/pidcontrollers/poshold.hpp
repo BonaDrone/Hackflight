@@ -24,9 +24,9 @@
 #include "debug.hpp"
 #include "datatypes.hpp"
 #include "pidcontroller.hpp"
+#include "filters.hpp"
 
 namespace hf {
-
 
     class PositionHold : public PID_Controller {
 
@@ -36,6 +36,8 @@ namespace hf {
 
         // Arbitrary constants
         const float WINDUP_MAX = 0.40f;
+        const float V_MAX      = 1.00f;
+        const float V_MIN      = 0.00f;
 
         // Setpoints for PID control
         Setpoint setpointX;
@@ -44,8 +46,10 @@ namespace hf {
         bool gotCorrection(Setpoint & setpoint, float & demand, float position, float velocity, float currentTime) 
         {
             float correction = 0;
-            if (setpoint.gotCorrection(demand, position, velocity, currentTime, correction)) {
-                demand += correction;
+            if (setpoint.gotManualCorrection(demand, position, velocity, currentTime, correction)) {
+                demand = correction;
+                // Saturate angle
+                demand = hf::Filter::constrainMinMax(demand, -0.25, 0.25);                
                 return true;
             }
 
@@ -60,6 +64,7 @@ namespace hf {
                     currentTime);
             bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.UAVState->position[1], state.UAVState->linearVelocities[1], 
                     currentTime);
+            demands.roll = -demands.roll;
 
             return correctedPitch || correctedRoll;
         }
@@ -73,8 +78,8 @@ namespace hf {
 
         PositionHold(float posP, float posrP, float posrI, float posrD=0.0f)
         {
-            setpointX.init(posP, posrP, posrI, posrD, WINDUP_MAX);
-            setpointY.init(posP, posrP, posrI, posrD, WINDUP_MAX);
+            setpointX.init(posP, posrP, posrI, posrD, WINDUP_MAX, V_MAX, V_MIN);
+            setpointY.init(posP, posrP, posrI, posrD, WINDUP_MAX, V_MAX, V_MIN);
         }
 
     };  // class PositionHold
