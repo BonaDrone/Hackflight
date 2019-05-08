@@ -86,6 +86,7 @@ namespace hf {
 
             // Demands sent to mixer
             demands_t _demands;
+            uint8_t REMOTE_DEMANDS = 4;
 
             // Safety
             bool _safeToArm;
@@ -170,7 +171,8 @@ namespace hf {
             void updateControlSignal(void)
             {
                 // For PID control, start with demands from receiver
-                memcpy(&_demands, &_receiver->demands, sizeof(demands_t));
+                // memcpy(&_demands, &_receiver->demands, sizeof(demands_t));
+                memcpy(&_demands, &_receiver->demands, REMOTE_DEMANDS * sizeof(float));
 
                 runPidControllers();
 
@@ -782,7 +784,7 @@ namespace hf {
 
             virtual void handle_WP_TAKE_OFF_Request(uint8_t & meters, uint8_t & code) override
             {
-                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData / 100.f);
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_TAKE_OFF, _lastCommandData / 100.0);
                 switchToStackExecution();
             }
 
@@ -812,7 +814,7 @@ namespace hf {
 
             virtual void handle_WP_CHANGE_ALTITUDE_Request(uint8_t & meters, uint8_t & code) override
             {
-                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData / 100.f);
+                individualPlanner.addActionToStack(_state, individualPlanner.WP_CHANGE_ALTITUDE, _lastCommandData / 100.0);
                 switchToStackExecution();
             }
 

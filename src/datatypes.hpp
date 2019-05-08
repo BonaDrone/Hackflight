@@ -24,14 +24,13 @@
 #include "filters/eskf_struct.hpp"
 
 typedef struct {
-
-    float throttle;
+    float throttle;               // T, R, P and Y come from receiver
     float roll;
     float pitch;
     float yaw;
     float setpoint[3];            // X, Y, Z setpoint
     float setpointAngle[3];       // Roll, pitch, yaw, setpoint
-    float setpointRate[3];       // Roll, pitch, yaw, setpoint
+    float setpointRate[3];        // Roll, pitch, yaw, setpoint
 } demands_t;
 
 typedef struct {

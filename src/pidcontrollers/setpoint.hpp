@@ -45,7 +45,8 @@ namespace hf {
             float _n;
             
             float THRESHOLD = 0.1;
-            float VERTICAL_VELOCITY = 0.15;
+            // float VERTICAL_VELOCITY = 0.15;
+            float VERTICAL_VELOCITY = 1.0;
             // Values modified in-flight
             float deltaT;
             float _posTarget;
@@ -94,24 +95,27 @@ namespace hf {
             bool gotSetpointCorrection(float setpoint, float posActual,
                float velActual, float currentTime, float & correction)
             {
-              // Don't do anything until we have a positive deltaT
-              float deltaT = currentTime - _previousTime;
-              _previousTime = currentTime;
-              if (deltaT == currentTime) return false;
+                // Don't do anything until we have a positive deltaT
+                float deltaT = currentTime - _previousTime;
+                _previousTime = currentTime;
+                if (deltaT == currentTime) return false;
 
-              // compute velocity setpoint
-              float velTarget;
-              if(fabs(setpoint - posActual) < THRESHOLD)
-              {
-                velTarget = (setpoint - posActual) * _posP;
-              }
-              else {
-                float sign = (setpoint - posActual) > 0 ? 1 : -1;
-                velTarget = VERTICAL_VELOCITY * sign;
-              }
-              correction = computeCorrection(velTarget, velActual, deltaT);
+                // compute velocity setpoint
+                float velTarget;
+                if(fabs(setpoint - posActual) < THRESHOLD)
+                {
+                    Serial.println(setpoint);
+                    velTarget = (setpoint - posActual) * _posP;
+                    Serial.println("velT");
+                    Serial.println(velTarget);
+                }
+                else {
+                    float sign = (setpoint - posActual) > 0 ? 1 : -1;
+                    velTarget = VERTICAL_VELOCITY * sign;
+                }
+                correction = computeCorrection(velTarget, velActual, deltaT);
               
-              return true;              
+                return true;              
             }
             
             bool gotManualCorrection(float demand, float posActual, 

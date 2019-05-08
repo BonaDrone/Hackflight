@@ -62,13 +62,15 @@ namespace hf {
                   float correction = 0;
                   if (setpointIsActive(state))
                   {
-                    // Correct based on setpoint
-                    if(setpoint.gotSetpointCorrection(demands.setpoint[2],
-                          state.UAVState->position[2], 
-                          state.UAVState->linearVelocities[2], 
-                          currentTime, correction)){
-                      demands.throttle = correction + HOVER_THROTTLE;
-                      return true;                      
+                      // Correct based on setpoint
+                      if(setpoint.gotSetpointCorrection(demands.setpoint[2],
+                            state.UAVState->position[2], 
+                            state.UAVState->linearVelocities[2], 
+                            currentTime, correction))
+                    {
+                                demands.throttle = correction + HOVER_THROTTLE;
+                                Serial.println(demands.throttle);
+                                return true;                      
                     }
                   } else {
                     // Correct based on throttle
