@@ -106,8 +106,6 @@ namespace hf {
                 {
                     Serial.println(setpoint);
                     velTarget = (setpoint - posActual) * _posP;
-                    Serial.println("velT");
-                    Serial.println(velTarget);
                 }
                 else {
                     float sign = (setpoint - posActual) > 0 ? 1 : -1;
