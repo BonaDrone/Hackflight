@@ -30,13 +30,19 @@ namespace hf {
 
         protected:
 
-        virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) = 0;
+          virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) = 0;
         
-        virtual void resetErrors(void) {}
+          virtual void resetErrors(void) {}
 
-        virtual bool shouldFlashLed(void) { return false; }
+          virtual bool shouldFlashLed(void) { return false; }
 
-        uint8_t auxState;
+          uint8_t auxState;
+        
+          // To enable activation and deactivation of controllers at runtime
+          void modifyAuxState(uint8_t aux) 
+          {
+              auxState = aux;
+          }
 
     };  // class PID_Controller
 
