@@ -52,9 +52,9 @@ namespace hf {
             // To achieve desired movement (F/B, L/R and rotations)
             // XXX Must be tuned
             const float TARGET_ROLL        = 5;
-            const float TARGET_PITCH       = 5; // angle in degrees
-            const float TARGET_YAW_RATE    = 2; // angular velocity in degrees per second
-            const float TAKEOF_DURATION    = 1.00; // takeof first stage duration in s XXX to be tuned
+            const float TARGET_PITCH       = 5;     // angle in degrees
+            const float TARGET_YAW_RATE    = 2;     // angular velocity in degrees per second
+            const float TAKEOF_DURATION    = 1.00;  // takeof first stage duration in s XXX to be tuned
             
             const float MAX_HEIGHT         = 3;
           

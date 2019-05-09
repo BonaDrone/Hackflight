@@ -51,3 +51,10 @@ typedef struct {
     float _max[4] = {0, 0, 0, 0};   // T, R, P, Y
 } tx_calibration_t;
 
+typedef enum {
+  RATE,
+  LEVEL,
+  ALTHOLD,
+  POSHOLD
+} ControllerType_t;
+

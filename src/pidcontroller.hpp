@@ -37,11 +37,25 @@ namespace hf {
           virtual bool shouldFlashLed(void) { return false; }
 
           uint8_t auxState;
+          
+          ControllerType_t _PIDType;
         
           // To enable activation and deactivation of controllers at runtime
           void modifyAuxState(uint8_t aux) 
           {
               auxState = aux;
+          }
+          
+        public:
+          
+          void setPIDType(ControllerType_t pidType)
+          {
+              _PIDType = pidType;
+          }
+          
+          ControllerType_t getPIDType(void)
+          {
+              return _PIDType;
           }
 
     };  // class PID_Controller

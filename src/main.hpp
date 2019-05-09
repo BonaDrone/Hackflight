@@ -290,9 +290,11 @@ namespace hf {
                   _gyroYawP,
                   _gyroYawI,
                   _demandsToRate);
-
+                ratePid->setPIDType(RATE);
+                
                 hf::Level * level = new hf::Level(_levelP);  // Pitch Level P
                 level->setDemandsToRate(_demandsToRate);
+                level->setPIDType(LEVEL);
 
                 // Add additional sensors
                 if (_hasPositioningBoard)
@@ -303,6 +305,7 @@ namespace hf {
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
+                    althold->setPIDType(ALTHOLD);
                     h.addPidController(althold, 0);
 
                     hf::PositionHold * poshold = new hf::PositionHold(
@@ -310,6 +313,7 @@ namespace hf {
                         _posHoldVelP,   // Position Hold Velocity P
                         _posHoldVelI,   // Position Hold Velocity I
                         _posHoldVelD);   // Position Hold Velocity D
+                    poshold->setPIDType(POSHOLD);
                     h.addPidController(poshold, 0);
 
                 }
