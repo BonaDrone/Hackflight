@@ -359,11 +359,11 @@ namespace hf {
             {
                 if (_state.executingStack)
                 {
-                    individualPlanner.executeAction(_state, _demands, safeToArm());
+                    individualPlanner.executeAction(_state, _demands, safeToArm(), _pid_controllers, _pid_controller_count);
                 }
                 else if (_state.executingMission)
                 {
-                    planner.executeAction(_state, _demands, safeToArm());
+                    planner.executeAction(_state, _demands, safeToArm(), _pid_controllers, _pid_controller_count);
                 }
             }
 

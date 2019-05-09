@@ -21,6 +21,7 @@
 #pragma once
 
 #include <EEPROM.h>
+#include "datatypes.hpp"
 
 namespace hf {
 
@@ -171,7 +172,8 @@ namespace hf {
             static const uint8_t WP_TURN_CW         = 12;
             static const uint8_t WP_TURN_CCW        = 13;
 
-            void executeAction(state_t & state, demands_t & demands, bool safeToArm)
+            void executeAction(state_t & state, demands_t & demands, bool safeToArm,
+               PID_Controller * controllers[256], uint8_t pidCount)
             {
                 if (_actionStart)
                 {
@@ -199,9 +201,17 @@ namespace hf {
                       // if first stage set high throttle by setting take off flag
                       if ((micros() - _startActionTime)/1000000.0 < TAKEOF_DURATION)
                       {
+                          for (int k=0; k < pidCount; k++)
+                          {
+                              if (controllers[k]->getPIDType() == POSHOLD) controllers[k]->deactivate();
+                          }
                           state.takingOff = true;
                       }
                       else {
+                          for (int k=0; k < pidCount; k++)
+                          {
+                              if (controllers[k]->getPIDType() == POSHOLD) controllers[k]->activate();
+                          }
                           state.takingOff = false;
                       }
                       // Update setpoint

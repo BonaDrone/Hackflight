@@ -37,14 +37,9 @@ namespace hf {
           virtual bool shouldFlashLed(void) { return false; }
 
           uint8_t auxState;
+          uint8_t _originalAuxState;
           
           ControllerType_t _PIDType;
-        
-          // To enable activation and deactivation of controllers at runtime
-          void modifyAuxState(uint8_t aux) 
-          {
-              auxState = aux;
-          }
           
         public:
           
@@ -56,6 +51,19 @@ namespace hf {
           ControllerType_t getPIDType(void)
           {
               return _PIDType;
+          }
+
+          // To enable activation and deactivation of controllers at runtime
+          void deactivate(void) 
+          {
+              // aux state cannot be 3 with current transmiters so setting
+              // aux state to 3 will deactivate the controller
+              auxState = 3;
+          }
+          
+          void activate(void)
+          {
+              auxState = 0;
           }
 
     };  // class PID_Controller
