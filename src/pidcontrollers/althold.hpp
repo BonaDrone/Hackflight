@@ -37,6 +37,7 @@ namespace hf {
               // Arbitrary constants
               const float WINDUP_MAX             = 2.00f;
               const float HOVER_THROTTLE         = 0.00f;
+              const float TAKEOFF_THROTTLE       = 1.00f;
               const float Vz_MAX                 = 1.00f; 
               const float Vz_MIN                 = 0.00f;
 
@@ -62,25 +63,31 @@ namespace hf {
                   float correction = 0;
                   if (setpointIsActive(state))
                   {
+                      if (state.takingOff)
+                      {
+                          demands.throttle = TAKEOFF_THROTTLE;
+                          return true;
+                      }
+
                       // Correct based on setpoint
                       if(setpoint.gotSetpointCorrection(demands.setpoint[2],
                             state.UAVState->position[2], 
                             state.UAVState->linearVelocities[2], 
                             currentTime, correction))
-                    {
-                                demands.throttle = correction + HOVER_THROTTLE;
-                                Serial.println(demands.throttle);
-                                return true;                      
-                    }
+                      {
+                          demands.throttle = correction + HOVER_THROTTLE;
+                          return true;                      
+                      }
                   } else {
-                    // Correct based on throttle
-                    if (setpoint.gotManualCorrection(demands.throttle, 
+                      // Correct based on throttle
+                      if (setpoint.gotManualCorrection(demands.throttle, 
                             state.UAVState->position[2], 
                             state.UAVState->linearVelocities[2], 
-                            currentTime, correction)) {
-                        demands.throttle = correction + HOVER_THROTTLE;
-                        return true;
-                    }
+                            currentTime, correction)) 
+                      {
+                          demands.throttle = correction + HOVER_THROTTLE;
+                          return true;
+                      }
                   }
                   return false;
 

@@ -38,6 +38,7 @@ typedef struct {
     bool  armed;
     bool  executingMission = false;
     bool  executingStack = false;
+    bool  takingOff = false;
     float batteryVoltage;         // current Voltage
 } state_t;
 

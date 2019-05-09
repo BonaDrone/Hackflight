@@ -54,6 +54,7 @@ namespace hf {
             const float TARGET_ROLL        = 5;
             const float TARGET_PITCH       = 5; // angle in degrees
             const float TARGET_YAW_RATE    = 2; // angular velocity in degrees per second
+            const float TAKEOF_DURATION    = 1.00; // takeof first stage duration in s XXX to be tuned
             
             const float MAX_HEIGHT         = 3;
           
@@ -184,16 +185,32 @@ namespace hf {
                 switch (_currentAction.action) {
                   case WP_ARM:
                   {
-                    if (safeToArm)
-                        state.armed = true;
-                    break;                    
+                      if (safeToArm)
+                          state.armed = true;
+                      break;                    
                   }
                   case WP_DISARM:
                   {
-                    state.armed = false;
-                    break;
+                      state.armed = false;
+                      break;
                   }
                   case WP_TAKE_OFF:
+                  {
+                      // if first stage set high throttle by setting take off flag
+                      if ((micros() - _startActionTime)/1000000.0 < TAKEOF_DURATION)
+                      {
+                          state.takingOff = true;
+                      }
+                      else {
+                          state.takingOff = false;
+                      }
+                      // Update setpoint
+                      for (int i=0; i<3; i++)
+                      {
+                          demands.setpoint[i] = _currentAction.position[i];
+                      }
+                      break;                    
+                  }
                   case WP_LAND:
                   {
                     // Update setpoint
