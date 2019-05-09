@@ -46,7 +46,7 @@ namespace hf {
             
             float THRESHOLD = 0.1;
             // float VERTICAL_VELOCITY = 0.15;
-            float VERTICAL_VELOCITY = 1.0;
+            float VELOCITY = 1.0;
             // Values modified in-flight
             float deltaT;
             float _posTarget;
@@ -104,12 +104,11 @@ namespace hf {
                 float velTarget;
                 if(fabs(setpoint - posActual) < THRESHOLD)
                 {
-                    Serial.println(setpoint);
                     velTarget = (setpoint - posActual) * _posP;
                 }
                 else {
                     float sign = (setpoint - posActual) > 0 ? 1 : -1;
-                    velTarget = VERTICAL_VELOCITY * sign;
+                    velTarget = VELOCITY * sign;
                 }
                 correction = computeCorrection(velTarget, velActual, deltaT);
               
@@ -141,10 +140,10 @@ namespace hf {
                 float velTarget;
                 if(inBandCurr)
                 {
-                  velTarget = (_posTarget - posActual) * _posP;
+                    velTarget = (_posTarget - posActual) * _posP;
                 }
                 else {
-                  velTarget = demand >= 0 ? _m * fabs(demand) + _n : -(_m * fabs(demand) + _n);
+                    velTarget = demand >= 0 ? _m * fabs(demand) + _n : -(_m * fabs(demand) + _n);
                 }
                 
                 correction = computeCorrection(velTarget, velActual, deltaT);
