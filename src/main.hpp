@@ -312,7 +312,7 @@ namespace hf {
                         0.0,            // Position Hold P -> this will set velTarget to 0
                         _posHoldVelP,   // Position Hold Velocity P
                         _posHoldVelI,   // Position Hold Velocity I
-                        _posHoldVelD);   // Position Hold Velocity D
+                        _posHoldVelD);  // Position Hold Velocity D
                     poshold->setPIDType(POSHOLD);
                     h.addPidController(poshold, 0);
 
