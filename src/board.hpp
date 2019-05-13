@@ -39,15 +39,21 @@ namespace hf {
         protected:
 
             // NB: gyrometer, accelerometer should return values as follows,
-            // based on the Ladybug Flight Controller:
+            // based on the BonaDrone Flight Controller:
+            //
+            // IMU Axis are:
+            //
+            //     ^
+            //     |x
+            // y <-·z
             //
             // AX: pitch forward +, back -
-            // AY: roll right +,    left -
-            // AZ: rightside-up +,  upside-down -
+            // AY: roll right -,    left +
+            // AZ: rightside-up -,  upside-down +
             //
             // GX: roll right +,    left -
-            // GY: pitch forward -, back +
-            // GZ: yaw left -,      right +
+            // GY: pitch forward +, back -
+            // GZ: yaw left +,      right -
 
 
             //------------------------------------ Core functionality ----------------------------------------------------
