@@ -34,7 +34,7 @@ typedef struct {
 } demands_t;
 
 typedef struct {
-    hf::eskf_state_t * UAVState;  // Mosquito status 
+    hf::eskf_state_t * UAVState;  // Mosquito spatial state 
     bool  armed;
     bool  executingMission = false;
     bool  executingStack = false;
