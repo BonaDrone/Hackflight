@@ -237,8 +237,6 @@ namespace hf {
                   {
                       break;
                   }
-                  // We are ot coupling validators here because when changing
-                  // to distance based programing we will need different validators
                   case WP_GO_FORWARD: // For the moment, movement is time based
                   {
                       demands.setpointAngle[0] = -TARGET_PITCH;
