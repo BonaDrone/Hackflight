@@ -850,7 +850,7 @@ namespace hf {
                 // XXX Ideal behavior: add sensors and ensure a method (not harcoded)
                 // XXX that adds ESKF sensors depending on how they have been added in the sensors array.
 
-                // Error state kalman filter
+                // Error state kalman filter initialization
                 eskf.init();
                 eskf.addSensorESKF(&_imu);
                 eskf.addSensorESKF(&_accelerometer);
@@ -921,7 +921,6 @@ namespace hf {
 
             void update(void)
             { 
-                
                 // Check Battery
                 checkBattery();
                 // Check planners
@@ -930,7 +929,6 @@ namespace hf {
                 checkReceiver();
                 // Check serials for messages
                 doSerialComms();
-
                 // Estimate and correct states via the ESKF
                 updateStateEstimate();
                 correctStateEstimate();
