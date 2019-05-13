@@ -198,7 +198,7 @@ namespace hf {
                   }
                   case WP_TAKE_OFF:
                   {
-                      // if first stage set high throttle by setting take off flag
+                      // while taking of deactivate position hold
                       if ((micros() - _startActionTime)/1000000.0 < TAKEOF_DURATION)
                       {
                           for (int k=0; k < pidCount; k++)
