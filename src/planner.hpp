@@ -205,14 +205,12 @@ namespace hf {
                           {
                               if (controllers[k]->getPIDType() == POSHOLD) controllers[k]->deactivate();
                           }
-                          state.takingOff = true;
                       }
                       else {
                           for (int k=0; k < pidCount; k++)
                           {
                               if (controllers[k]->getPIDType() == POSHOLD) controllers[k]->activate();
                           }
-                          state.takingOff = false;
                       }
                       // Update setpoint
                       for (int i=0; i<3; i++)
