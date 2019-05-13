@@ -63,12 +63,6 @@ namespace hf {
                   float correction = 0;
                   if (setpointIsActive(state))
                   {
-                      if (state.takingOff)
-                      {
-                          demands.throttle = TAKEOFF_THROTTLE;
-                          return true;
-                      }
-
                       // Correct based on setpoint
                       if(setpoint.gotSetpointCorrection(demands.setpoint[2],
                             state.UAVState->position[2], 
