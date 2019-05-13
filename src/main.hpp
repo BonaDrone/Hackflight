@@ -290,9 +290,11 @@ namespace hf {
                   _gyroYawP,
                   _gyroYawI,
                   _demandsToRate);
-
+                ratePid->setPIDType(RATE);
+                
                 hf::Level * level = new hf::Level(_levelP);  // Pitch Level P
                 level->setDemandsToRate(_demandsToRate);
+                level->setPIDType(LEVEL);
 
                 // Add additional sensors
                 if (_hasPositioningBoard)
@@ -303,14 +305,16 @@ namespace hf {
                         _altHoldVelI,   // Altitude Hold Velocity I
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
-                    h.addPidController(althold, 2);
+                    althold->setPIDType(ALTHOLD);
+                    h.addPidController(althold, 0);
 
-                    // hf::PositionHold * poshold = new hf::PositionHold(
-                    //     0.0,            // Position Hold P -> this will set velTarget to 0
-                    //     _altHoldVelP,   // Position Hold Velocity P
-                    //     _altHoldVelI,   // Position Hold Velocity I
-                    //     _altHoldVelD);   // Position Hold Velocity D
-                    // h.addPidController(poshold, 2);
+                    hf::PositionHold * poshold = new hf::PositionHold(
+                        0.0,            // Position Hold P -> this will set velTarget to 0
+                        _posHoldVelP,   // Position Hold Velocity P
+                        _posHoldVelI,   // Position Hold Velocity I
+                        _posHoldVelD);  // Position Hold Velocity D
+                    poshold->setPIDType(POSHOLD);
+                    h.addPidController(poshold, 0);
 
                 }
 
@@ -342,14 +346,31 @@ namespace hf {
                     h.addSensor(opticalflow);
                     h.eskf.addSensorESKF(opticalflow);
                     
-                    _positionBoardConnected = _rangeConnected & _opticalConnected;
+                    _positionBoardConnected = _rangeConnected && _opticalConnected;
                 }
 
                 // Set parameters in hackflight instance so that 
                 // they can be queried via MSP
                 h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
+                // XXX Testing: To be removed
+                // hardcodeMission();
+                
             } // init
+            
+            // XXX Testing: To be removed
+            void hardcodeMission(void)
+            {
+              EEPROM.write(150, 1);   // Arm
+              // EEPROM.write(151, 0);
+              EEPROM.write(151, 4);   // Takeoff to 1 m
+              EEPROM.write(152, 1);
+              EEPROM.write(153, 11);  // Hover for 3 seconds
+              EEPROM.write(154, 3);
+              EEPROM.write(155, 3);   // Land
+              // EEPROM.write(155, 0);
+              EEPROM.write(156, 2);   // Disarm
+            }
 
     }; // class HackflightWrapper
 

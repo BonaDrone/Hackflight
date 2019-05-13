@@ -30,13 +30,41 @@ namespace hf {
 
         protected:
 
-        virtual bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime) = 0;
+          virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) = 0;
         
-        virtual void resetErrors(void) {}
+          virtual void resetErrors(void) {}
 
-        virtual bool shouldFlashLed(void) { return false; }
+          virtual bool shouldFlashLed(void) { return false; }
 
-        uint8_t auxState;
+          uint8_t auxState;
+          uint8_t _originalAuxState;
+          
+          ControllerType_t _PIDType;
+          
+        public:
+          
+          void setPIDType(ControllerType_t pidType)
+          {
+              _PIDType = pidType;
+          }
+          
+          ControllerType_t getPIDType(void)
+          {
+              return _PIDType;
+          }
+
+          // To enable activation and deactivation of controllers at runtime
+          void deactivate(void) 
+          {
+              // aux state cannot be 3 with current transmiters so setting
+              // aux state to 3 will deactivate the controller
+              auxState = 3;
+          }
+          
+          void activate(void)
+          {
+              auxState = 0;
+          }
 
     };  // class PID_Controller
 

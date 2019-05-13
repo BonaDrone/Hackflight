@@ -24,21 +24,21 @@
 #include "filters/eskf_struct.hpp"
 
 typedef struct {
-
-    float throttle;
+    float throttle;               // T, R, P and Y come from receiver
     float roll;
     float pitch;
     float yaw;
-    float altitude;
-
+    float setpoint[3] = {0,0,0};            // X, Y, Z setpoint
+    float setpointAngle[3] = {0,0,0};       // Roll, pitch, yaw, setpoint
+    float setpointRate[3] = {0,0,0};        // Roll, pitch, yaw, setpoint
 } demands_t;
 
 typedef struct {
-    hf::eskf_state_t * UAVState;
+    hf::eskf_state_t * UAVState;  // Mosquito spatial state 
     bool  armed;
-    bool  executingMission;
-    float batteryVoltage; 
-
+    bool  executingMission = false;
+    bool  executingStack = false;
+    float batteryVoltage;         // current Voltage
 } state_t;
 
 typedef struct {
@@ -49,4 +49,11 @@ typedef struct {
     float _min[4] = {0, 0, 0, 0};   // T, R, P, Y
     float _max[4] = {0, 0, 0, 0};   // T, R, P, Y
 } tx_calibration_t;
+
+typedef enum {
+  RATE,
+  LEVEL,
+  ALTHOLD,
+  POSHOLD
+} ControllerType_t;
 

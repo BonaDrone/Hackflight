@@ -39,28 +39,35 @@ namespace hf {
         protected:
 
             // NB: gyrometer, accelerometer should return values as follows,
-            // based on the Ladybug Flight Controller:
+            // based on the BonaDrone Flight Controller:
+            //
+            // IMU Axis are:
+            //
+            //     ^
+            //     |x
+            // y <-·z
             //
             // AX: pitch forward +, back -
-            // AY: roll right +,    left -
-            // AZ: rightside-up +,  upside-down -
+            // AY: roll right -,    left +
+            // AZ: rightside-up -,  upside-down +
             //
             // GX: roll right +,    left -
-            // GY: pitch forward -, back +
-            // GZ: yaw left -,      right +
+            // GY: pitch forward +, back -
+            // GZ: yaw left +,      right -
 
 
             //------------------------------------ Core functionality ----------------------------------------------------
             virtual bool  getIMU(float gyroRates[3], float accels[3]) = 0;
-            virtual bool  getQuaternion(float quat[4]) = 0;
             virtual void  writeMotor(uint8_t index, float value) = 0;
             virtual float getTime(void) = 0;
+            virtual float getLowBatteryLimit(void) = 0;
 
             //------------------------- Support for additional surface-mount sensors -------------------------------------
             virtual bool  getGyrometer(float gyroRates[3]) { (void)gyroRates;  return false; }
             virtual bool  getAccelerometer(float accelGs[3]) { (void)accelGs;  return false; }
             virtual bool  getMagnetometer(float uTs[3]) { (void)uTs;  return false; }
             virtual bool  getBarometer(float & pressure) { (void)pressure;  return false; }
+            virtual bool  getQuaternion(float quat[4]) { (void)quat;  return false; }
 
             //------------------------------- Serial communications via MSP ----------------------------------------------
             virtual void    setSerialFlag(void) = 0;
@@ -74,7 +81,6 @@ namespace hf {
             //----------------------------------------- Safety -----------------------------------------------------------
             virtual void showArmedStatus(bool armed) { (void)armed; }
             virtual void flashLed(bool shouldflash) { (void)shouldflash; }
-            virtual bool isBatteryLow(void) { return false; }
 
             //--------------------------------------- Debugging ----------------------------------------------------------
             static void  outbuf(char * buf);

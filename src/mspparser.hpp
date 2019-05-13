@@ -39,6 +39,12 @@ namespace hf {
             
             // Number of EEPROM reserved slots for parameters
             static const int PARAMETER_SLOTS = 150;
+            uint8_t MISSION_COMMANDS[13] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+            uint8_t _lastCommandData = 0;
+            
+        protected:
+
+          bool incomingMission = false;
 
         private:
 
@@ -46,7 +52,6 @@ namespace hf {
             static const int OUTBUF_SIZE = 128;
 
             int EEPROMindex = PARAMETER_SLOTS;
-            bool incomingMission = false;
 
             typedef enum serialState_t {
                 IDLE,
@@ -183,15 +188,23 @@ namespace hf {
 
             void processMissionCommand(uint8_t command)
             {
-                if (incomingMission && command != 23)
+                if (isMissionCommand(command))
                 {
-                    EEPROM.write(EEPROMindex, command);
-                    EEPROMindex += 1;
+                    int commandData = -1;
                     if (command != 1 && command != 2 && command != 3)
                     {
-                        uint8_t commandData = readCommandData();
-                        EEPROM.write(EEPROMindex, commandData);
+                        commandData = readCommandData();
+                        _lastCommandData = (uint8_t)commandData;
+                    }
+                    if (incomingMission)
+                    {
+                        EEPROM.write(EEPROMindex, command);
                         EEPROMindex += 1;
+                        if (commandData!=-1)
+                        {
+                          EEPROM.write(EEPROMindex, (uint8_t)commandData);
+                          EEPROMindex += 1;
+                        }
                     }
                 }
             }
@@ -199,6 +212,15 @@ namespace hf {
             uint8_t readCommandData(void)
             {
                 return _inBuf[_inBufIndex++] & 0xff;
+            }
+
+            bool isMissionCommand(uint8_t command)
+            {
+                for(int i=0; i<sizeof(MISSION_COMMANDS)/sizeof(MISSION_COMMANDS[0]); ++i)
+                {
+                    if (command == MISSION_COMMANDS[i]) return true;
+                }
+                return false;
             }
 
         protected:
@@ -325,6 +347,19 @@ namespace hf {
                         sendShort(magx);
                         sendShort(magy);
                         sendShort(magz);
+                        serialize8(_checksum);
+                        } break;
+
+                    case 103:
+                    {
+                        float velx = 0;
+                        float vely = 0;
+                        float velz = 0;
+                        handle_GET_VELOCITIES_Request(velx, vely, velz);
+                        prepareToSendFloats(3);
+                        sendFloat(velx);
+                        sendFloat(vely);
+                        sendFloat(velz);
                         serialize8(_checksum);
                         } break;
 
@@ -910,6 +945,14 @@ namespace hf {
                         handle_RAW_IMU_Data(accx, accy, accz, gyrx, gyry, gyrz, magx, magy, magz);
                         } break;
 
+                    case 103:
+                    {
+                        float velx = getArgument(0);
+                        float vely = getArgument(1);
+                        float velz = getArgument(2);
+                        handle_GET_VELOCITIES_Data(velx, vely, velz);
+                        } break;
+
                     case 121:
                     {
                         float c1 = getArgument(0);
@@ -1161,6 +1204,20 @@ namespace hf {
                 (void)magx;
                 (void)magy;
                 (void)magz;
+            }
+
+            virtual void handle_GET_VELOCITIES_Request(float & velx, float & vely, float & velz)
+            {
+                (void)velx;
+                (void)vely;
+                (void)velz;
+            }
+
+            virtual void handle_GET_VELOCITIES_Data(float & velx, float & vely, float & velz)
+            {
+                (void)velx;
+                (void)vely;
+                (void)velz;
             }
 
             virtual void handle_RC_NORMAL_Request(float & c1, float & c2, float & c3, float & c4, float & c5, float & c6)
@@ -1772,6 +1829,35 @@ namespace hf {
                 bytes[23] = CRC8(&bytes[3], 20);
 
                 return 24;
+            }
+
+            static uint8_t serialize_GET_VELOCITIES_Request(uint8_t bytes[])
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 60;
+                bytes[3] = 0;
+                bytes[4] = 103;
+                bytes[5] = 103;
+
+                return 6;
+            }
+
+            static uint8_t serialize_GET_VELOCITIES(uint8_t bytes[], float  velx, float  vely, float  velz)
+            {
+                bytes[0] = 36;
+                bytes[1] = 77;
+                bytes[2] = 62;
+                bytes[3] = 12;
+                bytes[4] = 103;
+
+                memcpy(&bytes[5], &velx, sizeof(float));
+                memcpy(&bytes[9], &vely, sizeof(float));
+                memcpy(&bytes[13], &velz, sizeof(float));
+
+                bytes[17] = CRC8(&bytes[3], 14);
+
+                return 18;
             }
 
             static uint8_t serialize_RC_NORMAL_Request(uint8_t bytes[])

@@ -40,10 +40,12 @@ namespace hf {
             // Parameter to avoid integral windup
             float _windupMax;
             // Parameters for velocity control outside deadband,
-            // Perform a linearl map from stick position to desired velocity
+            // Perform a linear map from stick position to desired velocity
             float _m;
             float _n;
-
+            
+            float THRESHOLD = 0.1;
+            float VELOCITY = 1.0;
             // Values modified in-flight
             float deltaT;
             float _posTarget;
@@ -89,14 +91,38 @@ namespace hf {
 
         public:
 
-            bool gotCorrection(float demand, float posActual, float velActual, float currentTime, float & correction)
+            bool gotSetpointCorrection(float setpoint, float posActual,
+               float velActual, float currentTime, float & correction)
             {
                 // Don't do anything until we have a positive deltaT
                 float deltaT = currentTime - _previousTime;
                 _previousTime = currentTime;
                 if (deltaT == currentTime) return false;
 
-                // Reset altitude target if moved into stick deadband
+                // compute velocity setpoint
+                float velTarget;
+                if(fabs(setpoint - posActual) < THRESHOLD)
+                {
+                    velTarget = (setpoint - posActual) * _posP;
+                }
+                else {
+                    float sign = (setpoint - posActual) > 0 ? 1 : -1;
+                    velTarget = VELOCITY * sign;
+                }
+                correction = computeCorrection(velTarget, velActual, deltaT);
+              
+                return true;              
+            }
+            
+            bool gotManualCorrection(float demand, float posActual, 
+              float velActual, float currentTime, float & correction)
+            {
+                // Don't do anything until we have a positive deltaT
+                float deltaT = currentTime - _previousTime;
+                _previousTime = currentTime;
+                if (deltaT == currentTime) return false;
+
+                // Reset position target if moved into stick deadband
                 bool inBandCurr = inBand(demand);
                 if (inBandCurr && !_inBandPrev) {
                     _posTarget = posActual;
@@ -108,15 +134,15 @@ namespace hf {
                 // {
                     // resetErrors();
                 // }
-                // compute velocity setpoint: inside deadband from altitude error,
+                // compute velocity setpoint: inside deadband from distance error,
                 // outside deadband velocity control
                 float velTarget;
                 if(inBandCurr)
                 {
-                  velTarget = (_posTarget - posActual) * _posP;
+                    velTarget = (_posTarget - posActual) * _posP;
                 }
                 else {
-                  velTarget = demand >= 0 ? _m * fabs(demand) + _n : -(_m * fabs(demand) + _n);
+                    velTarget = demand >= 0 ? _m * fabs(demand) + _n : -(_m * fabs(demand) + _n);
                 }
                 
                 correction = computeCorrection(velTarget, velActual, deltaT);
@@ -125,7 +151,8 @@ namespace hf {
                 return true;
             }
 
-            void init(float posP, float velP, float velI, float velD, float windupMax, float vMax, float vMin)
+            void init(float posP, float velP, float velI, float velD,
+               float windupMax, float vMax, float vMin)
             {
                 _posP = posP; 
                 _velP = velP; 

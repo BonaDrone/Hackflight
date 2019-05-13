@@ -31,7 +31,7 @@
 #include "debug.hpp"
 #include "datatypes.hpp"
 #include "pidcontroller.hpp"
-#include "filters.h"
+// #include "filters.h"
 
 namespace hf {
 
@@ -48,11 +48,22 @@ namespace hf {
             
             float _demandsToAngle;
             float _demandsToRate;
-
+            
+            void computeReferenceDemands(float _demands[2], state_t &  state, demands_t & demands)
+            {
+                if (state.executingMission || state.executingStack)
+                {
+                    _demands[0] = demands.setpointAngle[0];
+                    _demands[1] = demands.setpointAngle[1];
+                } else {
+                    _demands[0] = demands.roll * _demandsToAngle;
+                    _demands[1] = demands.pitch * _demandsToAngle;
+                }
+            }
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 30)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
@@ -72,14 +83,15 @@ namespace hf {
                 _demandsToRate = demandsToRate;
             }
 
-            bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime)
+            bool modifyDemands(state_t & state, demands_t & demands, float currentTime)
             {
                 (void)currentTime;
-                float _demands[2] = {demands.roll, demands.pitch};
 
+                float _demands[2];
+                computeReferenceDemands(_demands, state, demands);
                 for (int axis=0; axis<2; ++axis)
                 {
-                    float error = _demands[axis] * _demandsToAngle - state.eulerAngles[axis];
+                  float error = _demands[axis] - state.UAVState->eulerAngles[axis];
                     float FF = 0;
                     if (fabs(_demands[axis]) > FF_THRESHOLD) 
                         FF = FEED_FORWARD * _demands[axis];

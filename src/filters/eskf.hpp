@@ -110,6 +110,9 @@ namespace hf {
           state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[2] = vels[2];
 
+          // Serial.print(state.linearVelocities[0], 8);
+          // Serial.print(",");
+          // Serial.print(state.linearVelocities[1], 8);
       }
 
       void covariancePrediction(float * Fdx, float * P, float * Q)

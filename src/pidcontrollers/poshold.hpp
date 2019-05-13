@@ -46,7 +46,7 @@ namespace hf {
         bool gotCorrection(Setpoint & setpoint, float & demand, float position, float velocity, float currentTime) 
         {
             float correction = 0;
-            if (setpoint.gotCorrection(demand, position, velocity, currentTime, correction)) {
+            if (setpoint.gotManualCorrection(demand, position, velocity, currentTime, correction)) {
                 demand = correction;
                 // Saturate angle
                 demand = hf::Filter::constrainMinMax(demand, -0.25, 0.25);                
@@ -58,12 +58,11 @@ namespace hf {
 
         protected:
 
-        virtual bool modifyDemands(eskf_state_t & state, demands_t & demands, float currentTime) 
+        virtual bool modifyDemands(state_t & state, demands_t & demands, float currentTime) 
         {
-            bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.position[0], state.linearVelocities[0],   
+            bool correctedPitch = gotCorrection(setpointY, demands.pitch, state.UAVState->position[0], state.UAVState->linearVelocities[0],   
                     currentTime);
-            
-            bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.position[1], state.linearVelocities[1], 
+            bool correctedRoll  = gotCorrection(setpointX, demands.roll,  state.UAVState->position[1], state.UAVState->linearVelocities[1], 
                     currentTime);
             demands.roll = -demands.roll;
 
