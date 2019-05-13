@@ -45,7 +45,6 @@ namespace hf {
             float _n;
             
             float THRESHOLD = 0.1;
-            // float VERTICAL_VELOCITY = 0.15;
             float VELOCITY = 1.0;
             // Values modified in-flight
             float deltaT;
