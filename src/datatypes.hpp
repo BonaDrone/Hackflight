@@ -28,9 +28,9 @@ typedef struct {
     float roll;
     float pitch;
     float yaw;
-    float setpoint[3];            // X, Y, Z setpoint
-    float setpointAngle[3];       // Roll, pitch, yaw, setpoint
-    float setpointRate[3];        // Roll, pitch, yaw, setpoint
+    float setpoint[3] = {0,0,0};            // X, Y, Z setpoint
+    float setpointAngle[3] = {0,0,0};       // Roll, pitch, yaw, setpoint
+    float setpointRate[3] = {0,0,0};        // Roll, pitch, yaw, setpoint
 } demands_t;
 
 typedef struct {
