@@ -353,12 +353,12 @@ namespace hf {
                 // they can be queried via MSP
                 h.setParams(_hasPositioningBoard, _isMosquito90, _positionBoardConnected);
                 
-                // XXX Debuging
+                // XXX Testing: To be removed
                 // hardcodeMission();
                 
             } // init
             
-            // XXX Testing
+            // XXX Testing: To be removed
             void hardcodeMission(void)
             {
               EEPROM.write(150, 1);   // Arm
