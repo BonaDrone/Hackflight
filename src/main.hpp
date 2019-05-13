@@ -346,7 +346,7 @@ namespace hf {
                     h.addSensor(opticalflow);
                     h.eskf.addSensorESKF(opticalflow);
                     
-                    _positionBoardConnected = _rangeConnected & _opticalConnected;
+                    _positionBoardConnected = _rangeConnected && _opticalConnected;
                 }
 
                 // Set parameters in hackflight instance so that 
