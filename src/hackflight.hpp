@@ -276,7 +276,7 @@ namespace hf {
                 if (!_receiver->getDemands(_state.UAVState->eulerAngles[AXIS_YAW] - _yawInitial)) return;
 
                 // Update ratePid with cyclic demands
-                _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown());
+                _ratePid->updateReceiver(_receiver->demands, _receiver->throttleIsDown(), _state.executingStack || _state.executingMission);
                 
                 // Check if aux1 has changed value. In that case, stop executing 
                 // actions and return control to TX
@@ -317,8 +317,8 @@ namespace hf {
                     
                     digitalWrite(26, HIGH);
                     
-                        _state.armed = true;
-                        _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
+                    _state.armed = true;
+                    _yawInitial = _state.UAVState->eulerAngles[AXIS_YAW]; // grab yaw for headless mode
                     // Reset estimations each time the quad is armed 
                     eskf.init();
                 }
