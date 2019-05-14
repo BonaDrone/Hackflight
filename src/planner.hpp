@@ -49,7 +49,7 @@ namespace hf {
             static const uint16_t STACK_LENGTH = 256;
             
             // Required constants and values
-            const float DISTANCE_THRESHOLD = 0.2;
+            const float DISTANCE_THRESHOLD = 0.1;
             // To achieve desired movement (F/B, L/R and rotations)
             // XXX Must be tuned
             const float TARGET_ROLL        = 5;
