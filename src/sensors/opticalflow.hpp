@@ -34,15 +34,15 @@ namespace hf {
 
             static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
             static constexpr float UPDATE_PERIOD = 1.0 / UPDATE_HZ;
-            static const uint8_t HISTORY = 20;
+            // static const uint8_t HISTORY = 20;
 
             // Use digital pin 12 for chip select and SPI1 port for comms
             PMW3901 _flowSensor = PMW3901(12, &SPI1);
             // flow measures
-            hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(HISTORY);
-            hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(HISTORY);
-            float _filteredDeltaX = 0;
-            float _filteredDeltaY = 0;                 
+            // hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(HISTORY);
+            // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(HISTORY);
+            // float _filteredDeltaX = 0;
+            // float _filteredDeltaY = 0;                 
             float _deltaX = 0;
             float _deltaY = 0;
             // Time elapsed between corrections
@@ -62,12 +62,12 @@ namespace hf {
                     int16_t deltaX=0, deltaY=0;
                     _flowSensor.readMotionCount(&deltaX, &deltaY);
                     // To match camera frame
-                    _filteredDeltaX = _lpDeltaX.update((float)deltaX);
-                    _filteredDeltaY = _lpDeltaY.update((float)deltaY);                 
+                    // _filteredDeltaX = _lpDeltaX.update((float)deltaX);
+                    // _filteredDeltaY = _lpDeltaY.update((float)deltaY);                 
                     deltat = time -_time;
                     _time = time;
-                    _deltaX = -(float)_filteredDeltaY / deltat;
-                    _deltaY = (float)_filteredDeltaX / deltat;
+                    _deltaX = -(float)deltaX / deltat;
+                    _deltaY = (float)deltaY / deltat;
                     return true; 
                 }
                 return false;
@@ -79,8 +79,8 @@ namespace hf {
 
             bool begin(void)
             {
-                _lpDeltaX.init();
-                _lpDeltaY.init();
+                // _lpDeltaX.init();
+                // _lpDeltaY.init();
                 bool connected = true;
                 if (!_flowSensor.begin()) {
                     connected = false;
