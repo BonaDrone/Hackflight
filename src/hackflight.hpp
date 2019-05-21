@@ -128,44 +128,44 @@ namespace hf {
 
             void checkBattery()
             {
-              // Frequency management
-              static float lastTime = 0.0;
+                // Frequency management
+                static float lastTime = 0.0;
+                // Battery management
+                static float lastTimeLowBattery = 0.0;
+                static float lastBatteryVoltage = 0.0;
+                static bool  isLastLowBattery = false;
 
-              // Battery management
-              static float lastTimeLowBattery = 0.0;
-              static float lastBatteryVoltage = 0.0;
-              static bool  isLastLowBattery = false;
-
-              // Check battery with a freq. of 2Hz
-              if (_board->getTime() - lastTime > 0.5)
-              {
-                // Look if the battery is below the limit
-                if (_state.batteryVoltage < _board->getLowBatteryLimit() && _state.batteryVoltage > 2.5)
+                // Check battery with a freq. of 2Hz
+                if (_board->getTime() - lastTime > 0.5)
                 {
-                  // Save the first time it detects low battery
-                  lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
+                    // Look if the battery is below the limit
+                    if (_state.batteryVoltage < _board->getLowBatteryLimit() && _state.batteryVoltage > 2.5)
+                    {
+                        // Save the first time it detects low battery
+                        lastTimeLowBattery = ((isLastLowBattery) ? lastTimeLowBattery:_board->getTime());
 
-                  // Low battery if there has been low battery for more than 5s
-                  // XXX it might be necessary to trigger the low battery action from here
-                  _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
+                        // Low battery if there has been low battery for more than 5s
+                        // XXX it might be necessary to trigger the low battery action from here
+                        _lowBattery = (_board->getTime() - lastTimeLowBattery > 5);
 
-                  if (_lowBattery)
-                  {
-                    pinMode(25, OUTPUT);
-                    digitalWrite(25, LOW);
-                    // XXX Ring the buzzer 
-                    individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, 0);
-                    switchToStackExecution();
-                  }
+                        if (_lowBattery)
+                        {
+                            pinMode(25, OUTPUT);
+                            digitalWrite(25, LOW);
+                            // XXX Ring the buzzer 
+                            individualPlanner.addActionToStack(_state, individualPlanner.WP_LAND, 0);
+                            individualPlanner.addActionToStack(_state, individualPlanner.WP_DISARM, 0);
+                            switchToStackExecution();
+                        }
 
-                  isLastLowBattery = true;
+                        isLastLowBattery = true;
+                    }
+                    else
+                    {
+                        isLastLowBattery = false;
+                    }
+                    lastTime = _board->getTime();
                 }
-                else
-                {
-                  isLastLowBattery = false;
-                }
-                lastTime = _board->getTime();
-              }
             }
 
             void updateControlSignal(void)
