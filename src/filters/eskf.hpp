@@ -43,9 +43,9 @@ namespace hf {
       static const uint8_t mnQuat = MNQuat;
       
       // Velocity low pass filters
-      static const uint8_t HISTORY = 50;
-      hf::LowPassFilter _lpVelX = hf::LowPassFilter(HISTORY);
-      hf::LowPassFilter _lpVelY = hf::LowPassFilter(HISTORY);
+      // static const uint8_t HISTORY = 50;
+      // hf::LowPassFilter _lpVelX = hf::LowPassFilter(HISTORY);
+      // hf::LowPassFilter _lpVelY = hf::LowPassFilter(HISTORY);
 
       eskf_t eskf;
       eskf_p_t eskfp;
@@ -106,8 +106,10 @@ namespace hf {
           float vels[3];
           velocityToIMUFrame(vels, world_vels, q);
 
-          state.linearVelocities[0] = _lpVelX.update(vels[0]);
-          state.linearVelocities[1] = _lpVelY.update(vels[1]);
+          // state.linearVelocities[0] = _lpVelX.update(vels[0]);
+          // state.linearVelocities[1] = _lpVelY.update(vels[1]);
+          state.linearVelocities[0] = vels[0];
+          state.linearVelocities[1] = vels[1];
           state.linearVelocities[2] = vels[2];
 
           // Serial.print(state.linearVelocities[0], 8);
@@ -210,8 +212,8 @@ namespace hf {
         zeros(eskfp.H, observations, errorStates);
 
         // intialize lpfs
-        _lpVelX.init();
-        _lpVelY.init();
+        // _lpVelX.init();
+        // _lpVelY.init();
 
         // initial state
         eskfp.x[0] = 0.0; // position
