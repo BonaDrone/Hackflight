@@ -63,7 +63,7 @@ namespace hf {
 
         public:
 
-            Level(float rollLevelP, float pitchLevelP, float maxAngle = 45, float demandsToRate = 6.0)
+            Level(float rollLevelP, float pitchLevelP, float maxAngle = 15, float demandsToRate = 6.0)
             {
                 PTerms[0] = rollLevelP;
                 PTerms[1] = pitchLevelP;
