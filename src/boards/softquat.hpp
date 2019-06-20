@@ -63,7 +63,7 @@ namespace hf {
 
             // Quaternion support: even though MPU9250 has a magnetometer, we keep it simple for now by 
             // using a 6DOF fiter (accel, gyro)
-            MadgwickQuaternionFilter6DOF _quaternionFilter = MadgwickQuaternionFilter6DOF(BETA, ZETA);
+            MadgwickQuaternionFilter9DOF _quaternionFilter = MadgwickQuaternionFilter9DOF(BETA);
 
         public:
 
@@ -145,29 +145,21 @@ namespace hf {
 
             bool getQuaternion(float quat[4], float time)
             {
-                // Update quaternion after some number of IMU readings
-                _quatCycleCount = (_quatCycleCount + 1) % QUATERNION_DIVISOR;
+                  // Set integration time by time elapsed since last filter update
+                  static float _time;
+                  float deltat = time - _time;
+                  _time = time;
 
-                if (_quatCycleCount == 0) {
+                  // Run the quaternion on the IMU values acquired in imuRead()                   
+                  _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, _uTsx, _uTsy, _uTsz, deltat); 
 
-                    // Set integration time by time elapsed since last filter update
-                    static float _time;
-                    float deltat = time - _time;
-                    _time = time;
+                  // Copy the quaternion back out
+                  quat[0] = _quaternionFilter.q1;
+                  quat[1] = _quaternionFilter.q2;
+                  quat[2] = _quaternionFilter.q3;
+                  quat[3] = _quaternionFilter.q4;
 
-                    // Run the quaternion on the IMU values acquired in imuRead()                   
-                    _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, deltat); 
-
-                    // Copy the quaternion back out
-                    quat[0] = _quaternionFilter.q1;
-                    quat[1] = _quaternionFilter.q2;
-                    quat[2] = _quaternionFilter.q3;
-                    quat[3] = _quaternionFilter.q4;
-
-                    return true;
-                }
-
-                return false;
+                  return true;
             }
 
             virtual bool imuRead(void) = 0;
