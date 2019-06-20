@@ -57,7 +57,6 @@ namespace hf {
             virtual bool ready(float time) override
             {
                 (void)time;
-
                 return board->getMagnetometer(_uTs);
             }
 

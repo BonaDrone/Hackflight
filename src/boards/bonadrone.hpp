@@ -22,7 +22,8 @@
 
 #include <Wire.h>
 
-#include <LSM6DSM.h> 
+#include <LSM6DSM.h>  // IMU
+#include <LIS2MDL.h>  // Magnetometer 
 
 #include "filters.hpp"
 #include "hackflight.hpp"
@@ -38,9 +39,6 @@ namespace hf {
             // LSM6DSM data-ready interrupt pin
             const uint8_t LSM6DSM_INTERRUPT_PIN = 2;
 
-            
-            // Paramters to experiment with ------------------------------------------------------------------------
-
             // LSM6DSM full-scale settings
             static const LSM6DSM::Ascale_t Ascale = LSM6DSM::AFS_4G;
             static const LSM6DSM::Gscale_t Gscale = LSM6DSM::GFS_2000DPS;
@@ -51,17 +49,35 @@ namespace hf {
             float ACCEL_BIAS[3] = {0.0,0.0,0.0};
             float GYRO_BIAS[3]  = {0.0,0.0,0.0};
 
+            // Magnetometer setup
+            // These were computed previously by Kris.  
+            // We use them here to avoid having to calibrate.
+            float MAGNETO_BIAS[3]  = {0.814, -0.093, -0.579};
+            float MAGNETO_SCALE[3] = {1.11, 1.02, 0.90};
+
+            // Specify sensor parameters (sample rate is twice the bandwidth)
+            // choices are: ODR_10Hz, MOIDR_20Hz, ODR_50 Hz and ODR_100Hz
+            static const LIS2MDL::Rate_t ODR = LIS2MDL::ODR_100Hz;
+
             // Instance variables -----------------------------------------------------------------------------------
 
             LSM6DSM _lsm6dsm = LSM6DSM(Ascale, Gscale, AODR, GODR, ACCEL_BIAS, GYRO_BIAS);
+            LIS2MDL _lis2mdl = LIS2MDL(ODR, MAGNETO_BIAS, MAGNETO_SCALE);             
 
             // Helpers
-
             void i2cerror(const char * devicename)
             {
                 while (true) {
                     Serial.print("Unable to start: ");
                     Serial.println(devicename);
+                }
+            }
+            
+            static void error(const char * msg)
+            {
+                while (true) {
+                    Serial.print("Error: ");
+                    Serial.println(msg);
                 }
             }
 
@@ -92,17 +108,22 @@ namespace hf {
             {
                 return SoftwareQuaternionBoard::getAccelerometer(accelGs);
             }
+            
+            virtual bool  getMagnetometer(float uTs[3]) override
+            {
+                return SoftwareQuaternionBoard::getMagnetometer(uTs);
+            }
 
             bool imuRead(void)
             {
-                if (_lsm6dsm.checkNewData()) {
-
-                    _lsm6dsm.readData(_ax, _ay, _az, _gx, _gy, _gz);
-                    return true;
-
-                } 
-
-                return false;
+                _lsm6dsm.readData(_ax, _ay, _az, _gx, _gy, _gz);
+                return true;
+            }
+            
+            bool magnetometerRead(void)
+            {
+                _lis2mdl.readData(_uTsx, _uTsy, _uTsz);
+                return true;
             }
 
         public:
@@ -137,11 +158,31 @@ namespace hf {
                         break;
 
                 }
-
                 delay(100);
                 // Clear the interrupt
                 _lsm6dsm.clearInterrupt();
                 _lsm6dsm.calibrate(GYRO_BIAS, ACCEL_BIAS, 127);
+                
+                // Start the lis2mdl
+                switch (_lis2mdl.begin()) {
+
+                    case LIS2MDL::ERROR_CONNECT:
+                        error("no connection");
+                        break;
+
+                    case LIS2MDL::ERROR_ID:
+                        error("bad ID");
+                        break;
+
+                    case LIS2MDL::ERROR_SELFTEST:
+                        error("failed self-test");
+                        break;
+
+                     case LIS2MDL::ERROR_NONE:
+                        break;
+                }
+                delay(100);
+                _lis2mdl.clearInterrupt();
 
                 setLed(false);
             }

@@ -56,6 +56,10 @@ namespace hf {
             float _gx = 0;
             float _gy = 0;
             float _gz = 0;
+            float _uTsx = 0;
+            float _uTsy = 0;
+            float _uTsz = 0;
+
 
             // Quaternion support: even though MPU9250 has a magnetometer, we keep it simple for now by 
             // using a 6DOF fiter (accel, gyro)
@@ -124,6 +128,20 @@ namespace hf {
 
                 return false;
             }
+            
+            bool getMagnetometer(float uTs[3])
+            {
+                // Read acceleromter Gs, gyrometer degrees/sec
+                if (magnetometerRead()) {
+                    uTs[0] = _uTsx;
+                    uTs[1] = _uTsy;
+                    uTs[2] = _uTsz;
+
+                    return true;
+                }
+
+                return false;
+            }
 
             bool getQuaternion(float quat[4], float time)
             {
@@ -153,6 +171,7 @@ namespace hf {
             }
 
             virtual bool imuRead(void) = 0;
+            virtual bool magnetometerRead(void) = 0;
 
     }; // class SoftwareQuaternionBoard
 
