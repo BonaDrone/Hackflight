@@ -198,6 +198,8 @@ namespace hf {
                         // get IMU and magnetometer data
                         float accels[3], rates[3], magneto[3];
                         float quat[4];
+                        // This calls update the internal values of
+                        // accelerations, rates and magnetic field
                         _board->getIMU(accels, rates);
                         _board->getMagnetometer(magneto);
                         // update quaternion
