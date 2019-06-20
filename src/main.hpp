@@ -34,9 +34,8 @@
 
 // Additional Sensors
 // (Gyrometer and accelerometer are included by default)
-#include <PMW3901.h>
 #include "sensors/rangefinders/vl53l1x.hpp"
-#include "sensors/opticalflow.hpp"
+#include "sensors/opticalflows/pmw3901.hpp"
 
 // Additional Controllers 
 // (Rate is included by default as it is always required)
@@ -341,7 +340,7 @@ namespace hf {
                     h.addSensor(rangefinder);
                     h.eskf.addSensorESKF(rangefinder);
 
-                    hf::OpticalFlow * opticalflow = new hf::OpticalFlow();
+                    hf::PMW3901_Flow * opticalflow = new hf::PMW3901_Flow();
                     bool _opticalConnected = opticalflow->begin();
                     h.addSensor(opticalflow);
                     h.eskf.addSensorESKF(opticalflow);
