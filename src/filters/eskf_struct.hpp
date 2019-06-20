@@ -25,8 +25,8 @@
 
 #pragma once
 
-#define NNsta 10
-#define NEsta 9
+#define NNsta 6
+#define NEsta 6
 #define Mobs 3
 #define MNQuat 4
 

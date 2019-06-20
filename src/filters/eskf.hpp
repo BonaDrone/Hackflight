@@ -41,11 +41,6 @@ namespace hf {
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
       static const uint8_t mnQuat = MNQuat;
-      
-      // Velocity low pass filters
-      // static const uint8_t HISTORY = 50;
-      // hf::LowPassFilter _lpVelX = hf::LowPassFilter(HISTORY);
-      // hf::LowPassFilter _lpVelY = hf::LowPassFilter(HISTORY);
 
       eskf_t eskf;
       eskf_p_t eskfp;
@@ -90,7 +85,8 @@ namespace hf {
       void synchState()
       {
           // Update euler angles
-          float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
+          // float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
+          float q[4]= {1,0,0,0};
           Quaternion::computeEulerAngles(q, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
@@ -106,8 +102,6 @@ namespace hf {
           float vels[3];
           velocityToIMUFrame(vels, world_vels, q);
 
-          // state.linearVelocities[0] = _lpVelX.update(vels[0]);
-          // state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[0] = vels[0];
           state.linearVelocities[1] = vels[1];
           state.linearVelocities[2] = vels[2];
@@ -152,13 +146,6 @@ namespace hf {
           if (sensor->Zinverse(tmp9, tmp4)) return 1; // tmp4 = Z^-1
           
           mulmat(tmp1, tmp4, K, errorStates, observations, observations); // K = P*H'*Z^-1
-
-          // Do not let optical flow correct height and vertical velocity
-          if (sensor->isOpticalFlow())
-          {
-            K[2] = 0;
-            K[5] = 0;
-          }
 
           return 0;
       }
@@ -211,9 +198,6 @@ namespace hf {
         zeros(eskfp.Fdx, errorStates, errorStates);
         zeros(eskfp.H, observations, errorStates);
 
-        // intialize lpfs
-        // _lpVelX.init();
-        // _lpVelY.init();
 
         // initial state
         eskfp.x[0] = 0.0; // position
@@ -222,10 +206,6 @@ namespace hf {
         eskfp.x[3] = 0.0; // velocity
         eskfp.x[4] = 0.0;
         eskfp.x[5] = 0.0;
-        eskfp.x[6] = 1.0; // orientation (quaternion)
-        eskfp.x[7] = 0.0;
-        eskfp.x[8] = 0.0;
-        eskfp.x[9] = 0.0;
 
         // Since P has already been zero-ed only elements != 0 have to be set
         // 1 column
@@ -240,12 +220,6 @@ namespace hf {
         eskfp.P[40] = 0.0;
         // 6 column
         eskfp.P[50] = 0.0;
-        // 7 column
-        eskfp.P[60] = 0.01;
-        // 8 column
-        eskfp.P[70] = 0.01;
-        // 9 column
-        eskfp.P[80] = 0.0;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
@@ -269,18 +243,20 @@ namespace hf {
           dt = (t_now - t_lastCall)/1000000.0f;
           t_lastCall = t_now;
 
-          sensor->integrateNominalState(eskfp.fx, eskfp.x, dt);
-          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
+          float quat[4] = {1,0,0,0};
+
+          sensor->integrateNominalState(eskfp.fx, eskfp.x, quat, dt);
+          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, quat, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
 
           // Normalize quaternion
-          float quat_tmp[4] = { eskf.fx[6], eskf.fx[7], eskf.fx[8], eskf.fx[9] };
-          float norm_quat_tmp[4];
-          norvec(quat_tmp, norm_quat_tmp, 4);
-          eskf.fx[6] = norm_quat_tmp[0];
-          eskf.fx[7] = norm_quat_tmp[1];
-          eskf.fx[8] = norm_quat_tmp[2];
-          eskf.fx[9] = norm_quat_tmp[3];
+          // float quat_tmp[4] = { eskf.fx[6], eskf.fx[7], eskf.fx[8], eskf.fx[9] };
+          // float norm_quat_tmp[4];
+          // norvec(quat_tmp, norm_quat_tmp, 4);
+          // eskf.fx[6] = norm_quat_tmp[0];
+          // eskf.fx[7] = norm_quat_tmp[1];
+          // eskf.fx[8] = norm_quat_tmp[2];
+          // eskf.fx[9] = norm_quat_tmp[3];
 
           // Copy back estimated states into x
           copyvec(eskfp.fx, eskfp.x, nominalStates);
@@ -310,7 +286,7 @@ namespace hf {
             8. Update Covariance if required and enforce symmetry
             9. Reset errors
           */
-
+          float quat[4] = {1,0,0,0};
           // Make all the entries of the used matrices zero
           // This is required because not all sensors have the same number of
           // observations and matrices are dimensioned so that they can store the
@@ -319,8 +295,8 @@ namespace hf {
           // calculations to affect the current correction.
           zeroCorrectMatrices();
 
-          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x);
-          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
+          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x, quat);
+          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x, quat);
           sensor->getCovarianceCorrection(eskfp.R);
 
           // Skip correction if there were any errors when obtaining
@@ -349,20 +325,20 @@ namespace hf {
 
           /* Error injection */
           // XXX Quaternion injection as a method
-          float tmp[4];
-          float tmp2[4];
-          tmp[0] = 1.0;
-          tmp[1] = eskf.dx[6]/2.0;
-          tmp[2] = eskf.dx[7]/2.0;
-          tmp[3] = eskf.dx[8]/2.0;
-          float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
-          Quaternion::computeqL(eskfp.qL, quat_tmp);
-          mulvec(eskfp.qL, tmp, tmp2, 4, 4);
-          norvec(tmp2, tmp, 4);
-          eskf.x[6] = tmp[0];
-          eskf.x[7] = tmp[1];
-          eskf.x[8] = tmp[2];
-          eskf.x[9] = tmp[3];
+          // float tmp[4];
+          // float tmp2[4];
+          // tmp[0] = 1.0;
+          // tmp[1] = eskf.dx[6]/2.0;
+          // tmp[2] = eskf.dx[7]/2.0;
+          // tmp[3] = eskf.dx[8]/2.0;
+          // float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
+          // Quaternion::computeqL(eskfp.qL, quat_tmp);
+          // mulvec(eskfp.qL, tmp, tmp2, 4, 4);
+          // norvec(tmp2, tmp, 4);
+          // eskf.x[6] = tmp[0];
+          // eskf.x[7] = tmp[1];
+          // eskf.x[8] = tmp[2];
+          // eskf.x[9] = tmp[3];
           // Inject rest of errors
           eskf.x[0] += eskf.dx[0]; // position
           eskf.x[1] += eskf.dx[1];

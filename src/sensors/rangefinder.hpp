@@ -50,9 +50,9 @@ namespace hf {
             {
             }
 
-            virtual bool getJacobianObservation(float * H, float * x) override
+            virtual bool getJacobianObservation(float * H, float * x, float * q) override
             {
-                float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
+                float aux1 = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
                 // 1 column
                 H[0] =  0;
                 // 2 column
@@ -65,21 +65,15 @@ namespace hf {
                 H[4] =  0;
                 // 6 column
                 H[5] =  0;
-                // 7 column
-                H[6] =  (2*x[2]*x[6]*x[7])/(aux1*aux1) + (2*x[2]*x[8]*x[9])/(aux1*aux1);
-                // 8 column
-                H[7] =  (2*x[2]*x[6]*x[8])/(aux1*aux1) - (2*x[2]*x[7]*x[9])/(aux1*aux1);
-                // 9 column
-                H[8] =  0;
-                
+
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x) override
+            virtual bool getInnovation(float * z, float * x, float * q) override
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = x[2]/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
+                float predicted = x[2]/( q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
                 z[0] = _distance - predicted; 
                 
                 return true;               
