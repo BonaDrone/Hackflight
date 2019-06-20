@@ -63,7 +63,8 @@ namespace hf {
 
             // Quaternion support: even though MPU9250 has a magnetometer, we keep it simple for now by 
             // using a 6DOF fiter (accel, gyro)
-            MadgwickQuaternionFilter9DOF _quaternionFilter = MadgwickQuaternionFilter9DOF(BETA);
+            // MadgwickQuaternionFilter9DOF _quaternionFilter = MadgwickQuaternionFilter9DOF(BETA);
+            MadgwickQuaternionFilter6DOF _quaternionFilter = MadgwickQuaternionFilter6DOF(BETA, ZETA);
 
         public:
 
@@ -154,7 +155,8 @@ namespace hf {
                   _time = time;
 
                   // Run the quaternion on the IMU values acquired in imuRead()                   
-                  _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, _uTsx, _uTsy, _uTsz, deltat); 
+                  // _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, _uTsx, _uTsy, _uTsz, deltat); 
+                  _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, deltat); 
 
                   // Copy the quaternion back out
                   quat[0] = _quaternionFilter.q1;

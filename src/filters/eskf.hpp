@@ -36,13 +36,13 @@ namespace hf {
 
     private:
 
-      float _quat[4] = {1.0,0,0,0};
+      float _quat[4];
 
       // NEsta, NNsta, Mobs are defined in eskf_struct.hpp
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
-      static const uint8_t mnQuat = MNQuat;
+      // static const uint8_t mnQuat = MNQuat;
 
       eskf_t eskf;
       eskf_p_t eskfp;
@@ -50,15 +50,15 @@ namespace hf {
       double t_lastCall;
       double dt;
 
-      void eskfp_init(void * eskf, int nn, int ne, int m, int mnquat)
+      void eskfp_init(void * eskf, int nn, int ne, int m)//, int mnquat)
       {
           float * dptr = (float *)eskf;
           eskfp.x = dptr;
           dptr += nn;
           eskfp.dx = dptr;
           dptr += ne;
-          eskfp.qL = dptr;
-          dptr += mnquat*mnquat;
+          // eskfp.qL = dptr;
+          // dptr += mnquat*mnquat;
 
           eskfp.P = dptr;
           dptr += ne*ne;
@@ -87,12 +87,13 @@ namespace hf {
       void synchState()
       {
           // Update euler angles
-          // float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
+          // float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};          
           Quaternion::computeEulerAngles(_quat, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
+          
           // update vertical position and velocity
           state.position[0] = eskf.x[0];
           state.position[1] = eskf.x[1];
@@ -109,7 +110,7 @@ namespace hf {
 
           // Serial.print(state.linearVelocities[0], 8);
           // Serial.print(",");
-          // Serial.print(state.linearVelocities[1], 8);
+          // Serial.println(state.linearVelocities[1], 8);
       }
 
       void covariancePrediction(float * Fdx, float * P, float * Q)
@@ -184,14 +185,14 @@ namespace hf {
 
       void init(void)
       {
-          eskfp_init(&eskf, nominalStates, errorStates, observations, mnQuat);
+          eskfp_init(&eskf, nominalStates, errorStates, observations);//, mnQuat);
           reset();
       }
 
       void reset(void)
       {
         /* zero-out matrices */
-        zeros(eskfp.qL, mnQuat, mnQuat);
+        // zeros(eskfp.qL, mnQuat, mnQuat);
         zeros(eskfp.P, errorStates, errorStates);
         zeros(eskfp.Q, errorStates, errorStates);
         zeros(eskfp.R, observations, observations);
@@ -252,10 +253,9 @@ namespace hf {
           dt = (t_now - t_lastCall)/1000000.0f;
           t_lastCall = t_now;
 
-          float quat[4] = {1,0,0,0};
-
           sensor->integrateNominalState(eskfp.fx, eskfp.x, _quat, dt);
           sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, _quat, dt);
+          
           sensor->getCovarianceEstimation(eskfp.Q);
 
           // Normalize quaternion
@@ -295,7 +295,6 @@ namespace hf {
             8. Update Covariance if required and enforce symmetry
             9. Reset errors
           */
-          float quat[4] = {1,0,0,0};
           // Make all the entries of the used matrices zero
           // This is required because not all sensors have the same number of
           // observations and matrices are dimensioned so that they can store the

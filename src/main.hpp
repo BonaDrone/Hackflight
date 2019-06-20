@@ -305,7 +305,7 @@ namespace hf {
                         _altHoldVelD,   // Altitude Hold Velocity D
                         _minAltitude);  // Min altitude
                     althold->setPIDType(ALTHOLD);
-                    h.addPidController(althold, 0);
+                    h.addPidController(althold, 3);
 
                     hf::PositionHold * poshold = new hf::PositionHold(
                         0.0,            // Position Hold P -> this will set velTarget to 0
@@ -313,13 +313,13 @@ namespace hf {
                         _posHoldVelI,   // Position Hold Velocity I
                         _posHoldVelD);  // Position Hold Velocity D
                     poshold->setPIDType(POSHOLD);
-                    h.addPidController(poshold, 0);
+                    h.addPidController(poshold, 3);
 
                 }
 
                 // 0 means the controller will always be active, but by changing
                 // that number it can be linked to a different aux state
-                h.addPidController(level, 0);
+                h.addPidController(level, 2);
 
                 if (_isMosquito90) {
                     h.init(new hf::BonadroneBrushed(), &rc, &mixer, ratePid);
