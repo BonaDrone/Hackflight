@@ -34,7 +34,7 @@
 #include "pidcontrollers/rate.hpp"
 #include "sensors/peripheral.hpp"
 #include "sensors/imu.hpp"
-#include "sensors/accelerometer.hpp"
+// #include "sensors/accelerometer.hpp"
 #include "sensors/quaternion.hpp"
 
 #include "filters/eskf.hpp"
@@ -75,7 +75,7 @@ namespace hf {
 
             // Mandatory sensors on the board
             IMU _imu;
-            Accelerometer _accelerometer;
+            // Accelerometer _accelerometer;
 
             // Additional sensors
             Sensor * _sensors[256];
@@ -195,6 +195,20 @@ namespace hf {
 
                     if (sensor->isEstimation && sensor->shouldUpdateESKF(time, _state))
                     {
+                        // get IMU and magnetometer data
+                        float accels[3], rates[3], magneto[3];
+                        float quat[4];
+                        _board->getIMU(accels, rates);
+                        _board->getMagnetometer(magneto);
+                        // update quaternion
+                        _board->getQuaternion(quat);
+                        eskf.updateQuaternion(quat);
+                        // Update sensor readings for calculations
+                        sensor->setSensorData(accels);
+                        _state.UAVState->angularVelocities[0] = rates[0];
+                        _state.UAVState->angularVelocities[1] = rates[1];
+                        _state.UAVState->angularVelocities[2] = rates[2];
+                        // update state
                         eskf.update(sensor, time);
                     }
                 }
@@ -853,11 +867,11 @@ namespace hf {
                 // Error state kalman filter initialization
                 eskf.init();
                 eskf.addSensorESKF(&_imu);
-                eskf.addSensorESKF(&_accelerometer);
+//                eskf.addSensorESKF(&_accelerometer);
 
                 // Support for mandatory sensors
                 addSensor(&_imu, board);
-                addSensor(&_accelerometer, board);
+//                addSensor(&_accelerometer, board);
 
                 // Last PID controller is always ratePid (rate), aux state = 0
                 addPidController(_ratePid, 0);

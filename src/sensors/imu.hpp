@@ -162,6 +162,13 @@ namespace hf {
                 Q[41] =   0;
                 Q[50] =   1.0;
             }
+            
+            void setSensorData(float accels[3])
+            {                
+                _accels[0] = accels[0];
+                _accels[1] = accels[1];
+                _accels[2] = accels[2];
+            }
 
         protected:
 
@@ -174,11 +181,11 @@ namespace hf {
             {
                 (void)time;
 
-                board->getIMU(_rates, _accels);
+                // board->getIMU(_rates, _accels);
 
-                state.UAVState->angularVelocities[0] = _rates[0];
-                state.UAVState->angularVelocities[1] = _rates[1];
-                state.UAVState->angularVelocities[2] = _rates[2];                
+                // state.UAVState->angularVelocities[0] = _rates[0];
+                // state.UAVState->angularVelocities[1] = _rates[1];
+                // state.UAVState->angularVelocities[2] = _rates[2];                
 
                 return true;
             }

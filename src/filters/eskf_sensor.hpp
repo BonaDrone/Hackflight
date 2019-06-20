@@ -77,6 +77,8 @@ namespace hf {
         virtual void getMeasures(eskf_state_t & state) {(void)state;}
         
         virtual bool isOpticalFlow(void) { return false; }
+        
+        virtual void setSensorData(float data[3]) {(void)data;}
 
     }; // class ESKF_Sensor
 

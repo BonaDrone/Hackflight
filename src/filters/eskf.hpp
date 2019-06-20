@@ -36,6 +36,8 @@ namespace hf {
 
     private:
 
+      float _quat[4] = {1.0,0,0,0};
+
       // NEsta, NNsta, Mobs are defined in eskf_struct.hpp
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
@@ -86,8 +88,7 @@ namespace hf {
       {
           // Update euler angles
           // float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
-          float q[4]= {1,0,0,0};
-          Quaternion::computeEulerAngles(q, state.eulerAngles);
+          Quaternion::computeEulerAngles(_quat, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
@@ -100,7 +101,7 @@ namespace hf {
           // Transform linear velocities to IMU frame
           float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
           float vels[3];
-          velocityToIMUFrame(vels, world_vels, q);
+          velocityToIMUFrame(vels, world_vels, _quat);
 
           state.linearVelocities[0] = vels[0];
           state.linearVelocities[1] = vels[1];
@@ -227,6 +228,14 @@ namespace hf {
           sensors[sensor_count++] = sensor;
       }
 
+      void updateQuaternion(float quat[4])
+      {
+          _quat[0] = quat[0];
+          _quat[1] = quat[1];
+          _quat[2] = quat[2];
+          _quat[3] = quat[3];
+      }
+
       int update(ESKF_Sensor * sensor, float time)
       {
           /*
@@ -245,8 +254,8 @@ namespace hf {
 
           float quat[4] = {1,0,0,0};
 
-          sensor->integrateNominalState(eskfp.fx, eskfp.x, quat, dt);
-          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, quat, dt);
+          sensor->integrateNominalState(eskfp.fx, eskfp.x, _quat, dt);
+          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, _quat, dt);
           sensor->getCovarianceEstimation(eskfp.Q);
 
           // Normalize quaternion
@@ -295,8 +304,8 @@ namespace hf {
           // calculations to affect the current correction.
           zeroCorrectMatrices();
 
-          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x, quat);
-          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x, quat);
+          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x, _quat);
+          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x, _quat);
           sensor->getCovarianceCorrection(eskfp.R);
 
           // Skip correction if there were any errors when obtaining

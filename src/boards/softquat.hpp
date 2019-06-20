@@ -114,9 +114,13 @@ namespace hf {
 
                     // Convert gyrometer values from degrees/sec to radians/sec
                     // and store output
-                    gyro[0] = deg2rad(_gx);
-                    gyro[1] = deg2rad(_gy);
-                    gyro[2] = deg2rad(_gz);
+                    _gx = deg2rad(_gx);
+                    _gy = deg2rad(_gy);
+                    _gz = deg2rad(_gz);
+
+                    gyro[0] = _gx;
+                    gyro[1] = _gy;
+                    gyro[2] = _gz;
 
                     // convert from Gs to m/s^2
                     accel[0] = _ax*9.80665;
@@ -131,7 +135,6 @@ namespace hf {
             
             bool getMagnetometer(float uTs[3])
             {
-                // Read acceleromter Gs, gyrometer degrees/sec
                 if (magnetometerRead()) {
                     uTs[0] = _uTsx;
                     uTs[1] = _uTsy;

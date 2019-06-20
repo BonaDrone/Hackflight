@@ -187,7 +187,7 @@ namespace hf {
                 _4bx = 2.0f * _2bx;
                 _4bz = 2.0f * _2bz;
 
-                // Gradient decent algorithm corrective step
+                // Gradient descent algorithm corrective step
                 s1 = -_2q3 * (2.0f * q2q4 - _2q1q3 - ax) + 
                     _2q2 * (2.0f * q1q2 + _2q3q4 - ay) - 
                     _2bz * q3 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + 
