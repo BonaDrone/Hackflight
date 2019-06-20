@@ -33,7 +33,7 @@ namespace hf {
 
         private:
 
-            static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
+            static constexpr float UPDATE_HZ = 75.0; // XXX should be using interrupt!
 
             static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
 
@@ -81,7 +81,7 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 0.6f;
+                R[0] = 0.01f;
             }
 
             virtual bool Zinverse(float * Z, float * invZ) override

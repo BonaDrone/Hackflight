@@ -87,7 +87,6 @@ namespace hf {
       void synchState()
       {
           // Update euler angles
-          // float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};          
           Quaternion::computeEulerAngles(_quat, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
