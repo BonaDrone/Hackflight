@@ -57,10 +57,12 @@ namespace hf {
                     getAccumulatedMotion(deltaX, deltaY);
                     // To match camera frame
                     deltat = time -_time;
+                    // _deltaX = -deltaX / deltat;
+                    // _deltaY = deltaY / deltat;
+                    _deltaX = -deltaX;
+                    _deltaY = deltaY;
                     _time = time;
-                    _deltaX = -deltaX / deltat;
-                    _deltaY = deltaY / deltat;
-                                        
+                                                            
                     return true; 
                 }
                 return false;
@@ -83,7 +85,7 @@ namespace hf {
                 // delta is the time elapsed between the last estimation
                 // and the measurement.
                 // measurement time - last Estimation time
-                deltat = _time - estimationTime/1000000.0;
+                // deltat = _time - estimationTime/1000000.0;
                 // Jacobian of measurement model with respect to the error states
                 // 
                 //   H = [ 0 0 h_zx h_vx  0   0 0 0 0;...
@@ -111,14 +113,14 @@ namespace hf {
                     z_est = x[2];
                 }
                 
-                deltat = _time - estimationTime/1000000.0;
+                // deltat = _time - estimationTime/1000000.0;
                 
                 float _predictedObservation[2];
                 float rotationComponent = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3]; // R(3,3)            
                 // predicted number of accumulated pixels
                 _predictedObservation[0] = (deltat * _Npix / _thetapix ) * ((x[3] * rotationComponent / z_est) - _omegaFactor * _rates[1]);
                 _predictedObservation[1] = (deltat * _Npix / _thetapix ) * ((x[4] * rotationComponent / z_est) + _omegaFactor *_rates[0]);
-                  
+                
                 z[0] = _deltaX - _predictedObservation[0];
                 z[1] = _deltaY - _predictedObservation[1];
                 
@@ -128,7 +130,7 @@ namespace hf {
             virtual void getCovarianceCorrection(float * R) override
             {
                 R[0] = 0.0625;
-                R[4] = 0.0625;
+                R[3] = 0.0625;
             }
             
             virtual void getMeasures(eskf_state_t & state) override
@@ -140,20 +142,8 @@ namespace hf {
 
             virtual bool Zinverse(float * Z, float * invZ) override
             {
-                // Since Z by default is a 3x3 matrix, temporarily copy its
-                // values in a 2x2 matrix to avoid messing up with the indexes
-                float Ztmp[4];
-                Ztmp[0] = Z[0];
-                Ztmp[1] = Z[1];
-                Ztmp[2] = Z[3];
-                Ztmp[3] = Z[4];
-                float invZtmp[4];
                 float tmp[2];
-                if (cholsl(Ztmp, invZtmp, tmp, 2))  return 1;
-                invZ[0] = invZtmp[0];
-                invZ[1] = invZtmp[1];
-                invZ[3] = invZtmp[2];
-                invZ[4] = invZtmp[3];
+                if (cholsl(Z, invZ, tmp, 2))  return 1;
                 return 0;
             }
             

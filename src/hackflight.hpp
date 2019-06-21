@@ -869,11 +869,11 @@ namespace hf {
                 // Error state kalman filter initialization
                 eskf.init();
                 eskf.addSensorESKF(&_imu);
-//                eskf.addSensorESKF(&_accelerometer);
+                // eskf.addSensorESKF(&_accelerometer);
 
                 // Support for mandatory sensors
                 addSensor(&_imu, board);
-//                addSensor(&_accelerometer, board);
+                // addSensor(&_accelerometer, board);
 
                 // Last PID controller is always ratePid (rate), aux state = 0
                 addPidController(_ratePid, 0);

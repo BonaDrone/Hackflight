@@ -25,9 +25,9 @@
 
 #pragma once
 
-#define NNsta 6
+#define NNsta 6 // positions and velocities
 #define NEsta 6
-#define Mobs 2
+#define Mobs 2 // optical flow has 2 observations
 // #define MNQuat 4
 
 namespace hf {
