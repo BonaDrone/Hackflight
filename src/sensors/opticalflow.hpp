@@ -37,7 +37,7 @@ namespace hf {
             // sensor parameters
             // Specific to the sensor
             float _Npix = 30.0; // [pixels] (same in x and y)
-            float _thetapix = (M_PI/180) * 4.2; // [rad] (same in x and y)
+            float _thetapix = (M_PI / 180) * 4.2; // [rad] (same in x and y)
             float _omegaFactor = 1.25;
             // flow measures
             float _deltaX = 0;
@@ -83,7 +83,6 @@ namespace hf {
                 }
 
                 // Jacobian of measurement model with respect to the error states
-                // dh/dx * dx/ddx where dx/ddx = blkdiag(I_6 Q)
                 // 
                 //   H = [ 0 0 h_zx h_vx  0   0 0 0 0;...
                 //         0 0 h_zy  0   h_vy 0 0 0 0;];

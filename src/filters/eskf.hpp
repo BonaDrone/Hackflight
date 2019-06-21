@@ -210,17 +210,17 @@ namespace hf {
 
         // Since P has already been zero-ed only elements != 0 have to be set
         // 1 column
-        eskfp.P[0] = 0.0;
+        eskfp.P[0] = 0.5;
         // 2 column
-        eskfp.P[10] = 0.0;
+        eskfp.P[10] = 0.5;
         // 3 column
-        eskfp.P[20] = 0.0;
+        eskfp.P[20] = 0.5;
         // 4 column
-        eskfp.P[30] = 0.0;
+        eskfp.P[30] = 0.5;
         // 5 column
-        eskfp.P[40] = 0.0;
+        eskfp.P[40] = 0.5;
         // 6 column
-        eskfp.P[50] = 0.0;
+        eskfp.P[50] = 0.5;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
