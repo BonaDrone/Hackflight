@@ -50,9 +50,9 @@ namespace hf {
         virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
-        virtual bool getJacobianObservation(float * H, float * x, float * q) { (void)H; (void)x; }
+        virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) { (void)H; (void)x; }
         
-        virtual bool getInnovation(float * z, float * x, float * q) { (void)z; (void)x; }
+        virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) { (void)z; (void)x; }
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
         

@@ -48,7 +48,7 @@ namespace hf {
                 memset(_accels, 0, 3*sizeof(float));
             }
             
-            virtual bool getJacobianObservation(float * H, float * x, float * q) override
+            virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) override
             {
                 // 1 column
                 H[0] =  0;
@@ -78,7 +78,7 @@ namespace hf {
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x, float * q) override
+            virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) override
             {
                 float tmp1[3];
                 float tmp2[3];

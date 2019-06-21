@@ -43,6 +43,7 @@ namespace hf {
             float _deltaX = 0;
             float _deltaY = 0;
             // Time elapsed between corrections
+            float _time = 0.0;
             float deltat = 0.0;
             // angular velocities
             float _rates[3];
@@ -51,8 +52,6 @@ namespace hf {
             
             virtual bool shouldUpdateESKF(float time, state_t & state) override
             {
-                static float _time;
-
                 if (time - _time > UPDATE_PERIOD) {
                     float deltaX=0, deltaY=0;
                     getAccumulatedMotion(deltaX, deltaY);
@@ -71,7 +70,7 @@ namespace hf {
 
             OpticalFlow(void) : PeripheralSensor(false, true) {}
 
-            virtual bool getJacobianObservation(float * H, float * x, float * q) override
+            virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) override
             {
                 float z_est;
                 // Saturate z estimation to avoid singularities
@@ -81,7 +80,10 @@ namespace hf {
                 } else {
                     z_est = x[2];
                 }
-
+                // delta is the time elapsed between the last estimation
+                // and the measurement.
+                // measurement time - last Estimation time
+                deltat = _time - estimationTime/1000000.0;
                 // Jacobian of measurement model with respect to the error states
                 // 
                 //   H = [ 0 0 h_zx h_vx  0   0 0 0 0;...
@@ -98,7 +100,7 @@ namespace hf {
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x, float * q) override
+            virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) override
             {
                 // Saturate z estimation to avoid singularities
                 float z_est;
@@ -108,6 +110,8 @@ namespace hf {
                 } else {
                     z_est = x[2];
                 }
+                
+                deltat = _time - estimationTime/1000000.0;
                 
                 float _predictedObservation[2];
                 float rotationComponent = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3]; // R(3,3)            

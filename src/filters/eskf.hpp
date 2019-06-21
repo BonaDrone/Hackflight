@@ -47,7 +47,8 @@ namespace hf {
       eskf_t eskf;
       eskf_p_t eskfp;
 
-      double t_lastCall;
+      uint32_t _tlastCall;
+      uint32_t _tEstimation;
       double dt;
 
       void eskfp_init(void * eskf, int nn, int ne, int m)//, int mnquat)
@@ -248,9 +249,9 @@ namespace hf {
           */
 
           // Compute deltat
-          double t_now = (double)micros();
-          dt = (t_now - t_lastCall)/1000000.0f;
-          t_lastCall = t_now;
+          _tEstimation = micros();
+          dt = (_tEstimation - _tlastCall)/1000000.0f;
+          _tlastCall = _tEstimation;
 
           sensor->integrateNominalState(eskfp.fx, eskfp.x, _quat, dt);
           sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, _quat, dt);
@@ -302,8 +303,8 @@ namespace hf {
           // calculations to affect the current correction.
           zeroCorrectMatrices();
 
-          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x, _quat);
-          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x, _quat);
+          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x, _quat, _tEstimation);
+          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x, _quat, _tEstimation);
           sensor->getCovarianceCorrection(eskfp.R);
 
           // Skip correction if there were any errors when obtaining

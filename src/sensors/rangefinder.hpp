@@ -50,7 +50,7 @@ namespace hf {
             {
             }
 
-            virtual bool getJacobianObservation(float * H, float * x, float * q) override
+            virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) override
             {
                 float aux1 = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
                 // 1 column
@@ -69,7 +69,7 @@ namespace hf {
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x, float * q) override
+            virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) override
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
