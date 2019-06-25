@@ -88,16 +88,16 @@ namespace hf {
                 // deltat = _time - estimationTime/1000000.0;
                 // Jacobian of measurement model with respect to the error states
                 // 
-                //   H = [ 0 0 h_zx h_vx  0   0 0 0 0;...
-                //         0 0 h_zy  0   h_vy 0 0 0 0;];
-                float rotationComponent = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3]; // R(3,3)
+                //   H = [ 0 0 h_zx h_vx  0   0;...
+                //         0 0 h_zy  0   h_vy 0;];
+                float rotationComponent = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]; // R(3,3)
                 // Derive x measurement equation with respect to the error states (effectively vx and z)
                 H[2] = (_Npix * deltat / _thetapix) * ((rotationComponent * x[3]) / (-z_est * z_est));
                 H[3] = (_Npix * deltat / _thetapix) * (rotationComponent / z_est);
                 
                 // Derive y measurement equation with respect to the error states (effectively vy and z)
-                H[11] = (_Npix * deltat / _thetapix) * ((rotationComponent * x[4]) / (-z_est * z_est));
-                H[13] = (_Npix * deltat / _thetapix) * (rotationComponent / z_est);
+                H[8] = (_Npix * deltat / _thetapix) * ((rotationComponent * x[4]) / (-z_est * z_est));
+                H[10] = (_Npix * deltat / _thetapix) * (rotationComponent / z_est);
                 
                 return true;
             }
@@ -112,9 +112,8 @@ namespace hf {
                 } else {
                     z_est = x[2];
                 }
-                
+
                 // deltat = _time - estimationTime/1000000.0;
-                
                 float _predictedObservation[2];
                 float rotationComponent = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3]; // R(3,3)            
                 // predicted number of accumulated pixels
