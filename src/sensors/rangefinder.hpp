@@ -33,9 +33,9 @@ namespace hf {
 
         private:
 
-            static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
+            static constexpr float UPDATE_HZ = 75.0; // XXX should be using interrupt!
 
-            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
+            static constexpr float UPDATE_PERIOD = 1.0 / UPDATE_HZ;
 
             float _distance;
             
@@ -50,36 +50,30 @@ namespace hf {
             {
             }
 
-            virtual bool getJacobianObservation(float * H, float * x) override
+            virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) override
             {
-                float aux1 = x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
+                float aux1 = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
                 // 1 column
                 H[0] =  0;
                 // 2 column
                 H[1] =  0;
                 // 3 column
-                H[2] =  1/aux1;
+                H[2] =  1 / aux1;
                 // 4 column
                 H[3] =  0;
                 // 5 column
                 H[4] =  0;
                 // 6 column
                 H[5] =  0;
-                // 7 column
-                H[6] =  (2*x[2]*x[6]*x[7])/(aux1*aux1) + (2*x[2]*x[8]*x[9])/(aux1*aux1);
-                // 8 column
-                H[7] =  (2*x[2]*x[6]*x[8])/(aux1*aux1) - (2*x[2]*x[7]*x[9])/(aux1*aux1);
-                // 9 column
-                H[8] =  0;
-                
+
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x) override
+            virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) override
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = x[2]/(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]);
+                float predicted = x[2] / ( q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
                 z[0] = _distance - predicted; 
                 
                 return true;               
@@ -87,7 +81,7 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 0.6f;
+                R[0] = 0.1f;
             }
 
             virtual bool Zinverse(float * Z, float * invZ) override
@@ -96,7 +90,7 @@ namespace hf {
                 {
                     return 1;
                 }
-                invZ[0] = 1.0/Z[0];
+                invZ[0] = 1.0 / Z[0];
                 return 0;
             }
             

@@ -36,32 +36,30 @@ namespace hf {
 
     private:
 
+      float _quat[4];
+
       // NEsta, NNsta, Mobs are defined in eskf_struct.hpp
       static const uint8_t errorStates = NEsta;
       static const uint8_t nominalStates = NNsta;
       static const uint8_t observations = Mobs;
-      static const uint8_t mnQuat = MNQuat;
-      
-      // Velocity low pass filters
-      // static const uint8_t HISTORY = 50;
-      // hf::LowPassFilter _lpVelX = hf::LowPassFilter(HISTORY);
-      // hf::LowPassFilter _lpVelY = hf::LowPassFilter(HISTORY);
+      // static const uint8_t mnQuat = MNQuat;
 
       eskf_t eskf;
       eskf_p_t eskfp;
 
-      double t_lastCall;
+      uint32_t _tlastCall;
+      uint32_t _tEstimation;
       double dt;
 
-      void eskfp_init(void * eskf, int nn, int ne, int m, int mnquat)
+      void eskfp_init(void * eskf, int nn, int ne, int m)//, int mnquat)
       {
           float * dptr = (float *)eskf;
           eskfp.x = dptr;
           dptr += nn;
           eskfp.dx = dptr;
           dptr += ne;
-          eskfp.qL = dptr;
-          dptr += mnquat*mnquat;
+          // eskfp.qL = dptr;
+          // dptr += mnquat*mnquat;
 
           eskfp.P = dptr;
           dptr += ne*ne;
@@ -90,31 +88,29 @@ namespace hf {
       void synchState()
       {
           // Update euler angles
-          float q[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]};
-          Quaternion::computeEulerAngles(q, state.eulerAngles);
+          Quaternion::computeEulerAngles(_quat, state.eulerAngles);
           // Convert heading from [-pi,+pi] to [0,2*pi]
           if (state.eulerAngles[2] < 0) {
               state.eulerAngles[2] += 2*M_PI;
           }
+          
           // update vertical position and velocity
           state.position[0] = eskf.x[0];
           state.position[1] = eskf.x[1];
           state.position[2] = eskf.x[2];
-
+                    
           // Transform linear velocities to IMU frame
           float world_vels[3] = {eskf.x[3], eskf.x[4], eskf.x[5]};
           float vels[3];
-          velocityToIMUFrame(vels, world_vels, q);
+          velocityToIMUFrame(vels, world_vels, _quat);
 
-          // state.linearVelocities[0] = _lpVelX.update(vels[0]);
-          // state.linearVelocities[1] = _lpVelY.update(vels[1]);
           state.linearVelocities[0] = vels[0];
           state.linearVelocities[1] = vels[1];
           state.linearVelocities[2] = vels[2];
 
-          // Serial.print(state.linearVelocities[0], 8);
-          // Serial.print(",");
-          // Serial.print(state.linearVelocities[1], 8);
+          Serial.print(state.linearVelocities[0], 8);
+          Serial.print(",");
+          Serial.println(state.linearVelocities[1], 8);
       }
 
       void covariancePrediction(float * Fdx, float * P, float * Q)
@@ -153,13 +149,6 @@ namespace hf {
           
           mulmat(tmp1, tmp4, K, errorStates, observations, observations); // K = P*H'*Z^-1
 
-          // Do not let optical flow correct height and vertical velocity
-          if (sensor->isOpticalFlow())
-          {
-            K[2] = 0;
-            K[5] = 0;
-          }
-
           return 0;
       }
       
@@ -196,14 +185,14 @@ namespace hf {
 
       void init(void)
       {
-          eskfp_init(&eskf, nominalStates, errorStates, observations, mnQuat);
+          eskfp_init(&eskf, nominalStates, errorStates, observations);//, mnQuat);
           reset();
       }
 
       void reset(void)
       {
         /* zero-out matrices */
-        zeros(eskfp.qL, mnQuat, mnQuat);
+        // zeros(eskfp.qL, mnQuat, mnQuat);
         zeros(eskfp.P, errorStates, errorStates);
         zeros(eskfp.Q, errorStates, errorStates);
         zeros(eskfp.R, observations, observations);
@@ -211,9 +200,6 @@ namespace hf {
         zeros(eskfp.Fdx, errorStates, errorStates);
         zeros(eskfp.H, observations, errorStates);
 
-        // intialize lpfs
-        // _lpVelX.init();
-        // _lpVelY.init();
 
         // initial state
         eskfp.x[0] = 0.0; // position
@@ -222,35 +208,33 @@ namespace hf {
         eskfp.x[3] = 0.0; // velocity
         eskfp.x[4] = 0.0;
         eskfp.x[5] = 0.0;
-        eskfp.x[6] = 1.0; // orientation (quaternion)
-        eskfp.x[7] = 0.0;
-        eskfp.x[8] = 0.0;
-        eskfp.x[9] = 0.0;
 
         // Since P has already been zero-ed only elements != 0 have to be set
         // 1 column
-        eskfp.P[0] = 0.0;
+        eskfp.P[0] = 0.5;
         // 2 column
-        eskfp.P[10] = 0.0;
+        eskfp.P[7] = 0.5;
         // 3 column
-        eskfp.P[20] = 0.0;
+        eskfp.P[14] = 0.5;
         // 4 column
-        eskfp.P[30] = 0.0;
+        eskfp.P[21] = 0.5;
         // 5 column
-        eskfp.P[40] = 0.0;
+        eskfp.P[28] = 0.5;
         // 6 column
-        eskfp.P[50] = 0.0;
-        // 7 column
-        eskfp.P[60] = 0.01;
-        // 8 column
-        eskfp.P[70] = 0.01;
-        // 9 column
-        eskfp.P[80] = 0.0;
+        eskfp.P[35] = 0.5;
       }
 
       void addSensorESKF(ESKF_Sensor * sensor)
       {
           sensors[sensor_count++] = sensor;
+      }
+
+      void updateQuaternion(float quat[4])
+      {
+          _quat[0] = quat[0];
+          _quat[1] = quat[1];
+          _quat[2] = quat[2];
+          _quat[3] = quat[3];
       }
 
       int update(ESKF_Sensor * sensor, float time)
@@ -264,23 +248,24 @@ namespace hf {
                its symmetry?)
           */
 
-          // Compute deltat
-          double t_now = (double)micros();
-          dt = (t_now - t_lastCall)/1000000.0f;
-          t_lastCall = t_now;
+          // Compute deltat between estimations
+          _tEstimation = micros();
+          dt = (_tEstimation - _tlastCall)/1000000.0f;
+          _tlastCall = _tEstimation;
 
-          sensor->integrateNominalState(eskfp.fx, eskfp.x, dt);
-          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, dt);
+          sensor->integrateNominalState(eskfp.fx, eskfp.x, _quat, dt);
+          sensor->getJacobianErrors(eskfp.Fdx, eskfp.x, _quat, dt);
+          
           sensor->getCovarianceEstimation(eskfp.Q);
 
           // Normalize quaternion
-          float quat_tmp[4] = { eskf.fx[6], eskf.fx[7], eskf.fx[8], eskf.fx[9] };
-          float norm_quat_tmp[4];
-          norvec(quat_tmp, norm_quat_tmp, 4);
-          eskf.fx[6] = norm_quat_tmp[0];
-          eskf.fx[7] = norm_quat_tmp[1];
-          eskf.fx[8] = norm_quat_tmp[2];
-          eskf.fx[9] = norm_quat_tmp[3];
+          // float quat_tmp[4] = { eskf.fx[6], eskf.fx[7], eskf.fx[8], eskf.fx[9] };
+          // float norm_quat_tmp[4];
+          // norvec(quat_tmp, norm_quat_tmp, 4);
+          // eskf.fx[6] = norm_quat_tmp[0];
+          // eskf.fx[7] = norm_quat_tmp[1];
+          // eskf.fx[8] = norm_quat_tmp[2];
+          // eskf.fx[9] = norm_quat_tmp[3];
 
           // Copy back estimated states into x
           copyvec(eskfp.fx, eskfp.x, nominalStates);
@@ -310,7 +295,6 @@ namespace hf {
             8. Update Covariance if required and enforce symmetry
             9. Reset errors
           */
-
           // Make all the entries of the used matrices zero
           // This is required because not all sensors have the same number of
           // observations and matrices are dimensioned so that they can store the
@@ -319,8 +303,8 @@ namespace hf {
           // calculations to affect the current correction.
           zeroCorrectMatrices();
 
-          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x);
-          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x);
+          bool JacobianOk = sensor->getJacobianObservation(eskfp.H, eskfp.x, _quat, _tEstimation);
+          bool InnovationOk = sensor->getInnovation(eskfp.hx, eskfp.x, _quat, _tEstimation);
           sensor->getCovarianceCorrection(eskfp.R);
 
           // Skip correction if there were any errors when obtaining
@@ -349,20 +333,20 @@ namespace hf {
 
           /* Error injection */
           // XXX Quaternion injection as a method
-          float tmp[4];
-          float tmp2[4];
-          tmp[0] = 1.0;
-          tmp[1] = eskf.dx[6]/2.0;
-          tmp[2] = eskf.dx[7]/2.0;
-          tmp[3] = eskf.dx[8]/2.0;
-          float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
-          Quaternion::computeqL(eskfp.qL, quat_tmp);
-          mulvec(eskfp.qL, tmp, tmp2, 4, 4);
-          norvec(tmp2, tmp, 4);
-          eskf.x[6] = tmp[0];
-          eskf.x[7] = tmp[1];
-          eskf.x[8] = tmp[2];
-          eskf.x[9] = tmp[3];
+          // float tmp[4];
+          // float tmp2[4];
+          // tmp[0] = 1.0;
+          // tmp[1] = eskf.dx[6]/2.0;
+          // tmp[2] = eskf.dx[7]/2.0;
+          // tmp[3] = eskf.dx[8]/2.0;
+          // float quat_tmp[4] = {eskf.x[6], eskf.x[7], eskf.x[8], eskf.x[9]}; 
+          // Quaternion::computeqL(eskfp.qL, quat_tmp);
+          // mulvec(eskfp.qL, tmp, tmp2, 4, 4);
+          // norvec(tmp2, tmp, 4);
+          // eskf.x[6] = tmp[0];
+          // eskf.x[7] = tmp[1];
+          // eskf.x[8] = tmp[2];
+          // eskf.x[9] = tmp[3];
           // Inject rest of errors
           eskf.x[0] += eskf.dx[0]; // position
           eskf.x[1] += eskf.dx[1];

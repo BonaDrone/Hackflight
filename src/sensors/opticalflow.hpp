@@ -34,21 +34,17 @@ namespace hf {
 
             static constexpr float UPDATE_HZ = 50.0; // XXX should be using interrupt!
             static constexpr float UPDATE_PERIOD = 1.0 / UPDATE_HZ;
-            // static const uint8_t HISTORY = 20;
-
-            // Use digital pin 12 for chip select and SPI1 port for comms
-            PMW3901 _flowSensor = PMW3901(12, &SPI1);
+            // sensor parameters
+            // Specific to the sensor
+            float _Npix = 30.0; // [pixels] (same in x and y)
+            float _thetapix = (M_PI / 180) * 4.2; // [rad] (same in x and y)
+            float _omegaFactor = 1.25;
             // flow measures
-            // hf::LowPassFilter _lpDeltaX = hf::LowPassFilter(HISTORY);
-            // hf::LowPassFilter _lpDeltaY = hf::LowPassFilter(HISTORY);
-            // float _filteredDeltaX = 0;
-            // float _filteredDeltaY = 0;                 
             float _deltaX = 0;
             float _deltaY = 0;
             // Time elapsed between corrections
+            float _time = 0.0;
             float deltat = 0.0;
-            // Focal distance 
-            float f = 350.0;
             // angular velocities
             float _rates[3];
 
@@ -56,18 +52,17 @@ namespace hf {
             
             virtual bool shouldUpdateESKF(float time, state_t & state) override
             {
-                static float _time;
-
                 if (time - _time > UPDATE_PERIOD) {
-                    int16_t deltaX=0, deltaY=0;
-                    _flowSensor.readMotionCount(&deltaX, &deltaY);
+                    float deltaX=0, deltaY=0;
+                    getAccumulatedMotion(deltaX, deltaY);
                     // To match camera frame
-                    // _filteredDeltaX = _lpDeltaX.update((float)deltaX);
-                    // _filteredDeltaY = _lpDeltaY.update((float)deltaY);                 
                     deltat = time -_time;
+                    // _deltaX = -deltaX / deltat;
+                    // _deltaY = deltaY / deltat;
+                    _deltaX = -deltaX;
+                    _deltaY = deltaY;
                     _time = time;
-                    _deltaX = -(float)deltaX / deltat;
-                    _deltaY = (float)deltaY / deltat;
+                                                            
                     return true; 
                 }
                 return false;
@@ -77,58 +72,37 @@ namespace hf {
 
             OpticalFlow(void) : PeripheralSensor(false, true) {}
 
-            bool begin(void)
+            virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) override
             {
-                // _lpDeltaX.init();
-                // _lpDeltaY.init();
-                bool connected = true;
-                if (!_flowSensor.begin()) {
-                    connected = false;
-                }
-                return connected;
-            }
-            virtual bool getJacobianObservation(float * H, float * x) override
-            {
-                float z;
+                float z_est;
                 // Saturate z estimation to avoid singularities
                 if (x[2] < 0.1)
                 {
-                    z = 0.1;
+                    z_est = 0.1;
                 } else {
-                    z = x[2];
+                    z_est = x[2];
                 }
-                // 1 column
-                H[0] =  0;
-                H[9] =  0;
-                // 2 column
-                H[1] =  0;
-                H[10] =  0;
-                // 3 column
-                H[2] =  -(f*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9]))*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/(z*z);
-                H[11] =   (f*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9]))*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/(z*z);
-                // 4 column
-                H[3] =  (f*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]))/z;
-                H[12] =          (f*(2*x[6]*x[9] - 2*x[7]*x[8])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                // 5 column
-                H[4] =           (f*(2*x[6]*x[9] + 2*x[7]*x[8])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                H[13] =  -(f*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9])*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]))/z;
-                // 6 column
-                H[5] =  -(f*(2*x[6]*x[8] - 2*x[7]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                H[14] =  -(f*(2*x[6]*x[7] + 2*x[8]*x[9])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z;
-                // 7 column
-                H[6] =  - (x[7]*((2*f*x[6]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[6]*((2*f*x[7]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[9]*((2*f*x[8]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[8]*((2*f*x[9]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
-                H[15] =    (x[6]*((2*f*x[7]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[7]*((2*f*x[6]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[8]*((2*f*x[9]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[9]*((2*f*x[8]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
-                // 8 column
-                H[7] =  (x[7]*((2*f*x[9]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[8]*((2*f*x[6]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[6]*((2*f*x[8]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[9]*((2*f*x[7]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
-                H[16] =  (x[8]*((2*f*x[6]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[9]*((2*f*x[7]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[6]*((2*f*x[8]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[7]*((2*f*x[9]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
-                // 9 column
-                H[8] =  (x[7]*((2*f*x[8]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[6]*((2*f*x[9]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[9]*((2*f*x[6]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z + (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[8]*((2*f*x[7]*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
-                H[17] =  (x[8]*((2*f*x[7]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[5] - 2*x[7]*x[4] + 2*x[8]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 + (x[9]*((2*f*x[6]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z + (f*(2*x[6]*x[4] + 2*x[7]*x[5] - 2*x[9]*x[3])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[6]*((2*f*x[9]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[6]*x[3] - 2*x[8]*x[5] + 2*x[9]*x[4])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2 - (x[7]*((2*f*x[8]*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9])))/z - (f*(2*x[7]*x[3] + 2*x[8]*x[4] + 2*x[9]*x[5])*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z))/2;
-
+                // delta is the time elapsed between the last estimation
+                // and the measurement.
+                // measurement time - last Estimation time
+                // deltat = _time - estimationTime/1000000.0;
+                // Jacobian of measurement model with respect to the error states
+                // 
+                //   H = [ 0 0 h_zx h_vx  0   0;...
+                //         0 0 h_zy  0   h_vy 0;];
+                float rotationComponent = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]; // R(3,3)
+                // Derive x measurement equation with respect to the error states (effectively vx and z)
+                H[2] = (_Npix * deltat / _thetapix) * ((rotationComponent * x[3]) / (-z_est * z_est));
+                H[3] = (_Npix * deltat / _thetapix) * (rotationComponent / z_est);
+                
+                // Derive y measurement equation with respect to the error states (effectively vy and z)
+                H[8] = (_Npix * deltat / _thetapix) * ((rotationComponent * x[4]) / (-z_est * z_est));
+                H[10] = (_Npix * deltat / _thetapix) * (rotationComponent / z_est);
+                
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x) override
+            virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) override
             {
                 // Saturate z estimation to avoid singularities
                 float z_est;
@@ -138,11 +112,14 @@ namespace hf {
                 } else {
                     z_est = x[2];
                 }
-                
+
+                // deltat = _time - estimationTime/1000000.0;
                 float _predictedObservation[2];
-                // predicted values
-                _predictedObservation[0] = (f*(x[3]*(x[6]*x[6] + x[7]*x[7] - x[8]*x[8] - x[9]*x[9]) + x[4]*(2*x[6]*x[9] + 2*x[7]*x[8]) - x[5]*(2*x[6]*x[8] - 2*x[7]*x[9]))*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z_est - f*(- _rates[1]);
-                _predictedObservation[1] =  - f*(- _rates[0]) - (f*(x[4]*(x[6]*x[6] - x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) - x[3]*(2*x[6]*x[9] - 2*x[7]*x[8]) + x[5]*(2*x[6]*x[7] + 2*x[8]*x[9]))*(x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9]))/z_est;
+                float rotationComponent = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3]; // R(3,3)            
+                // predicted number of accumulated pixels
+                _predictedObservation[0] = (deltat * _Npix / _thetapix ) * ((x[3] * rotationComponent / z_est) - _omegaFactor * _rates[1]);
+                _predictedObservation[1] = (deltat * _Npix / _thetapix ) * ((x[4] * rotationComponent / z_est) + _omegaFactor *_rates[0]);
+                
                 z[0] = _deltaX - _predictedObservation[0];
                 z[1] = _deltaY - _predictedObservation[1];
                 
@@ -151,8 +128,8 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 1.0;
-                R[4] = 1.0;
+                R[0] = 0.0625;
+                R[3] = 0.0625;
             }
             
             virtual void getMeasures(eskf_state_t & state) override
@@ -164,24 +141,14 @@ namespace hf {
 
             virtual bool Zinverse(float * Z, float * invZ) override
             {
-                // Since Z by default is a 3x3 matrix, temporarily copy its
-                // values in a 2x2 matrix to avoid messing up with the indexes
-                float Ztmp[4];
-                Ztmp[0] = Z[0];
-                Ztmp[1] = Z[1];
-                Ztmp[2] = Z[3];
-                Ztmp[3] = Z[4];
-                float invZtmp[4];
                 float tmp[2];
-                if (cholsl(Ztmp, invZtmp, tmp, 2))  return 1;
-                invZ[0] = invZtmp[0];
-                invZ[1] = invZtmp[1];
-                invZ[3] = invZtmp[2];
-                invZ[4] = invZtmp[3];
+                if (cholsl(Z, invZ, tmp, 2))  return 1;
                 return 0;
             }
             
             virtual bool isOpticalFlow(void) override { return true; }
+            
+            virtual bool getAccumulatedMotion(float & deltaX, float & deltaY) = 0;
 
     };  // class OpticalFlow 
 

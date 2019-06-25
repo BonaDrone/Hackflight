@@ -48,7 +48,7 @@ namespace hf {
                 memset(_accels, 0, 3*sizeof(float));
             }
             
-            virtual bool getJacobianObservation(float * H, float * x) override
+            virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) override
             {
                 // 1 column
                 H[0] =  0;
@@ -74,31 +74,19 @@ namespace hf {
                 H[5] =  0;
                 H[14] =  0;
                 H[23] =  0;
-                // 7 column
-                H[6] =                                  0;
-                H[15] =  x[6]*x[6] - x[7]*x[7] - x[8]*x[8] + x[9]*x[9];
-                H[24] =            - 2*x[6]*x[7] - 2*x[8]*x[9];
-                // 8 column
-                H[7] =  - x[6]*x[6] + x[7]*x[7] + x[8]*x[8] - x[9]*x[9];
-                H[16] =                                    0;
-                H[25] =                2*x[7]*x[9] - 2*x[6]*x[8];
-                // 9 column
-                H[8] =  2*x[6]*x[7] + 2*x[8]*x[9];
-                H[17] =  2*x[6]*x[8] - 2*x[7]*x[9];
-                H[26] =                      0;
                 
                 return true;
             }
 
-            virtual bool getInnovation(float * z, float * x) override
+            virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) override
             {
                 float tmp1[3];
                 float tmp2[3];
                 // We might have to normalize these two vectors (y and h)
                 // Predicted Observations
-                _predictedObservation[0] = ((2*x[6]*x[8] - 2*x[7]*x[9]) * -9.80665);
-                _predictedObservation[1] = ((-2*x[6]*x[7] - 2*x[8]*x[9]) * -9.80665);
-                _predictedObservation[2] = ((-x[6]*x[6] + x[7]*x[7] + x[8]*x[8] - x[9]*x[9]) * -9.80665);
+                _predictedObservation[0] = ((2*q[0]*q[2] - 2*q[1]*q[3]) * -9.80665);
+                _predictedObservation[1] = ((-2*q[0]*q[1] - 2*q[2]*q[3]) * -9.80665);
+                _predictedObservation[2] = ((-q[0]*q[0] + q[1]*q[1] + q[2]*q[2] - q[3]*q[3]) * -9.80665);
                                              
                 norvec(_predictedObservation, tmp1, 3);
                 norvec(_accels, tmp2, 3);

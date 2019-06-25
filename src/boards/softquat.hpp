@@ -56,46 +56,41 @@ namespace hf {
             float _gx = 0;
             float _gy = 0;
             float _gz = 0;
+            float _uTsx = 0;
+            float _uTsy = 0;
+            float _uTsz = 0;
+
 
             // Quaternion support: even though MPU9250 has a magnetometer, we keep it simple for now by 
             // using a 6DOF fiter (accel, gyro)
+            // MadgwickQuaternionFilter9DOF _quaternionFilter = MadgwickQuaternionFilter9DOF(BETA);
             MadgwickQuaternionFilter6DOF _quaternionFilter = MadgwickQuaternionFilter6DOF(BETA, ZETA);
 
         public:
 
             bool getGyrometer(float gyro[3])
             {
-                // Read acceleromter Gs, gyrometer degrees/sec
-                if (imuRead()) {
+              float _gyro[3], _accel[3];
+              if (getIMU(_gyro, _accel))
+              {
+                  gyro[0] = _gyro[0];
+                  gyro[1] = _gyro[1];
+                  gyro[2] = _gyro[2];
 
-                    // Convert gyrometer values from degrees/sec to radians/sec
-                    // _gx = deg2rad(_gx);
-                    // _gy = deg2rad(_gy);
-                    // _gz = deg2rad(_gz);
-                    
-                    gyro[0] = deg2rad(_gx);
-                    gyro[1] = deg2rad(_gy);
-                    gyro[2] = deg2rad(_gz);
+                  return true;
+              }
 
-                    // // Store output
-                    // gyro[0] = int(_gx*100)/100.0;
-                    // gyro[1] = int(_gy*100)/100.0;
-                    // gyro[2] = int(_gz*100)/100.0;
-
-                    return true;
-                }
-
-                return false;
+              return false;
             }
 
             bool getAccelerometer(float accel[3])
             {
-                // Read acceleromter Gs, gyrometer degrees/sec
-                if (imuRead()) {
-                    // convert from Gs to m/s^2
-                    accel[0] = _ax*9.80665;
-                    accel[1] = _ay*9.80665;
-                    accel[2] = _az*9.80665;
+                float _gyro[3], _accel[3];
+                if (getIMU(_gyro, _accel))
+                {
+                    accel[0] = _accel[0];
+                    accel[1] = _accel[1];
+                    accel[2] = _accel[2];
 
                     return true;
                 }
@@ -110,14 +105,34 @@ namespace hf {
 
                     // Convert gyrometer values from degrees/sec to radians/sec
                     // and store output
-                    gyro[0] = deg2rad(_gx);
-                    gyro[1] = deg2rad(_gy);
-                    gyro[2] = deg2rad(_gz);
+                    _gx = deg2rad(_gx);
+                    _gy = deg2rad(_gy);
+                    _gz = deg2rad(_gz);
+
+                    gyro[0] = _gx;
+                    gyro[1] = _gy;
+                    gyro[2] = _gz;
 
                     // convert from Gs to m/s^2
-                    accel[0] = _ax*9.80665;
-                    accel[1] = _ay*9.80665;
-                    accel[2] = _az*9.80665;
+                    _ax = _ax*9.80665;
+                    _ay = _ay*9.80665;
+                    _az = _az*9.80665;
+                    accel[0] = _ax;
+                    accel[1] = _ay;
+                    accel[2] = _az;
+
+                    return true;
+                }
+
+                return false;
+            }
+            
+            bool getMagnetometer(float uTs[3])
+            {
+                if (magnetometerRead()) {
+                    uTs[0] = _uTsx;
+                    uTs[1] = _uTsy;
+                    uTs[2] = _uTsz;
 
                     return true;
                 }
@@ -127,32 +142,26 @@ namespace hf {
 
             bool getQuaternion(float quat[4], float time)
             {
-                // Update quaternion after some number of IMU readings
-                _quatCycleCount = (_quatCycleCount + 1) % QUATERNION_DIVISOR;
+                  // Set integration time by time elapsed since last filter update
+                  static float _time;
+                  float deltat = time - _time;
+                  _time = time;
 
-                if (_quatCycleCount == 0) {
+                  // Run the quaternion on the IMU values acquired in imuRead()                   
+                  // _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, _uTsx, _uTsy, _uTsz, deltat); 
+                  _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, deltat); 
 
-                    // Set integration time by time elapsed since last filter update
-                    static float _time;
-                    float deltat = time - _time;
-                    _time = time;
+                  // Copy the quaternion back out
+                  quat[0] = _quaternionFilter.q1;
+                  quat[1] = _quaternionFilter.q2;
+                  quat[2] = _quaternionFilter.q3;
+                  quat[3] = _quaternionFilter.q4;
 
-                    // Run the quaternion on the IMU values acquired in imuRead()                   
-                    _quaternionFilter.update(_ax, _ay, _az, _gx, _gy, _gz, deltat); 
-
-                    // Copy the quaternion back out
-                    quat[0] = _quaternionFilter.q1;
-                    quat[1] = _quaternionFilter.q2;
-                    quat[2] = _quaternionFilter.q3;
-                    quat[3] = _quaternionFilter.q4;
-
-                    return true;
-                }
-
-                return false;
+                  return true;
             }
 
             virtual bool imuRead(void) = 0;
+            virtual bool magnetometerRead(void) = 0;
 
     }; // class SoftwareQuaternionBoard
 

@@ -43,16 +43,16 @@ namespace hf {
         bool isCorrection;
         
         // This methods should be overriden by sensors that estimate
-        virtual void integrateNominalState(float * fx, float * x, double dt) { (void)fx; (void)x; }
+        virtual void integrateNominalState(float * fx, float * x, float * q, double dt) { (void)fx; (void)x; }
         
-        virtual void getJacobianErrors(float * Fdx, float * x, double dt) { (void)Fdx; (void)x; }
+        virtual void getJacobianErrors(float * Fdx, float * x, float * q, double dt) { (void)Fdx; (void)x; }
         
         virtual void getCovarianceEstimation(float * Q) { (void)Q; }
 
         // This methods should be overriden by sensors that correct estimations
-        virtual bool getJacobianObservation(float * H, float * x) { (void)H; (void)x; }
+        virtual bool getJacobianObservation(float * H, float * x, float * q, uint32_t estimationTime) { (void)H; (void)x; }
         
-        virtual bool getInnovation(float * z, float * x) { (void)z; (void)x; }
+        virtual bool getInnovation(float * z, float * x, float * q, uint32_t estimationTime) { (void)z; (void)x; }
         
         virtual void getCovarianceCorrection(float * N) { (void)N; }
         
@@ -77,6 +77,8 @@ namespace hf {
         virtual void getMeasures(eskf_state_t & state) {(void)state;}
         
         virtual bool isOpticalFlow(void) { return false; }
+        
+        virtual void setSensorData(float data[3]) {(void)data;}
 
     }; // class ESKF_Sensor
 

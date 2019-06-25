@@ -25,10 +25,10 @@
 
 #pragma once
 
-#define NNsta 10
-#define NEsta 9
-#define Mobs 3
-#define MNQuat 4
+#define NNsta 6 // positions and velocities
+#define NEsta 6
+#define Mobs 2 // optical flow has 2 observations
+// #define MNQuat 4
 
 namespace hf {
 
@@ -36,7 +36,7 @@ namespace hf {
 
       float x[NNsta];               /*nominal state vector */
       float dx[NEsta];              /*error-state vector*/
-      float qL[MNQuat][MNQuat];     /*Left matrix quaternion*/
+      // float qL[MNQuat][MNQuat];     /*Left matrix quaternion*/
 
       float P[NEsta][NEsta];  /* prediction error covariance */
       float Q[NEsta][NEsta];  /* process noise covariance */
@@ -76,7 +76,7 @@ namespace hf {
 
       float * x;    /*nominal state vector */
       float * dx;   /*error-state vector*/
-      float * qL; /*Left matrix quaternion*/
+      // float * qL; /*Left matrix quaternion*/
 
       float * P;  /* prediction error covariance */
       float * Q;  /* process noise covariance */
