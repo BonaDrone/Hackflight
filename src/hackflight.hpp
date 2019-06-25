@@ -200,7 +200,7 @@ namespace hf {
                         float quat[4];
                         // This calls update the internal values of
                         // accelerations, rates and magnetic field
-                        _board->getIMU(accels, rates);
+                        _board->getIMU(rates, accels);
                         _board->getMagnetometer(magneto);
                         // update quaternion
                         _board->getQuaternion(quat);
