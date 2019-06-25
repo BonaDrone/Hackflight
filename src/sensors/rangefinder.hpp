@@ -35,7 +35,7 @@ namespace hf {
 
             static constexpr float UPDATE_HZ = 75.0; // XXX should be using interrupt!
 
-            static constexpr float UPDATE_PERIOD = 1.0/UPDATE_HZ;
+            static constexpr float UPDATE_PERIOD = 1.0 / UPDATE_HZ;
 
             float _distance;
             
@@ -58,7 +58,7 @@ namespace hf {
                 // 2 column
                 H[1] =  0;
                 // 3 column
-                H[2] =  1/aux1;
+                H[2] =  1 / aux1;
                 // 4 column
                 H[3] =  0;
                 // 5 column
@@ -73,7 +73,7 @@ namespace hf {
             {
                 // innovation = measured - predicted
                 // predicted is p_w_r(3)/R*R_r_i(3,3), where R = rotation matrix
-                float predicted = x[2]/( q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
+                float predicted = x[2] / ( q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
                 z[0] = _distance - predicted; 
                 
                 return true;               
@@ -81,7 +81,7 @@ namespace hf {
             
             virtual void getCovarianceCorrection(float * R) override
             {
-                R[0] = 0.01f;
+                R[0] = 0.1f;
             }
 
             virtual bool Zinverse(float * Z, float * invZ) override
@@ -90,7 +90,7 @@ namespace hf {
                 {
                     return 1;
                 }
-                invZ[0] = 1.0/Z[0];
+                invZ[0] = 1.0 / Z[0];
                 return 0;
             }
             
