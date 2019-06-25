@@ -53,11 +53,11 @@ namespace hf {
                 // 3 column
                 fx[2] =  x[2] + dt*x[5];
                 // 4 column
-                fx[3] =  x[3] - dt*((- _accels[0])*(q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3]) - (- _accels[1])*(2*q[0]*q[3] - 2*q[1]*q[2]) + (- _accels[2])*(2*q[0]*q[2] + 2*q[1]*q[3]));
+                fx[3] =  x[3] + dt*(_accels[0]*(q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3]) - _accels[1]*(2*q[0]*q[3] - 2*q[1]*q[2]) + (_accels[2] - 9.80665)*(2*q[0]*q[2] + 2*q[1]*q[3]));
                 // 5 column
-                fx[4] =  x[4] - dt*((- _accels[1])*(q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3]) + (- _accels[0])*(2*q[0]*q[3] + 2*q[1]*q[2]) - (- _accels[2])*(2*q[0]*q[1] - 2*q[2]*q[3]));
+                fx[4] =  x[4] + dt*(_accels[1]*(q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3]) + _accels[0]*(2*q[0]*q[3] + 2*q[1]*q[2]) - (_accels[2] - 9.80665)*(2*q[0]*q[1] - 2*q[2]*q[3]));
                 // 6 column
-                fx[5] =  x[5] - dt*(9.80665 + (- _accels[2])*(q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]) - (- _accels[0])*(2*q[0]*q[2] - 2*q[1]*q[3]) + (- _accels[1])*(2*q[0]*q[1] + 2*q[2]*q[3]));
+                fx[5] =  x[5] + dt*((_accels[2] - 9.80665)*(q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]) - _accels[0]*(2*q[0]*q[2] - 2*q[1]*q[3]) + _accels[1]*(2*q[0]*q[1] + 2*q[2]*q[3]));            
             }
             
             virtual void getJacobianErrors(float * Fdx, float * x, float * q, double dt) override
@@ -179,18 +179,25 @@ namespace hf {
 
             virtual bool shouldUpdateESKF(float time, state_t & state) override
             {
-                (void)time;
+                if (time - _time > UPDATE_PERIOD) {
+                    _time = time;                                                            
+                    return true; 
+                }
+                return false;
 
                 // board->getIMU(_rates, _accels);
 
                 // state.UAVState->angularVelocities[0] = _rates[0];
                 // state.UAVState->angularVelocities[1] = _rates[1];
                 // state.UAVState->angularVelocities[2] = _rates[2];                
-
-                return true;
             }
 
         private:
+
+            static constexpr float UPDATE_HZ = 250.0; // XXX should be using interrupt!
+            static constexpr float UPDATE_PERIOD = 1.0 / UPDATE_HZ;
+            // Time elapsed between corrections
+            float _time = 0.0;
 
             float _rates[3];
             float _accels[3];
